@@ -354,16 +354,50 @@
                   'bg-blue-50 dark:bg-blue-900/20': isToday(day),
                   'text-blue-600 dark:text-blue-400': isToday(day)
                 }">
-                <div>{{ getDayName(day, true) }}</div>
+                <div>{{ getWeekDayName(day, true) }}</div>
                 <div class="text-lg font-bold">{{ day.getDate() }}</div>
               </div>
             </div>
 
-            <!-- Week Grid (simplified) -->
-            <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
-              <p class="text-center text-gray-500 dark:text-gray-400">
-                Vista settimana - In sviluppo
-              </p>
+            <!-- Week Grid -->
+            <div class="flex-1 overflow-auto">
+              <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 min-h-full">
+                <!-- Time Column -->
+                <div class="bg-white dark:bg-gray-800">
+                  <div v-for="hour in 24" :key="hour-1" 
+                    class="h-16 border-b border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                    :class="{ 'border-b-2 border-gray-300 dark:border-gray-500': (hour-1) % 6 === 0 }">
+                    {{ String(hour-1).padStart(2, '0') }}:00
+                  </div>
+                </div>
+
+                <!-- Day Columns -->
+                <div v-for="day in getWeekDays(currentDate)" :key="day.getTime()" 
+                  class="bg-white dark:bg-gray-800 relative">
+                  
+                  <!-- Time Grid Lines -->
+                  <div v-for="hour in 24" :key="hour-1" 
+                    class="h-16 border-b border-gray-100 dark:border-gray-700"
+                    :class="{ 
+                      'border-b-2 border-gray-200 dark:border-gray-600': (hour-1) % 6 === 0,
+                      'bg-blue-50 dark:bg-blue-900/10': isToday(day)
+                    }">
+                  </div>
+
+                  <!-- Tasks for this day -->
+                  <div class="absolute inset-0 pointer-events-none">
+                    <div v-for="task in getTasksForDate(day)" :key="task.id"
+                      :style="getTaskTimeStyle(task)"
+                      @click="openTaskModalForEdit(task)"
+                      class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
+                      :class="getTaskTimeDisplayClasses(task)">
+                      <div class="truncate font-semibold">{{ task.title }}</div>
+                      <div v-if="task.location" class="truncate text-xs opacity-90">{{ task.location }}</div>
+                      <div class="text-xs opacity-75">{{ formatTaskTime(task) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -513,6 +547,7 @@ import {
   getDateDescription,
   isToday as isDateToday
 } from '../utils/dateHelpers'
+import { it } from 'date-fns/locale'
 // import { formatTaskPriority } from '../utils/formatters' // Removed as priority no longer exists
 import { CALENDAR_VIEWS, LOCALE_STRINGS } from '../utils/constants'
 
@@ -784,6 +819,81 @@ const openTaskModalForEdit = (task: Task) => {
   createTaskDate.value = undefined
   calendar.closeTaskModal()
   calendar.openCreateTaskModal()
+}
+
+// Weekly view helper methods
+const getTaskTimePosition = (task: Task) => {
+  if (!task.startDatetime) return { top: '0px', height: '32px' }
+  
+  const start = new Date(task.startDatetime)
+  const end = task.endDatetime ? new Date(task.endDatetime) : new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour
+  
+  // Calculate position based on hours (each hour = 64px height)
+  const startHour = start.getHours() + start.getMinutes() / 60
+  const endHour = end.getHours() + end.getMinutes() / 60
+  
+  const topPosition = startHour * 64 // 64px per hour (h-16 = 4rem = 64px)
+  const height = Math.max((endHour - startHour) * 64, 32) // Minimum 32px height
+  
+  return {
+    top: `${topPosition}px`,
+    height: `${height}px`
+  }
+}
+
+const getTaskTimeDisplayClasses = (task: Task) => {
+  const baseClasses = ['border-l-4']
+  
+  // Color based on task color or default
+  if (task.color) {
+    const style = document.createElement('div')
+    style.style.backgroundColor = task.color
+    const rgb = window.getComputedStyle(style).backgroundColor
+    baseClasses.push('text-white')
+    // We'll use inline styles for custom colors
+  } else {
+    // Default blue theme
+    baseClasses.push('bg-blue-500 text-white border-blue-700')
+  }
+  
+  if (task.completed) {
+    baseClasses.push('opacity-60 line-through')
+  }
+  
+  return baseClasses.join(' ')
+}
+
+const getTaskTimeStyle = (task: Task) => {
+  const positionStyle = getTaskTimePosition(task)
+  
+  if (task.color) {
+    return {
+      ...positionStyle,
+      backgroundColor: task.color,
+      borderLeftColor: task.color
+    }
+  }
+  
+  return positionStyle
+}
+
+const formatTaskTime = (task: Task) => {
+  if (!task.startDatetime) return ''
+  
+  const start = new Date(task.startDatetime)
+  const startTime = formatDate(start, 'HH:mm')
+  
+  if (task.endDatetime) {
+    const end = new Date(task.endDatetime)
+    const endTime = formatDate(end, 'HH:mm')
+    return `${startTime} - ${endTime}`
+  }
+  
+  return startTime
+}
+
+const getWeekDayName = (date: Date, short = false) => {
+  return formatDate(date, short ? 'EEE' : 'EEEE', { locale: it })
 }
 
 // Lifecycle
