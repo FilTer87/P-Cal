@@ -2,6 +2,7 @@
   "name": "privatecal-frontend",
   "version": "2.0.0",
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

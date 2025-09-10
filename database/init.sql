@@ -1,4 +1,4 @@
--- PrivateCal v2 Database Schema
+-- P-Cal Database Schema
 -- PostgreSQL initialization script
 
 -- Create database extensions if needed
@@ -89,7 +89,7 @@ INSERT INTO users (username, email, password_hash, first_name, last_name) VALUES
 -- Sample tasks (demo data)
 INSERT INTO tasks (user_id, title, description, start_datetime, end_datetime, color) VALUES 
 (1, 'Meeting con team di sviluppo', 'Discussione roadmap Q4', '2024-09-15 09:00:00', '2024-09-15 10:30:00', '#3788d8'),
-(1, 'Presentazione progetto', 'Demo PrivateCal v2 al cliente', '2024-09-16 14:00:00', '2024-09-16 15:00:00', '#f59e0b'),
+(1, 'Presentazione progetto', 'Demo P-Cal al cliente', '2024-09-16 14:00:00', '2024-09-16 15:00:00', '#f59e0b'),
 (1, 'Code review', 'Revisione backend API', '2024-09-17 11:00:00', '2024-09-17 12:00:00', '#10b981'),
 (2, 'Appuntamento medico', 'Controllo di routine', '2024-09-18 16:00:00', '2024-09-18 17:00:00', '#ef4444');
 

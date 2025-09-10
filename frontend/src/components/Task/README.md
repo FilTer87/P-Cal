@@ -1,6 +1,6 @@
 # Task Management Components
 
-This directory contains a comprehensive set of Vue 3 components for task management in PrivateCal v2. All components are built with TypeScript, Tailwind CSS, and support both light and dark themes.
+This directory contains a comprehensive set of Vue 3 components for task management in P-Cal. All components are built with TypeScript, Tailwind CSS, and support both light and dark themes.
 
 ## Components Overview
 

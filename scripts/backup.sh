@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# PrivateCal v2 Database Backup Script
+# P-Cal Database Backup Script
 # This script creates backups of the PostgreSQL database
 
 set -e
@@ -219,7 +219,7 @@ main() {
             export_json
             ;;
         "help")
-            echo "PrivateCal v2 Database Backup Script"
+            echo "P-Cal Database Backup Script"
             echo ""
             echo "Usage: $0 [command] [options]"
             echo ""

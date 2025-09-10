@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# PrivateCal v2 Setup Script
-# This script sets up the development environment for PrivateCal v2
+# P-Cal Setup Script
+# This script sets up the development environment for P-Cal
 
 set -e  # Exit on any error
 
@@ -106,7 +106,7 @@ setup_environment() {
 VITE_API_BASE_URL=http://localhost:8080/api
 VITE_NTFY_SERVER_URL=https://ntfy.sh
 VITE_NTFY_TOPIC_PREFIX=calendar-user-
-VITE_APP_NAME=PrivateCal v2
+VITE_APP_NAME=P-Cal
 VITE_DEFAULT_THEME=system
 EOL
         print_success "Created frontend/.env file"
@@ -228,7 +228,7 @@ create_systemd_services() {
     
     cat > privatecal.service << EOL
 [Unit]
-Description=PrivateCal v2 Application
+Description=P-Cal Application
 Requires=docker.service
 After=docker.service
 
@@ -299,7 +299,7 @@ show_next_steps() {
 # Main setup function
 main() {
     echo "=================================================="
-    echo "       PrivateCal v2 Setup Script"
+    echo "       P-Cal Setup Script"
     echo "=================================================="
     echo
     
