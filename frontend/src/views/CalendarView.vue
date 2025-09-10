@@ -4,137 +4,152 @@
     <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- Logo and Title -->
+          <!-- Mobile Menu Button + Logo and Title -->
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <!-- Mobile Sidebar Toggle -->
+            <button @click="showMobileSidebar = !showMobileSidebar"
+              class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
+              title="Toggle menu">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               PrivateCal
             </h1>
-            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+            <span class="ml-2 text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
               {{ formatDisplayDate(currentDate) }}
             </span>
           </div>
 
           <!-- Navigation Controls -->
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 md:space-x-4">
             <!-- View Mode Selector -->
-            <div class="flex bg-gray-100 dark:bg-gray-700 rounded-md p-1">
-              <button
-                v-for="view in CALENDAR_VIEWS"
-                :key="view.value"
-                @click="setViewMode(view.value)"
-                class="px-3 py-1 text-sm font-medium rounded transition-colors"
-                :class="{
+            <div class="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-md p-1">
+              <button v-for="view in CALENDAR_VIEWS" :key="view.value" @click="setViewMode(view.value)"
+                class="px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded transition-colors" :class="{
                   'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm': viewMode === view.value,
                   'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white': viewMode !== view.value
-                }"
-                :title="`${view.label} (${view.shortcut})`"
-              >
+                }" :title="`${view.label} (${view.shortcut})`">
                 {{ view.label }}
               </button>
             </div>
 
+            <!-- Mobile View Mode Dropdown -->
+            <div class="sm:hidden relative">
+              <select :value="viewMode" @change="setViewMode($event.target.value)"
+                class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 text-sm rounded-md border-0 focus:ring-2 focus:ring-blue-500">
+                <option v-for="view in CALENDAR_VIEWS" :key="view.value" :value="view.value">
+                  {{ view.label }}
+                </option>
+              </select>
+            </div>
+
             <!-- Navigation Buttons -->
             <div class="flex items-center space-x-1">
-              <button
-                @click="navigatePrevious"
+              <button @click="navigatePrevious"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo precedente (Ctrl + ←)"
-              >
+                title="Periodo precedente (Ctrl + ←)">
                 <ChevronLeftIcon class="h-5 w-5" />
               </button>
-              
-              <button
-                @click="goToToday"
-                class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Vai a oggi (Ctrl + T)"
-              >
-                Oggi
+
+              <button @click="goToToday"
+                class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                title="Vai a oggi (Ctrl + T)">
+                <span class="hidden sm:inline">Oggi</span>
+                <span class="sm:hidden">•</span>
               </button>
-              
-              <button
-                @click="navigateNext"
+
+              <button @click="navigateNext"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo successivo (Ctrl + →)"
-              >
+                title="Periodo successivo (Ctrl + →)">
                 <ChevronRightIcon class="h-5 w-5" />
               </button>
             </div>
 
-            <!-- User Menu -->
-            <div class="flex items-center space-x-4">
-              <!-- Theme Toggle -->
-              <button
-                @click="toggleTheme"
-                class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                :title="`Cambia tema: ${themeName}`"
-              >
-                <SunIcon v-if="isDarkMode" class="h-5 w-5" />
-                <MoonIcon v-else class="h-5 w-5" />
-              </button>
-
-              <!-- User Profile -->
-              <div class="relative" ref="userMenuRef">
-                <button
-                  @click="showUserMenu = !showUserMenu"
-                  class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {{ userInitials }}
-                  </div>
-                  <ChevronDownIcon class="h-4 w-4 text-gray-400" />
-                </button>
-
-                <!-- User Dropdown -->
-                <div
-                  v-if="showUserMenu"
-                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
-                >
-                  <div class="py-1">
-                    <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600">
-                      {{ userFullName }}
-                    </div>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      @click.prevent="showProfile"
-                    >
-                      Profilo
-                    </a>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      @click.prevent="showSettings"
-                    >
-                      Impostazioni
-                    </a>
-                    <div class="border-t border-gray-200 dark:border-gray-600"></div>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      @click.prevent="handleLogout"
-                    >
-                      Disconnetti
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <div class="flex h-[calc(100vh-4rem)]">
+    <div class="flex h-[calc(100vh-4rem)] relative">
+      <!-- Mobile Sidebar Overlay -->
+      <div v-if="showMobileSidebar" @click="showMobileSidebar = false"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden"></div>
+
       <!-- Sidebar -->
-      <aside class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+      <aside :class="[
+        'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 ease-in-out z-50',
+        'md:relative md:translate-x-0 md:w-80',
+        'fixed inset-y-0 left-0 w-80 transform',
+        showMobileSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      ]">
         <div class="p-4">
+          <!-- User Profile & Settings -->
+          <div class="mb-6">
+            <!-- User Profile -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-3">
+                <div
+                  class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                  {{ userInitials }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ userFullName }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ user?.username }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Theme Toggle -->
+              <button @click="toggleTheme"
+                class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                :title="`Cambia tema: ${themeName}`">
+                <SunIcon v-if="isDarkMode" class="h-5 w-5" />
+                <MoonIcon v-else class="h-5 w-5" />
+              </button>
+            </div>
+
+            <!-- User Menu Actions -->
+            <div class="space-y-1">
+              <button @click="showProfile"
+                class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profilo
+              </button>
+
+              <button @click="showSettings"
+                class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Impostazioni
+              </button>
+
+              <button @click="handleLogout"
+                class="w-full flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Disconnetti
+              </button>
+            </div>
+          </div>
+
           <!-- New Task Button -->
-          <button
-            @click="openCreateTaskModal()"
-            class="w-full btn btn-primary mb-6"
-            title="Nuova attività (Ctrl + N)"
-          >
+          <button @click="openCreateTaskModal()" class="w-full btn btn-primary mb-6" title="Nuova attività (Ctrl + N)">
             <PlusIcon class="h-4 w-4 mr-2" />
             Nuova Attività
           </button>
@@ -144,33 +159,33 @@
             <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
               Statistiche
             </h3>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+              <div class="bg-blue-50 dark:bg-blue-900/20 p-2 sm:p-3 rounded-md">
+                <div class="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {{ taskStats?.pending ?? 0 }}
                 </div>
                 <div class="text-xs text-blue-600 dark:text-blue-400">
                   In corso
                 </div>
               </div>
-              <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
-                <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div class="bg-green-50 dark:bg-green-900/20 p-2 sm:p-3 rounded-md">
+                <div class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400">
                   {{ taskStats?.completed ?? 0 }}
                 </div>
                 <div class="text-xs text-green-600 dark:text-green-400">
                   Completate
                 </div>
               </div>
-              <div class="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md">
-                <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+              <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-md">
+                <div class="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {{ taskStats?.today ?? 0 }}
                 </div>
                 <div class="text-xs text-yellow-600 dark:text-yellow-400">
                   Oggi
                 </div>
               </div>
-              <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-md">
-                <div class="text-2xl font-bold text-red-600 dark:text-red-400">
+              <div class="bg-red-50 dark:bg-red-900/20 p-2 sm:p-3 rounded-md">
+                <div class="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
                   {{ taskStats?.overdue ?? 0 }}
                 </div>
                 <div class="text-xs text-red-600 dark:text-red-400">
@@ -186,42 +201,27 @@
               Attività di oggi
             </h3>
             <div class="space-y-2">
-              <div
-                v-for="task in todayTasks.slice(0, 5)"
-                :key="task.id"
-                @click="openTaskModal(task)"
-                class="p-3 rounded-md cursor-pointer transition-colors"
-                :class="[
-                  task.completed 
-                    ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' 
+              <div v-for="task in todayTasks.slice(0, 5)" :key="task.id" @click="openTaskModal(task)"
+                class="p-3 rounded-md cursor-pointer transition-colors" :class="[
+                  task.completed
+                    ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
                     : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                ]"
-              >
+                ]">
                 <div class="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    :checked="task.completed"
-                    @click.stop="toggleTaskCompletion(task.id)"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
+                  <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
+                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                   <div class="flex-1 min-w-0">
-                    <p
-                      class="text-sm font-medium truncate"
-                      :class="{
-                        'text-gray-900 dark:text-white': !task.completed,
-                        'text-gray-500 dark:text-gray-400 line-through': task.completed
-                      }"
-                    >
+                    <p class="text-sm font-medium truncate" :class="{
+                      'text-gray-900 dark:text-white': !task.completed,
+                      'text-gray-500 dark:text-gray-400 line-through': task.completed
+                    }">
                       {{ task.title }}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {{ task.dueDate ? formatTime(task.dueDate) : 'Nessuna ora' }}
                     </p>
                   </div>
-                  <div
-                    class="w-2 h-2 rounded-full"
-                    :class="getPriorityColor(task.priority)"
-                  ></div>
+                  <div class="w-2 h-2 rounded-full" :class="getPriorityColor(task.priority)"></div>
                 </div>
               </div>
             </div>
@@ -238,11 +238,8 @@
               Promemoria imminenti
             </h3>
             <div class="space-y-2">
-              <div
-                v-for="reminder in upcomingReminders.slice(0, 3)"
-                :key="reminder.id"
-                class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md"
-              >
+              <div v-for="reminder in upcomingReminders.slice(0, 3)" :key="reminder.id"
+                class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
                 <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                   {{ getTaskById(reminder.taskId)?.title || 'Attività eliminata' }}
                 </p>
@@ -256,77 +253,65 @@
       </aside>
 
       <!-- Calendar Area -->
-      <main class="flex-1 overflow-hidden">
+      <main class="flex-1 overflow-hidden md:ml-0">
         <!-- Calendar Header -->
-        <div class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ currentMonthName }}
-          </h2>
+        <div class="p-3 md:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
+              {{ currentMonthName }}
+            </h2>
+            <!-- Mobile Close Sidebar Button (only visible when sidebar is open) -->
+            <button v-if="showMobileSidebar" @click="showMobileSidebar = false"
+              class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Calendar Content -->
-        <div class="p-4 h-full overflow-y-auto">
+        <div class="p-2 md:p-4 h-full overflow-y-auto">
           <!-- Month View -->
-          <div v-if="isMonthView" class="calendar-grid">
+          <div v-if="isMonthView" class="calendar-grid-mobile md:calendar-grid">
             <!-- Week Days Header -->
-            <div
-              v-for="day in LOCALE_STRINGS.weekdaysShort"
-              :key="day"
-              class="calendar-day-header"
-            >
+            <div v-for="day in LOCALE_STRINGS.weekdaysShort" :key="day" class="calendar-day-header">
               {{ day }}
             </div>
 
             <!-- Calendar Days -->
-            <div
-              v-for="day in calendarDays"
-              :key="day.date.getTime()"
-              @click="selectDate(day.date)"
+            <div v-for="day in calendarDays" :key="day.date.getTime()" @click="selectDate(day.date)"
               @dblclick="openCreateTaskModal(day.date)"
-              class="calendar-day min-h-32 cursor-pointer transition-colors"
-              :class="{
+              class="calendar-day min-h-20 md:min-h-32 cursor-pointer transition-colors p-1 md:p-2" :class="{
                 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-400': day.isSelected,
                 'bg-yellow-50 dark:bg-yellow-900/20': day.isToday && !day.isSelected,
                 'text-gray-400 dark:text-gray-600': !day.isCurrentMonth,
                 'hover:bg-gray-100 dark:hover:bg-gray-700': !day.isSelected && !day.isToday
-              }"
-            >
+              }">
               <!-- Day Number -->
               <div class="flex justify-between items-center mb-2">
-                <span
-                  class="text-sm font-medium"
-                  :class="{
-                    'text-blue-600 dark:text-blue-400': day.isSelected,
-                    'text-yellow-700 dark:text-yellow-300': day.isToday && !day.isSelected,
-                    'text-gray-900 dark:text-white': day.isCurrentMonth && !day.isToday && !day.isSelected,
-                    'text-gray-400 dark:text-gray-600': !day.isCurrentMonth
-                  }"
-                >
+                <span class="text-sm font-medium" :class="{
+                  'text-blue-600 dark:text-blue-400': day.isSelected,
+                  'text-yellow-700 dark:text-yellow-300': day.isToday && !day.isSelected,
+                  'text-gray-900 dark:text-white': day.isCurrentMonth && !day.isToday && !day.isSelected,
+                  'text-gray-400 dark:text-gray-600': !day.isCurrentMonth
+                }">
                   {{ day.dayOfMonth }}
                 </span>
-                <div
-                  v-if="day.tasks && day.tasks.length > 0"
-                  class="text-xs text-gray-500 dark:text-gray-400"
-                >
+                <div v-if="day.tasks && day.tasks.length > 0" class="text-xs text-gray-500 dark:text-gray-400">
                   {{ day.tasks.length }}
                 </div>
               </div>
 
               <!-- Tasks -->
               <div class="space-y-1">
-                <div
-                  v-for="task in (day.tasks || []).slice(0, 3)"
-                  :key="task.id"
+                <div v-for="task in (day.tasks || []).slice(0, 3)" :key="task.id"
                   @click.stop="openTaskModal(getTaskById(task.id)!)"
                   class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
-                  :class="getTaskDisplayClasses(task)"
-                >
+                  :class="getTaskDisplayClasses(task)">
                   {{ task.completed ? '✓' : '' }} {{ task.title }}
                 </div>
-                <div
-                  v-if="day.tasks && day.tasks.length > 3"
-                  class="text-xs text-gray-500 dark:text-gray-400 p-1"
-                >
+                <div v-if="day.tasks && day.tasks.length > 3" class="text-xs text-gray-500 dark:text-gray-400 p-1">
                   +{{ day.tasks.length - 3 }} altro/i
                 </div>
               </div>
@@ -340,15 +325,11 @@
               <div class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center">
                 Ora
               </div>
-              <div
-                v-for="day in getWeekDays(currentDate)"
-                :key="day.getTime()"
-                class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center"
-                :class="{
+              <div v-for="day in getWeekDays(currentDate)" :key="day.getTime()"
+                class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center" :class="{
                   'bg-blue-50 dark:bg-blue-900/20': isToday(day),
                   'text-blue-600 dark:text-blue-400': isToday(day)
-                }"
-              >
+                }">
                 <div>{{ getDayName(day, true) }}</div>
                 <div class="text-lg font-bold">{{ day.getDate() }}</div>
               </div>
@@ -368,22 +349,13 @@
               <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-4">
                 {{ formatDate(currentDate) }}
               </h3>
-              
+
               <div class="space-y-3">
-                <div
-                  v-for="task in getTasksForDate(currentDate)"
-                  :key="task.id"
-                  @click="openTaskModal(task)"
-                  class="p-4 rounded-lg cursor-pointer transition-colors"
-                  :class="getTaskDisplayClasses(task, true)"
-                >
+                <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModal(task)"
+                  class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)">
                   <div class="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      :checked="task.completed"
-                      @click.stop="toggleTaskCompletion(task.id)"
-                      class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
+                    <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
+                      class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                     <div class="flex-1">
                       <h4 class="font-medium text-gray-900 dark:text-white">
                         {{ task.title }}
@@ -406,10 +378,8 @@
                   <p class="text-gray-500 dark:text-gray-400">
                     Nessuna attività programmata per oggi
                   </p>
-                  <button
-                    @click="openCreateTaskModal(currentDate)"
-                    class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                  >
+                  <button @click="openCreateTaskModal(currentDate)"
+                    class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                     Crea la prima attività
                   </button>
                 </div>
@@ -419,29 +389,17 @@
 
           <!-- Agenda View -->
           <div v-else-if="isAgendaView" class="space-y-4">
-            <div
-              v-for="(dayTasks, date) in tasksByDateInRange"
-              :key="date"
-              class="bg-white dark:bg-gray-800 rounded-lg p-4"
-            >
+            <div v-for="(dayTasks, date) in tasksByDateInRange" :key="date"
+              class="bg-white dark:bg-gray-800 rounded-lg p-4">
               <h3 class="font-medium text-gray-900 dark:text-white mb-3">
                 {{ getDateDescription(new Date(date)) }}
               </h3>
               <div class="space-y-2">
-                <div
-                  v-for="task in dayTasks"
-                  :key="task.id"
-                  @click="openTaskModal(task)"
-                  class="p-3 rounded-lg cursor-pointer transition-colors"
-                  :class="getTaskDisplayClasses(task)"
-                >
+                <div v-for="task in dayTasks" :key="task.id" @click="openTaskModal(task)"
+                  class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)">
                   <div class="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      :checked="task.completed"
-                      @click.stop="toggleTaskCompletion(task.id)"
-                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
+                    <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
+                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                     <div class="flex-1">
                       <p class="font-medium text-gray-900 dark:text-white">
                         {{ task.title }}
@@ -529,10 +487,10 @@ import { useTheme } from '../composables/useTheme'
 import { useNotifications } from '../composables/useNotifications'
 
 // Utilities
-import { 
-  formatDate, 
-  formatDateTime, 
-  formatTime, 
+import {
+  formatDate,
+  formatDateTime,
+  formatTime,
   getDayName,
   getDateDescription,
   isToday as isDateToday
@@ -549,8 +507,7 @@ const theme = useTheme()
 const { showError, showConfirmation } = useNotifications()
 
 // Reactive state
-const showUserMenu = ref(false)
-const userMenuRef = ref<HTMLElement>()
+const showMobileSidebar = ref(false)
 
 // Computed properties from composables
 const {
@@ -641,41 +598,41 @@ const getPriorityColor = (priority: string) => {
 }
 
 const getTaskDisplayClasses = (task: any, detailed = false) => {
-  const baseClasses = detailed 
-    ? 'border-l-4' 
+  const baseClasses = detailed
+    ? 'border-l-4'
     : ''
-  
+
   if (task.completed) {
     return `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/30`
   }
-  
+
   if (task.isOverdue) {
     return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30`
   }
-  
+
   const priorityClasses = {
     URGENT: `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30`,
     HIGH: `${baseClasses} bg-orange-50 dark:bg-orange-900/20 border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30`,
     MEDIUM: `${baseClasses} bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/30`,
     LOW: `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/30`
   }
-  
-  return priorityClasses[task.priority as keyof typeof priorityClasses] || 
-         `${baseClasses} bg-blue-50 dark:bg-blue-900/20 border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30`
+
+  return priorityClasses[task.priority as keyof typeof priorityClasses] ||
+    `${baseClasses} bg-blue-50 dark:bg-blue-900/20 border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30`
 }
 
 const showProfile = () => {
   showError('Funzionalità profilo non ancora implementata')
-  showUserMenu.value = false
+  showMobileSidebar.value = false
 }
 
 const showSettings = () => {
   showError('Funzionalità impostazioni non ancora implementata')
-  showUserMenu.value = false
+  showMobileSidebar.value = false
 }
 
 const handleLogout = () => {
-  showUserMenu.value = false
+  showMobileSidebar.value = false
   showConfirmation(
     'Sei sicuro di voler uscire?',
     async () => {
@@ -686,7 +643,7 @@ const handleLogout = () => {
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
   calendar.handleKeyboardNavigation(event)
-  
+
   // Additional shortcuts
   if (event.ctrlKey && event.key === 'n') {
     event.preventDefault()
@@ -695,8 +652,17 @@ const handleKeyboardShortcuts = (event: KeyboardEvent) => {
 }
 
 const handleClickOutside = (event: Event) => {
-  if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
-    showUserMenu.value = false
+  // Handle click outside for mobile sidebar if needed
+}
+
+const closeMobileSidebar = () => {
+  showMobileSidebar.value = false
+}
+
+// Close mobile sidebar on route/navigation changes
+const handleMobileSidebarClose = () => {
+  if (showMobileSidebar.value) {
+    showMobileSidebar.value = false
   }
 }
 
@@ -704,17 +670,17 @@ const handleClickOutside = (event: Event) => {
 onMounted(async () => {
   // Initialize auth and require authentication
   await auth.requireAuth()
-  
+
   // Initialize calendar view mode
   calendar.initializeViewMode()
-  
+
   // Fetch initial data
   await tasks.fetchTasks()
   await reminders.fetchAllReminders()
-  
+
   // Fetch accurate statistics from dedicated endpoints
   await tasks.refreshStatistics()
-  
+
   // Set up event listeners
   document.addEventListener('keydown', handleKeyboardShortcuts)
   document.addEventListener('click', handleClickOutside)
@@ -725,3 +691,54 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
+<style scoped>
+/* Calendar Grid Styles */
+.calendar-grid {
+  @apply grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden;
+}
+
+.calendar-grid-mobile {
+  @apply grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden;
+}
+
+.calendar-day-header {
+  @apply bg-gray-50 dark:bg-gray-700 p-2 md:p-3 text-center text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+.calendar-day {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex flex-col;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  .calendar-day-header {
+    @apply p-2 text-xs;
+  }
+
+  .calendar-day {
+    @apply text-xs;
+  }
+}
+
+/* Responsive modal positioning */
+.modal-overlay {
+  @apply fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4;
+}
+
+.modal-content {
+  @apply relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4;
+  @apply p-4 md:p-6;
+}
+
+/* Responsive utility classes */
+@media (max-width: 640px) {
+  .mobile-hidden {
+    @apply hidden;
+  }
+
+  .mobile-full {
+    @apply w-full;
+  }
+}
+</style>
