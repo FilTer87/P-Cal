@@ -1,0 +1,52 @@
+{"properties": [
+  {
+    "name": "app.cors.allow-credentials",
+    "type": "java.lang.String",
+    "description": "A description for 'app.cors.allow-credentials'"
+  },
+  {
+    "name": "app.cors.allowed-headers",
+    "type": "java.lang.String",
+    "description": "A description for 'app.cors.allowed-headers'"
+  },
+  {
+    "name": "app.cors.allowed-methods",
+    "type": "java.lang.String",
+    "description": "A description for 'app.cors.allowed-methods'"
+  },
+  {
+    "name": "app.cors.allowed-origins",
+    "type": "java.lang.String",
+    "description": "A description for 'app.cors.allowed-origins'"
+  },
+  {
+    "name": "app.ntfy.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'app.ntfy.enabled'"
+  },
+  {
+    "name": "app.ntfy.topic-prefix",
+    "type": "java.lang.String",
+    "description": "A description for 'app.ntfy.topic-prefix'"
+  },
+  {
+    "name": "app.ntfy.server-url",
+    "type": "java.lang.String",
+    "description": "A description for 'app.ntfy.server-url'"
+  },
+  {
+    "name": "app.jwt.refresh-token-expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.refresh-token-expiration'"
+  },
+  {
+    "name": "app.jwt.access-token-expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.access-token-expiration'"
+  },
+  {
+    "name": "app.jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.secret'"
+  }
+]}

@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: privatecal-db
+    environment:
+      POSTGRES_DB: calendar_db
+      POSTGRES_USER: calendar_user
+      POSTGRES_PASSWORD: calendar_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - privatecal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calendar_user -d calendar_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: privatecal-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_URL=jdbc:postgresql://database:5432/calendar_db
+      - DATABASE_USERNAME=calendar_user
+      - DATABASE_PASSWORD=calendar_pass
+      - JWT_SECRET=privatecal-jwt-secret-key-2024-very-secure
+      - NTFY_SERVER_URL=https://ntfy.sh
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - privatecal-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: privatecal-frontend
+    ports:
+      - "80:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - privatecal-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  privatecal-network:
+    driver: bridge
