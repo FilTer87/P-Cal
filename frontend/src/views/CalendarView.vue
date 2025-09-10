@@ -89,8 +89,8 @@
         <div class="p-4">
           <!-- User Profile & Settings -->
           <div class="mb-6">
-            <!-- User Profile -->
-            <div class="flex items-center justify-between mb-4">
+            <!-- User Profile Header (Always Visible, Clickable) -->
+            <div class="flex items-center justify-between mb-4 cursor-pointer" @click="toggleUserMenu">
               <div class="flex items-center space-x-3">
                 <div
                   class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -106,17 +106,23 @@
                 </div>
               </div>
 
-              <!-- Theme Toggle -->
-              <button @click="toggleTheme"
-                class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                :title="`Cambia tema: ${themeName}`">
-                <SunIcon v-if="isDarkMode" class="h-5 w-5" />
-                <MoonIcon v-else class="h-5 w-5" />
-              </button>
+              <div class="flex items-center space-x-2">
+                <!-- Theme Toggle -->
+                <button @click.stop="toggleTheme"
+                  class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  :title="`Cambia tema: ${themeName}`">
+                  <SunIcon v-if="isDarkMode" class="h-5 w-5" />
+                  <MoonIcon v-else class="h-5 w-5" />
+                </button>
+                
+                <!-- Dropdown Arrow -->
+                <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200" 
+                  :class="{ 'rotate-180': showUserMenu }" />
+              </div>
             </div>
 
-            <!-- User Menu Actions -->
-            <div class="space-y-1">
+            <!-- User Menu Actions (Collapsible) -->
+            <div v-show="showUserMenu" class="space-y-1 transition-all duration-200">
               <button @click="showProfile"
                 class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,48 +154,51 @@
             </div>
           </div>
 
-          <!-- New Task Button -->
-          <button @click="openCreateTaskModal()" class="w-full btn btn-primary mb-6" title="Nuova attività (Ctrl + N)">
-            <PlusIcon class="h-4 w-4 mr-2" />
-            Nuova Attività
-          </button>
-
-          <!-- Quick Stats -->
+          <!-- Statistics Section (Collapsible) -->
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-              Statistiche
-            </h3>
-            <div class="grid grid-cols-2 gap-2 sm:gap-3">
-              <div class="bg-blue-50 dark:bg-blue-900/20 p-2 sm:p-3 rounded-md">
-                <div class="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {{ taskStats?.pending ?? 0 }}
+            <!-- Statistics Header (Clickable) -->
+            <div class="flex items-center justify-between mb-3 cursor-pointer" @click="toggleStatistics">
+              <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                Statistiche
+              </h3>
+              <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200" 
+                :class="{ 'rotate-180': showStatistics }" />
+            </div>
+            
+            <!-- Statistics Content (Collapsible) -->
+            <div v-show="showStatistics" class="transition-all duration-200">
+              <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-2 sm:p-3 rounded-md">
+                  <div class="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {{ taskStats?.pending ?? 0 }}
+                  </div>
+                  <div class="text-xs text-blue-600 dark:text-blue-400">
+                    In corso
+                  </div>
                 </div>
-                <div class="text-xs text-blue-600 dark:text-blue-400">
-                  In corso
+                <div class="bg-green-50 dark:bg-green-900/20 p-2 sm:p-3 rounded-md">
+                  <div class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400">
+                    {{ taskStats?.completed ?? 0 }}
+                  </div>
+                  <div class="text-xs text-green-600 dark:text-green-400">
+                    Completate
+                  </div>
                 </div>
-              </div>
-              <div class="bg-green-50 dark:bg-green-900/20 p-2 sm:p-3 rounded-md">
-                <div class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400">
-                  {{ taskStats?.completed ?? 0 }}
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-md">
+                  <div class="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    {{ taskStats?.today ?? 0 }}
+                  </div>
+                  <div class="text-xs text-yellow-600 dark:text-yellow-400">
+                    Oggi
+                  </div>
                 </div>
-                <div class="text-xs text-green-600 dark:text-green-400">
-                  Completate
-                </div>
-              </div>
-              <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-md">
-                <div class="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                  {{ taskStats?.today ?? 0 }}
-                </div>
-                <div class="text-xs text-yellow-600 dark:text-yellow-400">
-                  Oggi
-                </div>
-              </div>
-              <div class="bg-red-50 dark:bg-red-900/20 p-2 sm:p-3 rounded-md">
-                <div class="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
-                  {{ taskStats?.overdue ?? 0 }}
-                </div>
-                <div class="text-xs text-red-600 dark:text-red-400">
-                  In ritardo
+                <div class="bg-red-50 dark:bg-red-900/20 p-2 sm:p-3 rounded-md">
+                  <div class="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
+                    {{ taskStats?.overdue ?? 0 }}
+                  </div>
+                  <div class="text-xs text-red-600 dark:text-red-400">
+                    In ritardo
+                  </div>
                 </div>
               </div>
             </div>
@@ -221,7 +230,7 @@
                       {{ task.dueDate ? formatTime(task.dueDate) : 'Nessuna ora' }}
                     </p>
                   </div>
-                  <div class="w-2 h-2 rounded-full" :class="getPriorityColor(task.priority)"></div>
+                  <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>
                 </div>
               </div>
             </div>
@@ -249,6 +258,13 @@
               </div>
             </div>
           </div>
+
+          <!-- New Task Button -->
+          <button @click="openCreateTaskModalWithDate()" class="w-full btn btn-primary mb-6" title="Nuova attività (Ctrl + N)">
+            <PlusIcon class="h-4 w-4 mr-2" />
+            Nuova Attività
+          </button>
+          
         </div>
       </aside>
 
@@ -257,7 +273,15 @@
         <!-- Calendar Header -->
         <div class="p-3 md:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div class="flex items-center justify-between">
-            <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
+            <div v-if="isAgendaView">
+              <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
+                Agenda
+              </h2>
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Visualizza le attività dei prossimi {{ agendaDays }} giorni
+              </p>
+            </div>
+            <h2 v-else class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
               {{ currentMonthName }}
             </h2>
             <!-- Mobile Close Sidebar Button (only visible when sidebar is open) -->
@@ -281,7 +305,7 @@
 
             <!-- Calendar Days -->
             <div v-for="day in calendarDays" :key="day.date.getTime()" @click="selectDate(day.date)"
-              @dblclick="openCreateTaskModal(day.date)"
+              @dblclick="openCreateTaskModalWithDate(day.date)"
               class="calendar-day min-h-20 md:min-h-32 cursor-pointer transition-colors p-1 md:p-2" :class="{
                 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-400': day.isSelected,
                 'bg-yellow-50 dark:bg-yellow-900/20': day.isToday && !day.isSelected,
@@ -306,7 +330,7 @@
               <!-- Tasks -->
               <div class="space-y-1">
                 <div v-for="task in (day.tasks || []).slice(0, 3)" :key="task.id"
-                  @click.stop="openTaskModal(getTaskById(task.id)!)"
+                  @click.stop="openTaskModalForEdit(getTaskById(task.id)!)"
                   class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
                   :class="getTaskDisplayClasses(task)">
                   {{ task.completed ? '✓' : '' }} {{ task.title }}
@@ -351,7 +375,7 @@
               </h3>
 
               <div class="space-y-3">
-                <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModal(task)"
+                <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModalForEdit(task)"
                   class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)">
                   <div class="flex items-center space-x-3">
                     <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
@@ -364,8 +388,8 @@
                         {{ task.description }}
                       </p>
                       <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span>{{ formatTaskPriority(task.priority) }}</span>
-                        <span v-if="task.dueDate">{{ formatTime(task.dueDate) }}</span>
+                        <span>{{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}</span>
+                        <span>{{ formatTime(task.startDatetime) }}</span>
                         <span v-if="task.reminders && task.reminders.length > 0">
                           {{ task.reminders.length }} promemoria
                         </span>
@@ -378,7 +402,7 @@
                   <p class="text-gray-500 dark:text-gray-400">
                     Nessuna attività programmata per oggi
                   </p>
-                  <button @click="openCreateTaskModal(currentDate)"
+                  <button @click="openCreateTaskModalWithDate(currentDate)"
                     class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                     Crea la prima attività
                   </button>
@@ -389,13 +413,13 @@
 
           <!-- Agenda View -->
           <div v-else-if="isAgendaView" class="space-y-4">
-            <div v-for="(dayTasks, date) in tasksByDateInRange" :key="date"
+            <div v-for="(dayTasks, date) in sortedTasksByDateInRange" :key="date"
               class="bg-white dark:bg-gray-800 rounded-lg p-4">
               <h3 class="font-medium text-gray-900 dark:text-white mb-3">
                 {{ getDateDescription(new Date(date)) }}
               </h3>
               <div class="space-y-2">
-                <div v-for="task in dayTasks" :key="task.id" @click="openTaskModal(task)"
+                <div v-for="task in dayTasks" :key="task.id" @click="openTaskModalForEdit(task)"
                   class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)">
                   <div class="flex items-center space-x-3">
                     <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
@@ -405,8 +429,8 @@
                         {{ task.title }}
                       </p>
                       <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{{ formatTaskPriority(task.priority) }}</span>
-                        <span v-if="task.dueDate">{{ formatTime(task.dueDate) }}</span>
+                        <span>{{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}</span>
+                        <span>{{ formatTime(task.startDatetime) }}</span>
                       </div>
                     </div>
                   </div>
@@ -433,7 +457,8 @@
         <div v-if="selectedTask">
           <p><strong>Titolo:</strong> {{ selectedTask.title }}</p>
           <p v-if="selectedTask.description"><strong>Descrizione:</strong> {{ selectedTask.description }}</p>
-          <p><strong>Priorità:</strong> {{ formatTaskPriority(selectedTask.priority) }}</p>
+          <p><strong>Orario:</strong> {{ formatTime(selectedTask.startDatetime) }} - {{ formatTime(selectedTask.endDatetime) }}</p>
+          <p v-if="selectedTask.location"><strong>Luogo:</strong> {{ selectedTask.location }}</p>
           <p v-if="selectedTask.dueDate"><strong>Scadenza:</strong> {{ formatDateTime(selectedTask.dueDate) }}</p>
           <p><strong>Stato:</strong> {{ selectedTask.completed ? 'Completata' : 'In corso' }}</p>
         </div>
@@ -445,25 +470,16 @@
       </div>
     </div>
 
-    <!-- Create Task Modal (placeholder) -->
-    <div v-if="showCreateTaskModal" class="modal-overlay" @click="closeCreateTaskModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Nuova Attività
-        </h3>
-        <p class="text-gray-600 dark:text-gray-400">
-          Form di creazione attività - Da implementare
-        </p>
-        <div class="mt-6 flex justify-end space-x-2">
-          <button @click="closeCreateTaskModal" class="btn btn-secondary">
-            Annulla
-          </button>
-          <button class="btn btn-primary">
-            Crea
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Task Modal -->
+    <TaskModal
+      :show="showCreateTaskModal"
+      :task="selectedTaskForEdit"
+      :initial-date="createTaskDate"
+      @close="handleTaskModalClose"
+      @task-created="handleTaskCreated"
+      @task-updated="handleTaskUpdated"
+      @task-deleted="handleTaskDeleted"
+    />
   </div>
 </template>
 
@@ -477,6 +493,8 @@ import {
   SunIcon,
   MoonIcon
 } from '@heroicons/vue/24/outline'
+import TaskModal from '../components/TaskModal.vue'
+import type { Task } from '../types/task'
 
 // Composables
 import { useAuth } from '../composables/useAuth'
@@ -495,7 +513,7 @@ import {
   getDateDescription,
   isToday as isDateToday
 } from '../utils/dateHelpers'
-import { formatTaskPriority } from '../utils/formatters'
+// import { formatTaskPriority } from '../utils/formatters' // Removed as priority no longer exists
 import { CALENDAR_VIEWS, LOCALE_STRINGS } from '../utils/constants'
 
 // Composable instances
@@ -508,6 +526,10 @@ const { showError, showConfirmation } = useNotifications()
 
 // Reactive state
 const showMobileSidebar = ref(false)
+const showUserMenu = ref(false)
+const showStatistics = ref(false)
+const selectedTaskForEdit = ref<Task | null>(null)
+const createTaskDate = ref<Date | undefined>(undefined)
 
 // Computed properties from composables
 const {
@@ -521,6 +543,7 @@ const {
   currentDate,
   selectedDate,
   viewMode,
+  agendaDays,
   currentMonthName,
   calendarDays,
   todayTasks,
@@ -570,32 +593,67 @@ const tasksByDateInRange = computed(() => {
   const result: Record<string, any[]> = {}
   const allTasks = tasks.allTasks.value || []
 
+  console.log('📅 Agenda view debug:', {
+    range,
+    totalTasks: allTasks.length,
+    tasks: allTasks.map(t => ({ id: t.id, title: t.title, startDatetime: t.startDatetime }))
+  })
+
   allTasks.forEach(task => {
-    if (task.dueDate) {
-      const taskDate = new Date(task.dueDate)
+    if (task && task.startDatetime) {
+      const taskDate = new Date(task.startDatetime)
       if (taskDate >= range.start && taskDate <= range.end) {
         const dateKey = formatDate(taskDate, 'yyyy-MM-dd')
         if (!result[dateKey]) result[dateKey] = []
         result[dateKey].push(task)
+        console.log(`✅ Task "${task.title}" added to agenda for ${dateKey}`)
+      } else {
+        console.log(`❌ Task "${task.title}" outside range:`, {
+          taskDate: taskDate.toISOString(),
+          rangeStart: range.start.toISOString(),
+          rangeEnd: range.end.toISOString()
+        })
       }
+    } else {
+      console.log(`⚠️ Task missing startDatetime:`, task)
     }
   })
 
+  console.log('📅 Final agenda result:', result)
   return result
+})
+
+// Sort tasks by date for agenda view
+const sortedTasksByDateInRange = computed(() => {
+  const tasks = tasksByDateInRange.value
+  
+  // Convert object to array of [date, tasks] pairs and sort by date
+  const sortedEntries = Object.entries(tasks)
+    .sort(([dateA], [dateB]) => {
+      return new Date(dateA).getTime() - new Date(dateB).getTime()
+    })
+    .map(([date, dayTasks]) => [
+      date, 
+      // Also sort tasks within each day by start time
+      dayTasks.sort((a, b) => {
+        return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
+      })
+    ])
+
+  // Convert back to object
+  const sortedResult: Record<string, any[]> = {}
+  sortedEntries.forEach(([date, dayTasks]) => {
+    sortedResult[date] = dayTasks
+  })
+  
+  console.log('📅 Sorted agenda result:', sortedResult)
+  return sortedResult
 })
 
 // Methods
 const isToday = (date: Date) => isDateToday(date)
 
-const getPriorityColor = (priority: string) => {
-  const colors = {
-    LOW: 'bg-green-500',
-    MEDIUM: 'bg-yellow-500',
-    HIGH: 'bg-orange-500',
-    URGENT: 'bg-red-500'
-  }
-  return colors[priority as keyof typeof colors] || 'bg-gray-500'
-}
+// getPriorityColor removed as priority no longer exists in Task model
 
 const getTaskDisplayClasses = (task: any, detailed = false) => {
   const baseClasses = detailed
@@ -610,15 +668,23 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
     return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30`
   }
 
-  const priorityClasses = {
-    URGENT: `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30`,
-    HIGH: `${baseClasses} bg-orange-50 dark:bg-orange-900/20 border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30`,
-    MEDIUM: `${baseClasses} bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/30`,
-    LOW: `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/30`
+  // Use task color for styling
+  const color = task.color || '#3788d8'
+  const colorMap: Record<string, string> = {
+    '#3b82f6': 'blue',
+    '#10b981': 'emerald', 
+    '#ef4444': 'red',
+    '#f59e0b': 'amber',
+    '#8b5cf6': 'violet',
+    '#ec4899': 'pink',
+    '#6366f1': 'indigo',
+    '#14b8a6': 'teal',
+    '#f97316': 'orange',
+    '#6b7280': 'gray'
   }
-
-  return priorityClasses[task.priority as keyof typeof priorityClasses] ||
-    `${baseClasses} bg-blue-50 dark:bg-blue-900/20 border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30`
+  
+  const colorName = colorMap[color] || 'blue'
+  return `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
 }
 
 const showProfile = () => {
@@ -647,7 +713,7 @@ const handleKeyboardShortcuts = (event: KeyboardEvent) => {
   // Additional shortcuts
   if (event.ctrlKey && event.key === 'n') {
     event.preventDefault()
-    openCreateTaskModal()
+    openCreateTaskModalWithDate()
   }
 }
 
@@ -664,6 +730,60 @@ const handleMobileSidebarClose = () => {
   if (showMobileSidebar.value) {
     showMobileSidebar.value = false
   }
+}
+
+// Accordion Methods
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value
+  if (showUserMenu.value) {
+    showStatistics.value = false
+  }
+}
+
+const toggleStatistics = () => {
+  showStatistics.value = !showStatistics.value
+  if (showStatistics.value) {
+    showUserMenu.value = false
+  }
+}
+
+// Task Modal Methods
+const handleTaskModalClose = () => {
+  selectedTaskForEdit.value = null
+  createTaskDate.value = undefined
+  closeCreateTaskModal()
+}
+
+const handleTaskCreated = async (task: Task) => {
+  // Refresh tasks data
+  await tasks.fetchTasks()
+  await tasks.refreshStatistics()
+}
+
+const handleTaskUpdated = async (task: Task) => {
+  // Refresh tasks data
+  await tasks.fetchTasks()
+  await tasks.refreshStatistics()
+}
+
+const handleTaskDeleted = async (taskId: number) => {
+  // Refresh tasks data
+  await tasks.fetchTasks()
+  await tasks.refreshStatistics()
+}
+
+// Override calendar methods to use our enhanced modal
+const openCreateTaskModalWithDate = (date?: Date) => {
+  selectedTaskForEdit.value = null
+  createTaskDate.value = date
+  calendar.openCreateTaskModal(date)
+}
+
+const openTaskModalForEdit = (task: Task) => {
+  selectedTaskForEdit.value = task
+  createTaskDate.value = undefined
+  calendar.closeTaskModal()
+  calendar.openCreateTaskModal()
 }
 
 // Lifecycle

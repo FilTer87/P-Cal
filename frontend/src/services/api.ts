@@ -162,18 +162,36 @@ class ApiClient {
   }
 
   async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put<ApiResponse<T>>(url, data, config)
-    return response.data.data
+    const response = await this.client.put<ApiResponse<T> | T>(url, data, config)
+    
+    // Handle both wrapped ApiResponse and direct responses
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      return response.data.data
+    }
+    
+    return response.data as T
   }
 
   async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.patch<ApiResponse<T>>(url, data, config)
-    return response.data.data
+    const response = await this.client.patch<ApiResponse<T> | T>(url, data, config)
+    
+    // Handle both wrapped ApiResponse and direct responses
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      return response.data.data
+    }
+    
+    return response.data as T
   }
 
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<ApiResponse<T>>(url, config)
-    return response.data.data
+  async delete<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<ApiResponse<T> | T>(url, { ...config, data })
+    
+    // Handle both wrapped ApiResponse and direct responses
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      return response.data.data
+    }
+    
+    return response.data as T
   }
 
   // Raw response methods (for cases where you need the full response)

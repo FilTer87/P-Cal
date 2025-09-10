@@ -7,8 +7,7 @@ import type {
   UpdateTaskRequest, 
   TaskFilters, 
   TaskStats,
-  DailyTasks,
-  TaskPriority
+  DailyTasks
 } from '../types/task'
 import { taskApi } from '../services/taskApi'
 import { useNotifications } from '../composables/useNotifications'
@@ -29,30 +28,25 @@ export const useTasksStore = defineStore('tasks', () => {
 
   // Getters
   const filteredTasks = computed(() => {
-    let filtered = [...(tasks.value || [])]
+    let filtered = [...(tasks.value || [])].filter(task => task !== null && task !== undefined)
 
     // Apply completion filter
     if (filters.value.completed !== undefined) {
       filtered = filtered.filter(task => task.completed === filters.value.completed)
     }
 
-    // Apply priority filter
-    if (filters.value.priority) {
-      filtered = filtered.filter(task => task.priority === filters.value.priority)
-    }
-
-    // Apply date range filter
-    if (filters.value.dueDateFrom) {
-      const fromDate = new Date(filters.value.dueDateFrom)
+    // Apply date range filter (using startDatetime)
+    if (filters.value.startDateFrom) {
+      const fromDate = new Date(filters.value.startDateFrom)
       filtered = filtered.filter(task => 
-        task.dueDate && new Date(task.dueDate) >= fromDate
+        task.startDatetime && new Date(task.startDatetime) >= fromDate
       )
     }
 
-    if (filters.value.dueDateTo) {
-      const toDate = new Date(filters.value.dueDateTo)
+    if (filters.value.startDateTo) {
+      const toDate = new Date(filters.value.startDateTo)
       filtered = filtered.filter(task => 
-        task.dueDate && new Date(task.dueDate) <= toDate
+        task.startDatetime && new Date(task.startDatetime) <= toDate
       )
     }
 
@@ -71,35 +65,34 @@ export const useTasksStore = defineStore('tasks', () => {
         return a.completed ? 1 : -1
       }
       
-      // Sort by due date (soonest first)
-      if (a.dueDate && b.dueDate) {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      // Sort by start date (soonest first)
+      if (a.startDatetime && b.startDatetime) {
+        return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
       }
       
-      if (a.dueDate && !b.dueDate) return -1
-      if (!a.dueDate && b.dueDate) return 1
+      if (a.startDatetime && !b.startDatetime) return -1
+      if (!a.startDatetime && b.startDatetime) return 1
       
-      // Sort by priority (highest first)
-      const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
-      return priorityOrder[b.priority] - priorityOrder[a.priority]
+      // Sort by title alphabetically
+      return a.title.localeCompare(b.title)
     })
   })
 
   const completedTasks = computed(() => 
-    (tasks.value || []).filter(task => task.completed)
+    (tasks.value || []).filter(task => task && task.completed)
   )
 
   const pendingTasks = computed(() => 
-    (tasks.value || []).filter(task => !task.completed)
+    (tasks.value || []).filter(task => task && !task.completed)
   )
 
   // Note: This computed property only works on locally loaded tasks
   // For accurate overdue count, use fetchOverdueTasks() 
   const overdueTasks = computed(() => 
     (tasks.value || []).filter(task => {
-      if (task.completed) return false
-      const taskDate = task.dueDate || task.startDatetime || task.startDateTime || task.endDatetime
-      return taskDate && isBefore(new Date(taskDate), startOfDay(new Date()))
+      if (!task || task.completed) return false
+      // Task is overdue if end time has passed
+      return task.endDatetime && isBefore(new Date(task.endDatetime), new Date())
     })
   )
 
@@ -107,8 +100,14 @@ export const useTasksStore = defineStore('tasks', () => {
     (cachedTodayTasks.value && cachedTodayTasks.value.length > 0)
       ? cachedTodayTasks.value 
       : (tasks.value || []).filter(task => {
-          const taskDate = task.dueDate || task.startDatetime || task.startDateTime
-          return taskDate && isToday(new Date(taskDate))
+          if (!task || !task.startDatetime || !task.endDatetime) return false
+          // Task is today if it starts today or spans today
+          const startDate = new Date(task.startDatetime)
+          const endDate = new Date(task.endDatetime)
+          const today = new Date()
+          
+          return isToday(startDate) || 
+            (startDate <= today && endDate >= startOfDay(today))
         })
   )
 
@@ -119,10 +118,9 @@ export const useTasksStore = defineStore('tasks', () => {
     weekEnd.setDate(weekEnd.getDate() + 7)
     
     return (tasks.value || []).filter(task => {
-      const taskDate = task.dueDate || task.startDatetime || task.startDateTime
-      return taskDate && 
-        isAfter(new Date(taskDate), weekStart) && 
-        isBefore(new Date(taskDate), weekEnd)
+      if (!task || !task.startDatetime) return false
+      const startDate = new Date(task.startDatetime)
+      return isAfter(startDate, weekStart) && isBefore(startDate, weekEnd)
     })
   })
 
@@ -162,30 +160,27 @@ export const useTasksStore = defineStore('tasks', () => {
     const dailyTasks: DailyTasks = {};
     
     (tasks.value || []).forEach(task => {
-      // Support both dueDate and startDatetime fields
-      const taskDate = task.dueDate || task.startDatetime || task.startDateTime
-      if (taskDate) {
-        const dateKey = format(new Date(taskDate), 'yyyy-MM-dd')
+      // Use startDatetime for task date grouping
+      if (task && task.startDatetime) {
+        const dateKey = format(new Date(task.startDatetime), 'yyyy-MM-dd')
         if (!dailyTasks[dateKey]) {
           dailyTasks[dateKey] = []
         }
         dailyTasks[dateKey].push(task)
         console.log(`📅 Added task "${task.title}" to date ${dateKey}`)
       } else {
-        console.log(`📅 Task "${task.title}" has no date field:`, task)
+        console.log(`📅 Task is null or has no startDatetime:`, task)
       }
     })
     
     return dailyTasks
   })
 
-  const urgentTasks = computed(() =>
-    (tasks.value || []).filter(task => task.priority === 'URGENT' && !task.completed)
-  )
+  // Urgent tasks removed as priority no longer exists in Task model
+  const urgentTasks = computed(() => [])
 
-  const highPriorityTasks = computed(() =>
-    (tasks.value || []).filter(task => task.priority === 'HIGH' && !task.completed)
-  )
+  // High priority tasks removed as priority no longer exists in Task model
+  const highPriorityTasks = computed(() => [])
 
   // Actions
   const { showSuccess, showError } = useNotifications()
@@ -251,7 +246,16 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const newTask = await taskApi.createTask(taskData)
-      tasks.value.unshift(newTask)
+      
+      // Ensure we have a valid task before adding to array
+      if (newTask && newTask.id && newTask.startDatetime && newTask.endDatetime) {
+        tasks.value.unshift(newTask)
+        console.log('✅ Task created successfully:', newTask)
+      } else {
+        console.error('❌ Invalid task data received from API:', newTask)
+        throw new Error('Dati task non validi ricevuti dal server')
+      }
+      
       showSuccess('Attività creata con successo!')
       return newTask
     } catch (err: any) {
@@ -269,10 +273,19 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const updatedTask = await taskApi.updateTask(taskId, taskData)
-      const index = (tasks.value || []).findIndex(task => task.id === taskId)
-      if (index !== -1) {
-        tasks.value[index] = updatedTask
+      
+      // Ensure we have a valid task before updating
+      if (updatedTask && updatedTask.id) {
+        const index = (tasks.value || []).findIndex(task => task && task.id === taskId)
+        if (index !== -1) {
+          tasks.value[index] = updatedTask
+        }
+        console.log('✅ Task updated successfully:', updatedTask)
+      } else {
+        console.error('❌ Invalid task data received from API:', updatedTask)
+        throw new Error('Dati task non validi ricevuti dal server')
       }
+      
       showSuccess('Attività aggiornata con successo!')
       return updatedTask
     } catch (err: any) {
@@ -361,8 +374,9 @@ export const useTasksStore = defineStore('tasks', () => {
     return tasksByDate.value[date] || []
   }
 
-  const getTasksByPriority = (priority: TaskPriority): Task[] => {
-    return (tasks.value || []).filter(task => task.priority === priority)
+  // getTasksByPriority removed as priority no longer exists in Task model
+  const getTasksByPriority = (): Task[] => {
+    return []
   }
 
   const hasTasksOnDate = (date: string): boolean => {
@@ -374,12 +388,12 @@ export const useTasksStore = defineStore('tasks', () => {
     futureDate.setDate(futureDate.getDate() + days)
 
     return (tasks.value || []).filter(task => 
-      task.dueDate && 
+      task && task.startDatetime && 
       !task.completed &&
-      isAfter(new Date(task.dueDate), new Date()) &&
-      isBefore(new Date(task.dueDate), futureDate)
+      isAfter(new Date(task.startDatetime), new Date()) &&
+      isBefore(new Date(task.startDatetime), futureDate)
     ).sort((a, b) => 
-      new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
+      new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
     )
   }
 

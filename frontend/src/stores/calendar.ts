@@ -34,6 +34,9 @@ export const useCalendarStore = defineStore('calendar', () => {
   const viewMode = ref<CalendarView>('month' as CalendarView)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  
+  // Configurable agenda days (can be modified in user settings)
+  const agendaDays = ref(30)
 
   // Getters
   const currentYear = computed(() => currentDate.value.getFullYear())
@@ -68,9 +71,10 @@ export const useCalendarStore = defineStore('calendar', () => {
           end: endOfWeek(endOfMonth(currentDate.value), { weekStartsOn: 1 })
         }
       case 'agenda':
+        // Show tasks from today for the configured number of days
         return {
-          start: startOfMonth(currentDate.value),
-          end: endOfMonth(currentDate.value)
+          start: startOfDay(new Date()),
+          end: endOfDay(addDays(new Date(), agendaDays.value))
         }
       default:
         return { start, end }
@@ -279,6 +283,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     viewMode,
     isLoading,
     error,
+    agendaDays,
     
     // Getters
     currentYear,

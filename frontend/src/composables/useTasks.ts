@@ -8,7 +8,7 @@ import type {
   TaskFilters,
   TaskFormData,
   ReminderFormData,
-  TaskPriority 
+  NotificationType 
 } from '../types/task'
 import { format, addMinutes, parseISO } from 'date-fns'
 
@@ -159,9 +159,10 @@ export function useTasks() {
     tasksStore.clearFilters()
   }
 
-  const filterByPriority = (priority: TaskPriority) => {
-    setFilters({ priority })
-  }
+  // Note: Priority filtering removed as it's no longer part of the Task model
+  // const filterByPriority = (priority: TaskPriority) => {
+  //   setFilters({ priority })
+  // }
 
   const filterByCompletion = (completed: boolean) => {
     setFilters({ completed })
@@ -180,9 +181,10 @@ export function useTasks() {
     return tasksStore.getTasksByDate(date)
   }
 
-  const getTasksByPriority = (priority: TaskPriority): Task[] => {
-    return tasksStore.getTasksByPriority(priority)
-  }
+  // Note: Priority-based queries removed as it's no longer part of the Task model
+  // const getTasksByPriority = (priority: TaskPriority): Task[] => {
+  //   return tasksStore.getTasksByPriority(priority)
+  // }
 
   const getUpcomingTasks = (days = 7): Task[] => {
     return tasksStore.getUpcomingTasks(days)
@@ -193,59 +195,89 @@ export function useTasks() {
   }
 
   // Form helpers
-  const createEmptyTaskForm = (): TaskFormData => ({
-    title: '',
-    description: '',
-    priority: 'MEDIUM' as TaskPriority,
-    dueDate: format(new Date(), 'yyyy-MM-dd'),
-    dueTime: '09:00',
-    reminders: []
-  })
+  const createEmptyTaskForm = (): TaskFormData => {
+    const now = new Date()
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+    
+    return {
+      title: '',
+      description: '',
+      startDate: format(now, 'yyyy-MM-dd'),
+      startTime: format(now, 'HH:mm'),
+      endDate: format(oneHourLater, 'yyyy-MM-dd'),
+      endTime: format(oneHourLater, 'HH:mm'),
+      location: '',
+      color: '#3788d8',
+      isAllDay: false,
+      reminders: []
+    }
+  }
 
   const createTaskFormFromTask = (task: Task): TaskFormData => {
-    const dueDateTime = task.dueDate ? new Date(task.dueDate) : new Date()
+    const startDateTime = new Date(task.startDatetime)
+    const endDateTime = new Date(task.endDatetime)
     
     return {
       title: task.title,
       description: task.description || '',
-      priority: task.priority,
-      dueDate: format(dueDateTime, 'yyyy-MM-dd'),
-      dueTime: format(dueDateTime, 'HH:mm'),
+      startDate: format(startDateTime, 'yyyy-MM-dd'),
+      startTime: format(startDateTime, 'HH:mm'),
+      endDate: format(endDateTime, 'yyyy-MM-dd'),
+      endTime: format(endDateTime, 'HH:mm'),
+      location: task.location || '',
+      color: task.color,
+      isAllDay: task.isAllDay,
       reminders: task.reminders.map(reminder => ({
         id: reminder.id,
-        date: format(new Date(reminder.reminderDateTime), 'yyyy-MM-dd'),
-        time: format(new Date(reminder.reminderDateTime), 'HH:mm'),
-        reminderDateTime: reminder.reminderDateTime
+        offsetMinutes: reminder.reminderOffsetMinutes,
+        notificationType: reminder.notificationType
       }))
     }
   }
 
   const convertFormToTaskRequest = (formData: TaskFormData): CreateTaskRequest => {
-    const dueDateTime = formData.dueDate && formData.dueTime
-      ? `${formData.dueDate}T${formData.dueTime}:00`
-      : undefined
+    // Create start and end datetime in ISO format
+    const startDatetime = formData.isAllDay 
+      ? `${formData.startDate}T00:00:00.000Z`
+      : `${formData.startDate}T${formData.startTime}:00.000Z`
+      
+    const endDatetime = formData.isAllDay
+      ? `${formData.endDate}T23:59:59.000Z`
+      : `${formData.endDate}T${formData.endTime}:00.000Z`
 
     return {
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
-      priority: formData.priority,
-      dueDate: dueDateTime,
+      startDatetime,
+      endDatetime,
+      location: formData.location.trim() || undefined,
+      color: formData.color,
+      isAllDay: formData.isAllDay,
       reminders: formData.reminders.map(reminder => ({
-        reminderDateTime: reminder.reminderDateTime || `${reminder.date}T${reminder.time}:00`
+        reminderOffsetMinutes: reminder.offsetMinutes,
+        notificationType: reminder.notificationType
       }))
     }
   }
 
   const convertFormToUpdateRequest = (formData: TaskFormData): UpdateTaskRequest => {
-    const dueDateTime = formData.dueDate && formData.dueTime
-      ? `${formData.dueDate}T${formData.dueTime}:00`
-      : undefined
+    // Create start and end datetime in ISO format
+    const startDatetime = formData.isAllDay 
+      ? `${formData.startDate}T00:00:00.000Z`
+      : `${formData.startDate}T${formData.startTime}:00.000Z`
+      
+    const endDatetime = formData.isAllDay
+      ? `${formData.endDate}T23:59:59.000Z`
+      : `${formData.endDate}T${formData.endTime}:00.000Z`
 
     return {
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
-      priority: formData.priority,
-      dueDate: dueDateTime
+      startDatetime,
+      endDatetime,
+      location: formData.location.trim() || undefined,
+      color: formData.color,
+      isAllDay: formData.isAllDay
     }
   }
 
@@ -266,10 +298,29 @@ export function useTasks() {
       errors.description = 'La descrizione non può superare i 1000 caratteri'
     }
 
-    if (taskData.dueDate) {
-      const dueDate = new Date(taskData.dueDate)
-      if (isNaN(dueDate.getTime())) {
-        errors.dueDate = 'Data di scadenza non valida'
+    // Validate start and end datetime
+    if ('startDate' in taskData && taskData.startDate) {
+      const startDate = new Date(taskData.startDate)
+      if (isNaN(startDate.getTime())) {
+        errors.startDate = 'Data di inizio non valida'
+      }
+    }
+    
+    if ('endDate' in taskData && taskData.endDate) {
+      const endDate = new Date(taskData.endDate)
+      if (isNaN(endDate.getTime())) {
+        errors.endDate = 'Data di fine non valida'
+      }
+    }
+    
+    // Validate that end is after start
+    if ('startDate' in taskData && 'endDate' in taskData && 
+        taskData.startDate && taskData.endDate) {
+      const start = new Date(`${taskData.startDate}T${taskData.startTime || '00:00'}:00`)
+      const end = new Date(`${taskData.endDate}T${taskData.endTime || '23:59'}:00`)
+      
+      if (end <= start) {
+        errors.endDate = 'La data di fine deve essere successiva alla data di inizio'
       }
     }
 
@@ -295,25 +346,76 @@ export function useTasks() {
       errors.description = 'La descrizione non può superare i 1000 caratteri'
     }
 
-    if (formData.dueDate) {
-      const dueDate = new Date(formData.dueDate)
-      if (isNaN(dueDate.getTime())) {
-        errors.dueDate = 'Data di scadenza non valida'
+    // Validate start date/time
+    if (!formData.startDate) {
+      errors.startDate = 'La data di inizio è obbligatoria'
+    } else {
+      const startDate = new Date(formData.startDate)
+      if (isNaN(startDate.getTime())) {
+        errors.startDate = 'Data di inizio non valida'
       }
     }
-
-    if (formData.dueTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.dueTime)) {
-      errors.dueTime = 'Ora non valida (formato HH:MM)'
+    
+    if (!formData.isAllDay && formData.startTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.startTime)) {
+      errors.startTime = 'Ora di inizio non valida (formato HH:MM)'
+    }
+    
+    // Validate end date/time
+    if (!formData.endDate) {
+      errors.endDate = 'La data di fine è obbligatoria'
+    } else {
+      const endDate = new Date(formData.endDate)
+      if (isNaN(endDate.getTime())) {
+        errors.endDate = 'Data di fine non valida'
+      }
+    }
+    
+    if (!formData.isAllDay && formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
+      errors.endTime = 'Ora di fine non valida (formato HH:MM)'
+    }
+    
+    // Validate that end is after start
+    if (formData.startDate && formData.endDate) {
+      const startTimeStr = !formData.isAllDay ? (formData.startTime || '00:00') : '00:00'
+      const endTimeStr = !formData.isAllDay ? (formData.endTime || '23:59') : '23:59'
+      
+      // Create dates more safely
+      const start = new Date(formData.startDate + 'T' + startTimeStr + ':00.000Z')
+      const end = new Date(formData.endDate + 'T' + endTimeStr + ':00.000Z')
+      
+      console.log('🔍 Date validation debug:', {
+        startDate: formData.startDate,
+        startTime: startTimeStr,
+        endDate: formData.endDate,
+        endTime: endTimeStr,
+        startDateTime: start.toISOString(),
+        endDateTime: end.toISOString(),
+        endIsAfterStart: end > start,
+        isAllDay: formData.isAllDay
+      })
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        errors.endDate = 'Date non valide'
+      } else if (end <= start) {
+        errors.endDate = 'La data/ora di fine deve essere successiva alla data/ora di inizio'
+      }
+    }
+    
+    // Validate color format
+    if (formData.color && !/^#[0-9A-Fa-f]{6}$/.test(formData.color)) {
+      errors.color = 'Colore non valido (deve essere in formato #RRGGBB)'
+    }
+    
+    // Validate location length
+    if (formData.location && formData.location.length > 200) {
+      errors.location = 'Il luogo non può superare i 200 caratteri'
     }
 
     // Validate reminders
     formData.reminders.forEach((reminder, index) => {
-      if (reminder.date && isNaN(new Date(reminder.date).getTime())) {
-        errors[`reminder_${index}_date`] = 'Data del promemoria non valida'
-      }
-
-      if (reminder.time && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(reminder.time)) {
-        errors[`reminder_${index}_time`] = 'Ora del promemoria non valida'
+      if (reminder.offsetMinutes < 0) {
+        errors[`reminder_${index}`] = 'Il tempo del promemoria deve essere positivo'
       }
     })
 
@@ -379,39 +481,39 @@ export function useTasks() {
     }
   }
 
-  const bulkUpdatePriority = async (taskIds: number[], priority: TaskPriority): Promise<boolean> => {
-    isFormLoading.value = true
-
-    try {
-      await Promise.all(taskIds.map(id => updateTask(id, { priority })))
-      showSuccess(`Priorità aggiornata per ${taskIds.length} attività`)
-      return true
-    } catch (error: any) {
-      showError('Errore nell\'aggiornamento della priorità')
-      return false
-    } finally {
-      isFormLoading.value = false
-    }
-  }
+  // Note: Bulk priority update removed as priority is no longer part of the Task model
+  // const bulkUpdatePriority = async (taskIds: number[], priority: TaskPriority): Promise<boolean> => {
+  //   isFormLoading.value = true
+  //   try {
+  //     await Promise.all(taskIds.map(id => updateTask(id, { priority })))
+  //     showSuccess(`Priorità aggiornata per ${taskIds.length} attività`)
+  //     return true
+  //   } catch (error: any) {
+  //     showError('Errore nell\'aggiornamento della priorità')
+  //     return false
+  //   } finally {
+  //     isFormLoading.value = false
+  //   }
+  // }
 
   // Utility functions
   const isDueSoon = (task: Task, hours = 24): boolean => {
-    if (!task.dueDate || task.completed) return false
+    if (task.completed) return false
     
-    const dueDate = new Date(task.dueDate)
+    const startDate = new Date(task.startDatetime)
     const now = new Date()
-    const diffHours = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+    const diffHours = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60)
     
     return diffHours > 0 && diffHours <= hours
   }
 
   const isOverdue = (task: Task): boolean => {
-    if (!task.dueDate || task.completed) return false
+    if (task.completed) return false
     
-    const dueDate = new Date(task.dueDate)
+    const endDate = new Date(task.endDatetime)
     const now = new Date()
     
-    return dueDate < now
+    return endDate < now
   }
 
   const getTaskStatusColor = (task: Task): string => {
@@ -464,14 +566,14 @@ export function useTasks() {
     clearSearch,
     setFilters,
     clearFilters,
-    filterByPriority,
+    // filterByPriority, // Removed as priority no longer exists
     filterByCompletion,
     filterByDateRange,
 
     // Getters
     getTaskById,
     getTasksByDate,
-    getTasksByPriority,
+    // getTasksByPriority, // Removed as priority no longer exists
     getUpcomingTasks,
     hasTasksOnDate,
 
@@ -493,7 +595,7 @@ export function useTasks() {
     // Bulk operations
     bulkMarkCompleted,
     bulkDelete,
-    bulkUpdatePriority,
+    // bulkUpdatePriority, // Removed as priority no longer exists
 
     // Utilities
     isDueSoon,

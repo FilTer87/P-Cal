@@ -20,6 +20,7 @@ export function useCalendar() {
   const currentDate = computed(() => calendarStore.currentDate)
   const selectedDate = computed(() => calendarStore.selectedDate)
   const viewMode = computed(() => calendarStore.viewMode)
+  const agendaDays = computed(() => calendarStore.agendaDays)
   const isLoading = computed(() => calendarStore.isLoading)
   const currentMonthName = computed(() => calendarStore.currentMonthName)
   const calendarDays = computed(() => calendarStore.calendarDays)
@@ -355,6 +356,7 @@ export function useCalendar() {
     currentDate,
     selectedDate,
     viewMode,
+    agendaDays,
     isLoading,
     currentMonthName,
     calendarDays,

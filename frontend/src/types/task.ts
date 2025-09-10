@@ -3,13 +3,11 @@ export interface Task {
   title: string
   description?: string
   completed: boolean
-  priority: TaskPriority
-  dueDate?: string
-  startDate?: string
-  endDate?: string
+  startDatetime: string
+  endDatetime: string
   location?: string
-  color?: string
-  isAllDay?: boolean
+  color: string
+  isAllDay: boolean
   createdAt: string
   updatedAt: string
   userId: number
@@ -19,10 +17,8 @@ export interface Task {
 export interface CreateTaskRequest {
   title: string
   description?: string
-  priority: TaskPriority
-  dueDate?: string
-  startDate?: string
-  endDate?: string
+  startDatetime: string
+  endDatetime: string
   location?: string
   color?: string
   isAllDay?: boolean
@@ -33,10 +29,8 @@ export interface UpdateTaskRequest {
   title?: string
   description?: string
   completed?: boolean
-  priority?: TaskPriority
-  dueDate?: string
-  startDate?: string
-  endDate?: string
+  startDatetime?: string
+  endDatetime?: string
   location?: string
   color?: string
   isAllDay?: boolean
@@ -45,42 +39,39 @@ export interface UpdateTaskRequest {
 export interface Reminder {
   id: number
   taskId: number
-  reminderDateTime: string
+  reminderOffsetMinutes: number
+  notificationType: NotificationType
   sent: boolean
   createdAt: string
   updatedAt: string
 }
 
 export interface CreateReminderRequest {
-  reminderDateTime: string
+  reminderOffsetMinutes: number
+  notificationType?: NotificationType
 }
 
 export interface UpdateReminderRequest {
-  reminderDateTime?: string
+  reminderOffsetMinutes?: number
+  notificationType?: NotificationType
   sent?: boolean
 }
 
-export enum TaskPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT'
+export enum NotificationType {
+  PUSH = 'PUSH',
+  EMAIL = 'EMAIL'
 }
 
 export interface TaskFilters {
   completed?: boolean
-  priority?: TaskPriority
-  dueDateFrom?: string
-  dueDateTo?: string
+  startDateFrom?: string
+  startDateTo?: string
   search?: string
 }
 
 export interface TaskFormData {
   title: string
   description: string
-  priority: TaskPriority
-  dueDate: string
-  dueTime: string
   startDate: string
   startTime: string
   endDate: string
@@ -93,9 +84,9 @@ export interface TaskFormData {
 
 export interface ReminderFormData {
   id?: number
-  date: string
-  time: string
-  reminderDateTime?: string
+  offsetMinutes: number
+  notificationType: NotificationType
+  label?: string
 }
 
 export interface TaskStats {
@@ -111,41 +102,34 @@ export interface DailyTasks {
   [date: string]: Task[]
 }
 
-// Task priority display configuration
-export interface TaskPriorityConfig {
+// Notification type display configuration
+export interface NotificationTypeConfig {
   label: string
-  color: string
-  bgColor: string
-  borderColor: string
-  icon?: string
+  icon: string
 }
 
-export const TASK_PRIORITY_CONFIG: Record<TaskPriority, TaskPriorityConfig> = {
-  [TaskPriority.LOW]: {
-    label: 'Bassa',
-    color: 'text-green-600 dark:text-green-400',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    borderColor: 'border-green-500'
+export const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, NotificationTypeConfig> = {
+  [NotificationType.PUSH]: {
+    label: 'Notifica Push',
+    icon: '🔔'
   },
-  [TaskPriority.MEDIUM]: {
-    label: 'Media',
-    color: 'text-yellow-600 dark:text-yellow-400',
-    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-    borderColor: 'border-yellow-500'
-  },
-  [TaskPriority.HIGH]: {
-    label: 'Alta',
-    color: 'text-orange-600 dark:text-orange-400',
-    bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-    borderColor: 'border-orange-500'
-  },
-  [TaskPriority.URGENT]: {
-    label: 'Urgente',
-    color: 'text-red-600 dark:text-red-400',
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    borderColor: 'border-red-500'
+  [NotificationType.EMAIL]: {
+    label: 'Email',
+    icon: '📧'
   }
 }
+
+// Common reminder presets (in minutes before event)
+export const REMINDER_PRESETS = [
+  { label: '5 minuti prima', minutes: 5 },
+  { label: '10 minuti prima', minutes: 10 },
+  { label: '15 minuti prima', minutes: 15 },
+  { label: '30 minuti prima', minutes: 30 },
+  { label: '1 ora prima', minutes: 60 },
+  { label: '2 ore prima', minutes: 120 },
+  { label: '1 giorno prima', minutes: 24 * 60 },
+  { label: '1 settimana prima', minutes: 7 * 24 * 60 }
+]
 
 // Calendar color options for tasks
 export interface CalendarColor {
@@ -180,8 +164,8 @@ export interface TaskSortOption {
 }
 
 export const TASK_SORT_OPTIONS: TaskSortOption[] = [
-  { key: 'dueDate', label: 'Data di scadenza', value: 'dueDate' },
-  { key: 'priority', label: 'Priorità', value: 'priority' },
+  { key: 'startDatetime', label: 'Data di inizio', value: 'startDatetime' },
+  { key: 'endDatetime', label: 'Data di fine', value: 'endDatetime' },
   { key: 'title', label: 'Titolo', value: 'title' },
   { key: 'createdAt', label: 'Data di creazione', value: 'createdAt' },
   { key: 'completed', label: 'Stato', value: 'completed' }
