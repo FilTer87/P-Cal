@@ -386,9 +386,9 @@
                       }">
                     </div>
 
-                    <!-- Tasks for this day -->
+                    <!-- Tasks for this day (including split multi-day tasks) -->
                     <div class="absolute inset-0 pointer-events-none">
-                      <div v-for="task in getTasksForDate(dayInfo.day)" :key="task.id"
+                      <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
                         :style="getTaskTimeStyle(task)"
                         @click="openTaskModalForEdit(task)"
                         class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
@@ -980,11 +980,15 @@ const getTasksOverflowIndicators = (dayTasks: Task[]) => {
 }
 
 // Weekly view helper methods
-const getTaskTimePosition = (task: Task) => {
-  if (!task.startDatetime) return { top: '0px', height: '32px' }
+const getTaskTimePosition = (task: any) => {
+  // Use visual times for positioning if available (for split multi-day tasks)
+  const startTimeStr = task._visualStartTime || task.startDatetime
+  const endTimeStr = task._visualEndTime || task.endDatetime
   
-  const start = new Date(task.startDatetime)
-  const end = task.endDatetime ? new Date(task.endDatetime) : new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour
+  if (!startTimeStr) return { top: '0px', height: '32px' }
+  
+  const start = new Date(startTimeStr)
+  const end = endTimeStr ? new Date(endTimeStr) : new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour
   
   // Calculate position based on hours (each hour = 64px height)
   const startHour = start.getHours() + start.getMinutes() / 60
@@ -1086,6 +1090,108 @@ onMounted(async () => {
     clientHeight.value = weeklyScrollContainer.value.clientHeight
   }
 })
+
+// Multi-day task splitting logic - collect all tasks from the week first
+const allWeekTasks = computed(() => {
+  const weekDays = calendar.getWeekDays(currentDate.value)
+  const allTasks: any[] = []
+  
+  // Collect all unique tasks from the week
+  weekDays.forEach(day => {
+    const dayTasks = calendar.getTasksForDate(day)
+    dayTasks.forEach(task => {
+      if (!allTasks.find(t => t.id === task.id)) {
+        allTasks.push(task)
+      }
+    })
+  })
+  
+  return allTasks
+})
+
+const getTasksWithSplitsForDate = (date: Date) => {
+  const currentDay = formatDate(date, 'yyyy-MM-dd')
+  const allTasksWithSplits: any[] = []
+  
+  console.log(`🌞 Processing tasks for ${currentDay}`)
+  
+  // Check ALL week tasks, not just ones assigned to this day
+  allWeekTasks.value.forEach(task => {
+    if (!task.startDatetime) {
+      // Task without start time - only show on its "assigned" day
+      const dayTasks = calendar.getTasksForDate(date)
+      if (dayTasks.find(t => t.id === task.id)) {
+        allTasksWithSplits.push(task)
+      }
+      return
+    }
+    
+    const startDate = new Date(task.startDatetime)
+    const endDate = task.endDatetime ? new Date(task.endDatetime) : startDate
+    const taskStartDay = formatDate(startDate, 'yyyy-MM-dd')
+    const taskEndDay = formatDate(endDate, 'yyyy-MM-dd')
+    
+    console.log(`📋 Task "${task.title}":`, {
+      taskStartDay,
+      taskEndDay,
+      currentDay,
+      spansMultipleDays: taskStartDay !== taskEndDay
+    })
+    
+    // Check if this task should appear on the current day
+    if (currentDay >= taskStartDay && currentDay <= taskEndDay) {
+      
+      if (taskStartDay === taskEndDay) {
+        // Single day task - show as normal but only on the correct day
+        if (currentDay === taskStartDay) {
+          allTasksWithSplits.push(task)
+        }
+      } else {
+        // Multi-day task - create split version for visual positioning only
+        let visualStartTime: string
+        let visualEndTime: string
+        
+        if (currentDay === taskStartDay) {
+          // First day: from original start time to end of day
+          visualStartTime = task.startDatetime
+          visualEndTime = `${currentDay}T23:59:59.999Z`
+          console.log(`🚀 First day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
+        } else if (currentDay === taskEndDay) {
+          // Last day: from start of day to original end time  
+          visualStartTime = `${currentDay}T00:00:00.000Z`
+          visualEndTime = task.endDatetime
+          console.log(`🏁 Last day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
+        } else {
+          // Middle day: full day
+          visualStartTime = `${currentDay}T00:00:00.000Z`
+          visualEndTime = `${currentDay}T23:59:59.999Z`
+          console.log(`🔄 Middle day split for "${task.title}": visual full day`)
+        }
+        
+        // Create task with ORIGINAL data but visual positioning times
+        const splitTask = {
+          ...task, // Keep ALL original data
+          // Add visual positioning properties for rendering only
+          _visualStartTime: visualStartTime,
+          _visualEndTime: visualEndTime,
+          _splitIndex: currentDay // For unique key
+        }
+        
+        allTasksWithSplits.push(splitTask)
+      }
+    }
+  })
+  
+  console.log(`✅ Final tasks for ${currentDay}:`, allTasksWithSplits.map(t => ({
+    title: t.title,
+    originalStart: t.startDatetime,
+    originalEnd: t.endDatetime,
+    visualStart: t._visualStartTime || t.startDatetime,
+    visualEnd: t._visualEndTime || t.endDatetime
+  })))
+  
+  return allTasksWithSplits
+}
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyboardShortcuts)
