@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +42,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "(t.endDatetime > :startDate AND t.endDatetime <= :endDate) OR " +
            "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate))")
     List<Task> findTasksInDateRangeForUser(@Param("user") User user, 
-                                         @Param("startDate") LocalDateTime startDate, 
-                                         @Param("endDate") LocalDateTime endDate);
+                                         @Param("startDate") Instant startDate, 
+                                         @Param("endDate") Instant endDate);
     
     /**
      * Find tasks within a date range for a user by user ID
@@ -53,20 +53,20 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "(t.endDatetime > :startDate AND t.endDatetime <= :endDate) OR " +
            "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate))")
     List<Task> findTasksInDateRangeForUserId(@Param("userId") Long userId, 
-                                           @Param("startDate") LocalDateTime startDate, 
-                                           @Param("endDate") LocalDateTime endDate);
+                                           @Param("startDate") Instant startDate, 
+                                           @Param("endDate") Instant endDate);
     
     /**
      * Find upcoming tasks for a user (starting from now)
      */
     @Query("SELECT t FROM Task t WHERE t.user = :user AND t.startDatetime >= :now ORDER BY t.startDatetime ASC")
-    List<Task> findUpcomingTasksForUser(@Param("user") User user, @Param("now") LocalDateTime now);
+    List<Task> findUpcomingTasksForUser(@Param("user") User user, @Param("now") Instant now);
     
     /**
      * Find overdue tasks for a user (ended before now)
      */
     @Query("SELECT t FROM Task t WHERE t.user = :user AND t.endDatetime < :now ORDER BY t.endDatetime DESC")
-    List<Task> findOverdueTasksForUser(@Param("user") User user, @Param("now") LocalDateTime now);
+    List<Task> findOverdueTasksForUser(@Param("user") User user, @Param("now") Instant now);
     
     /**
      * Find tasks starting within next X minutes for a user (useful for reminders)
@@ -75,8 +75,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "t.startDatetime >= :now AND t.startDatetime <= :futureTime " +
            "ORDER BY t.startDatetime ASC")
     List<Task> findTasksStartingWithinMinutes(@Param("userId") Long userId,
-                                            @Param("now") LocalDateTime now,
-                                            @Param("futureTime") LocalDateTime futureTime);
+                                            @Param("now") Instant now,
+                                            @Param("futureTime") Instant futureTime);
     
     /**
      * Find tasks by title containing search term for a user
@@ -106,14 +106,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      */
     @Query("SELECT DISTINCT t FROM Task t JOIN t.reminders r WHERE " +
            "r.reminderTime <= :currentTime AND r.isSent = false")
-    List<Task> findTasksWithDueReminders(@Param("currentTime") LocalDateTime currentTime);
+    List<Task> findTasksWithDueReminders(@Param("currentTime") Instant currentTime);
     
     /**
      * Find today's tasks for a user
      */
     @Query("SELECT t FROM Task t WHERE t.user.id = :userId AND " +
            "DATE(t.startDatetime) = DATE(:today) ORDER BY t.startDatetime ASC")
-    List<Task> findTodayTasksForUser(@Param("userId") Long userId, @Param("today") LocalDateTime today);
+    List<Task> findTodayTasksForUser(@Param("userId") Long userId, @Param("today") Instant today);
     
     /**
      * Check if user has any tasks in a specific time slot (for conflict detection)
@@ -121,8 +121,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT COUNT(t) FROM Task t WHERE t.user.id = :userId AND " +
            "((t.startDatetime < :endTime AND t.endDatetime > :startTime))")
     long countConflictingTasks(@Param("userId") Long userId, 
-                              @Param("startTime") LocalDateTime startTime, 
-                              @Param("endTime") LocalDateTime endTime);
+                              @Param("startTime") Instant startTime, 
+                              @Param("endTime") Instant endTime);
     
     /**
      * Check if user has any tasks in a specific time slot excluding a specific task
@@ -131,6 +131,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "((t.startDatetime < :endTime AND t.endDatetime > :startTime))")
     long countConflictingTasksExcludingTask(@Param("userId") Long userId,
                                           @Param("excludeTaskId") Long excludeTaskId,
-                                          @Param("startTime") LocalDateTime startTime, 
-                                          @Param("endTime") LocalDateTime endTime);
+                                          @Param("startTime") Instant startTime, 
+                                          @Param("endTime") Instant endTime);
 }

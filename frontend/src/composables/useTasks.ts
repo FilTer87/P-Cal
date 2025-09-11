@@ -11,6 +11,7 @@ import type {
   NotificationType 
 } from '../types/task'
 import { format, addMinutes, parseISO } from 'date-fns'
+import { localDateTimeToUTC, localDateToUTC } from '../utils/timezone'
 
 export function useTasks() {
   const tasksStore = useTasksStore()
@@ -236,14 +237,14 @@ export function useTasks() {
   }
 
   const convertFormToTaskRequest = (formData: TaskFormData): CreateTaskRequest => {
-    // Create start and end datetime in ISO format
+    // Create start and end datetime with proper timezone conversion
     const startDatetime = formData.isAllDay 
-      ? `${formData.startDate}T00:00:00.000Z`
-      : `${formData.startDate}T${formData.startTime}:00.000Z`
+      ? localDateToUTC(formData.startDate)
+      : localDateTimeToUTC(formData.startDate, formData.startTime)
       
     const endDatetime = formData.isAllDay
-      ? `${formData.endDate}T23:59:59.000Z`
-      : `${formData.endDate}T${formData.endTime}:00.000Z`
+      ? localDateToUTC(formData.endDate) 
+      : localDateTimeToUTC(formData.endDate, formData.endTime)
 
     return {
       title: formData.title.trim(),
@@ -261,14 +262,14 @@ export function useTasks() {
   }
 
   const convertFormToUpdateRequest = (formData: TaskFormData): UpdateTaskRequest => {
-    // Create start and end datetime in ISO format
+    // Create start and end datetime with proper timezone conversion
     const startDatetime = formData.isAllDay 
-      ? `${formData.startDate}T00:00:00.000Z`
-      : `${formData.startDate}T${formData.startTime}:00.000Z`
+      ? localDateToUTC(formData.startDate)
+      : localDateTimeToUTC(formData.startDate, formData.startTime)
       
     const endDatetime = formData.isAllDay
-      ? `${formData.endDate}T23:59:59.000Z`
-      : `${formData.endDate}T${formData.endTime}:00.000Z`
+      ? localDateToUTC(formData.endDate) 
+      : localDateTimeToUTC(formData.endDate, formData.endTime)
 
     return {
       title: formData.title.trim(),

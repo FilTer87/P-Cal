@@ -295,7 +295,7 @@
         </div>
 
         <!-- Calendar Content -->
-        <div class="flex-1 p-2 md:p-4 overflow-hidden">
+        <div class="flex-1 p-2 md:p-4 overflow-auto">
           <!-- Month View -->
           <div v-if="isMonthView" class="calendar-grid-mobile md:calendar-grid">
             <!-- Week Days Header -->
@@ -421,7 +421,7 @@
                   <!-- Top indicators for hidden tasks above -->
                   <div v-for="(task, index) in dayInfo.indicators.top" 
                     :key="`top-${task.id}`"
-                    class="absolute w-2 h-2 rounded-full border border-white shadow-sm"
+                    class="absolute w-3 h-3 rounded-full border border-white shadow-sm"
                     :style="{ 
                       top: '16px',
                       right: `${6 + index * 10}px`,
@@ -432,7 +432,7 @@
                   <!-- Bottom indicators for hidden tasks below -->
                   <div v-for="(task, index) in dayInfo.indicators.bottom" 
                     :key="`bottom-${task.id}`"
-                    class="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg"
+                    class="absolute w-3 h-3 rounded-full border border-white shadow-lg"
                     :style="{ 
                       bottom: '16px',
                       right: `${6 + index * 10}px`,

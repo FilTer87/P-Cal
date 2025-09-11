@@ -3,7 +3,7 @@ package com.privatecal.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +20,10 @@ public class TaskRequest {
     private String description;
     
     @NotNull(message = "Start datetime is required")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime startDatetime;
+    private Instant startDatetime;
     
     @NotNull(message = "End datetime is required")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime endDatetime;
+    private Instant endDatetime;
     
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color (e.g., #3788d8)")
     private String color = "#3788d8";
@@ -41,14 +39,14 @@ public class TaskRequest {
     public TaskRequest() {}
     
     // Basic constructor
-    public TaskRequest(String title, LocalDateTime startDatetime, LocalDateTime endDatetime) {
+    public TaskRequest(String title, Instant startDatetime, Instant endDatetime) {
         this.title = title;
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
     }
     
     // Full constructor
-    public TaskRequest(String title, String description, LocalDateTime startDatetime, LocalDateTime endDatetime,
+    public TaskRequest(String title, String description, Instant startDatetime, Instant endDatetime,
                       String color, Boolean isAllDay, String location) {
         this.title = title;
         this.description = description;
@@ -73,7 +71,9 @@ public class TaskRequest {
         if (!Boolean.TRUE.equals(isAllDay) || startDatetime == null || endDatetime == null) {
             return true;
         }
-        return startDatetime.toLocalDate().equals(endDatetime.toLocalDate());
+        java.time.LocalDate startDate = startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+        java.time.LocalDate endDate = endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+        return startDate.equals(endDate);
     }
     
     // Getters and Setters
@@ -93,19 +93,19 @@ public class TaskRequest {
         this.description = description;
     }
     
-    public LocalDateTime getStartDatetime() {
+    public Instant getStartDatetime() {
         return startDatetime;
     }
     
-    public void setStartDatetime(LocalDateTime startDatetime) {
+    public void setStartDatetime(Instant startDatetime) {
         this.startDatetime = startDatetime;
     }
     
-    public LocalDateTime getEndDatetime() {
+    public Instant getEndDatetime() {
         return endDatetime;
     }
     
-    public void setEndDatetime(LocalDateTime endDatetime) {
+    public void setEndDatetime(Instant endDatetime) {
         this.endDatetime = endDatetime;
     }
     
@@ -164,20 +164,21 @@ public class TaskRequest {
     }
     
     /**
-     * Check if task spans multiple days
+     * Check if task spans multiple days (in UTC)
      */
     public boolean isMultiDay() {
         if (startDatetime != null && endDatetime != null) {
-            return !startDatetime.toLocalDate().equals(endDatetime.toLocalDate());
+            return !startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate()
+                    .equals(endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate());
         }
         return false;
     }
     
     /**
-     * Get task date (start date)
+     * Get task date (start date in UTC)
      */
     public java.time.LocalDate getTaskDate() {
-        return startDatetime != null ? startDatetime.toLocalDate() : null;
+        return startDatetime != null ? startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate() : null;
     }
     
     /**

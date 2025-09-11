@@ -12,8 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -88,9 +89,9 @@ public class TaskController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) String startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) String endDate) {
         try {
-            // Convert date strings to LocalDateTime (start of day and end of day)
-            LocalDateTime startDateTime = LocalDate.parse(startDate).atStartOfDay();
-            LocalDateTime endDateTime = LocalDate.parse(endDate).atTime(23, 59, 59);
+            // Convert date strings to Instant (start of day and end of day in UTC)
+            Instant startDateTime = LocalDate.parse(startDate).atStartOfDay().toInstant(ZoneOffset.UTC);
+            Instant endDateTime = LocalDate.parse(endDate).atTime(23, 59, 59).toInstant(ZoneOffset.UTC);
             
             List<TaskResponse> tasks = taskService.getTasksInDateRange(startDateTime, endDateTime);
             return ResponseEntity.ok(tasks);
@@ -234,7 +235,8 @@ public class TaskController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
             
-            LocalDateTime newStartTime = LocalDateTime.parse(newStartTimeStr);
+            // Parse as ISO instant (UTC format)
+            Instant newStartTime = Instant.parse(newStartTimeStr);
             
             logger.debug("Cloning task ID: {} with new start time: {}", taskId, newStartTime);
             
@@ -312,8 +314,9 @@ public class TaskController {
                         .body(Map.of("error", "Start time and end time are required"));
             }
             
-            LocalDateTime startTime = LocalDateTime.parse(startTimeStr);
-            LocalDateTime endTime = LocalDateTime.parse(endTimeStr);
+            // Parse as ISO instant (UTC format)
+            Instant startTime = Instant.parse(startTimeStr);
+            Instant endTime = Instant.parse(endTimeStr);
             
             boolean hasConflict = taskService.hasTasksInDateRange(startTime, endTime);
             

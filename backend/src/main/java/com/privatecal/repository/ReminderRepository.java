@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +46,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
      * Find all reminders that are due (time has passed and not yet sent)
      */
     @Query("SELECT r FROM Reminder r WHERE r.reminderTime <= :currentTime AND r.isSent = false ORDER BY r.reminderTime ASC")
-    List<Reminder> findDueReminders(@Param("currentTime") LocalDateTime currentTime);
+    List<Reminder> findDueReminders(@Param("currentTime") Instant currentTime);
     
     /**
      * Find all unsent reminders for a specific user
@@ -67,22 +67,22 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
            "r.reminderTime >= :startDate AND r.reminderTime <= :endDate " +
            "ORDER BY r.reminderTime ASC")
     List<Reminder> findRemindersInDateRangeForUser(@Param("userId") Long userId,
-                                                 @Param("startDate") LocalDateTime startDate,
-                                                 @Param("endDate") LocalDateTime endDate);
+                                                 @Param("startDate") Instant startDate,
+                                                 @Param("endDate") Instant endDate);
     
     /**
      * Find upcoming reminders for a user (from now onwards)
      */
     @Query("SELECT r FROM Reminder r WHERE r.task.user.id = :userId AND " +
            "r.reminderTime >= :now AND r.isSent = false ORDER BY r.reminderTime ASC")
-    List<Reminder> findUpcomingRemindersForUser(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+    List<Reminder> findUpcomingRemindersForUser(@Param("userId") Long userId, @Param("now") Instant now);
     
     /**
      * Find reminders that need to be processed in the next X minutes
      */
     @Query("SELECT r FROM Reminder r WHERE r.reminderTime >= :now AND r.reminderTime <= :futureTime " +
            "AND r.isSent = false ORDER BY r.reminderTime ASC")
-    List<Reminder> findRemindersInNextMinutes(@Param("now") LocalDateTime now, @Param("futureTime") LocalDateTime futureTime);
+    List<Reminder> findRemindersInNextMinutes(@Param("now") Instant now, @Param("futureTime") Instant futureTime);
     
     /**
      * Mark reminder as sent
@@ -146,7 +146,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
      * Count overdue reminders (should have been sent but weren't)
      */
     @Query("SELECT COUNT(r) FROM Reminder r WHERE r.reminderTime < :currentTime AND r.isSent = false")
-    long countOverdueReminders(@Param("currentTime") LocalDateTime currentTime);
+    long countOverdueReminders(@Param("currentTime") Instant currentTime);
     
     /**
      * Find reminders by notification type for a user
@@ -161,7 +161,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
      */
     @Query("SELECT r FROM Reminder r WHERE r.task.id = :taskId AND r.reminderTime >= :now AND r.isSent = false " +
            "ORDER BY r.reminderTime ASC")
-    Optional<Reminder> findNextReminderForTask(@Param("taskId") Long taskId, @Param("now") LocalDateTime now);
+    Optional<Reminder> findNextReminderForTask(@Param("taskId") Long taskId, @Param("now") Instant now);
     
     /**
      * Delete sent reminders older than specified date (cleanup)
@@ -169,5 +169,5 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     @Modifying
     @Transactional
     @Query("DELETE FROM Reminder r WHERE r.isSent = true AND r.reminderTime < :cutoffDate")
-    void deleteOldSentReminders(@Param("cutoffDate") LocalDateTime cutoffDate);
+    void deleteOldSentReminders(@Param("cutoffDate") Instant cutoffDate);
 }

@@ -48,31 +48,43 @@ import { it } from 'date-fns/locale'
 
 /**
  * Format date for display in Italian locale
+ * @param date - Date object or UTC ISO string from backend
+ * @param pattern - Format pattern (default: dd/MM/yyyy)
+ * @returns Formatted date in local timezone
  */
 export const formatDate = (date: Date | string, pattern = 'dd/MM/yyyy'): string => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return 'Data non valida'
   
+  // parseISO automatically converts UTC string to local timezone
   return format(dateObj, pattern, { locale: it })
 }
 
 /**
  * Format datetime for display in Italian locale
+ * @param date - Date object or UTC ISO string from backend
+ * @param pattern - Format pattern (default: dd/MM/yyyy HH:mm)
+ * @returns Formatted datetime in local timezone
  */
 export const formatDateTime = (date: Date | string, pattern = 'dd/MM/yyyy HH:mm'): string => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return 'Data non valida'
   
+  // parseISO automatically converts UTC string to local timezone
   return format(dateObj, pattern, { locale: it })
 }
 
 /**
  * Format time only
+ * @param date - Date object or UTC ISO string from backend
+ * @param pattern - Format pattern (default: HH:mm)
+ * @returns Formatted time in local timezone
  */
 export const formatTime = (date: Date | string, pattern = 'HH:mm'): string => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return 'Ora non valida'
   
+  // parseISO automatically converts UTC string to local timezone
   return format(dateObj, pattern, { locale: it })
 }
 

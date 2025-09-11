@@ -9,7 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +37,11 @@ public class Task {
     
     @NotNull
     @Column(name = "start_datetime", nullable = false)
-    private LocalDateTime startDatetime;
+    private Instant startDatetime;
     
     @NotNull
     @Column(name = "end_datetime", nullable = false)
-    private LocalDateTime endDatetime;
+    private Instant endDatetime;
     
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color")
     @Column(length = 7)
@@ -59,23 +59,23 @@ public class Task {
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
     
     // Constructors
     public Task() {}
     
-    public Task(User user, String title, LocalDateTime startDatetime, LocalDateTime endDatetime) {
+    public Task(User user, String title, Instant startDatetime, Instant endDatetime) {
         this.user = user;
         this.title = title;
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
     }
     
-    public Task(User user, String title, String description, LocalDateTime startDatetime, LocalDateTime endDatetime, String color) {
+    public Task(User user, String title, String description, Instant startDatetime, Instant endDatetime, String color) {
         this(user, title, startDatetime, endDatetime);
         this.description = description;
         this.color = color;
@@ -123,19 +123,19 @@ public class Task {
         this.description = description;
     }
     
-    public LocalDateTime getStartDatetime() {
+    public Instant getStartDatetime() {
         return startDatetime;
     }
     
-    public void setStartDatetime(LocalDateTime startDatetime) {
+    public void setStartDatetime(Instant startDatetime) {
         this.startDatetime = startDatetime;
     }
     
-    public LocalDateTime getEndDatetime() {
+    public Instant getEndDatetime() {
         return endDatetime;
     }
     
-    public void setEndDatetime(LocalDateTime endDatetime) {
+    public void setEndDatetime(Instant endDatetime) {
         this.endDatetime = endDatetime;
     }
     
@@ -181,19 +181,19 @@ public class Task {
         reminder.setTask(null);
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
     
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
     
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
     

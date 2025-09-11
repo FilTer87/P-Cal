@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.privatecal.entity.Reminder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Data Transfer Object for Reminder response
@@ -16,15 +16,13 @@ public class ReminderResponse {
     private Long taskId;
     private String taskTitle;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime reminderTime;
+    private Instant reminderTime;
     
     private Integer reminderOffsetMinutes;
     private Boolean isSent;
     private Reminder.NotificationType notificationType;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
     // Computed fields
     private Boolean isDue;
@@ -95,11 +93,11 @@ public class ReminderResponse {
     
     // Calculate computed fields
     private void calculateComputedFields() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         if (reminderTime != null) {
             this.isDue = !Boolean.TRUE.equals(isSent) && reminderTime.isBefore(now);
-            this.isOverdue = !Boolean.TRUE.equals(isSent) && reminderTime.isBefore(now.minusMinutes(5));
+            this.isOverdue = !Boolean.TRUE.equals(isSent) && reminderTime.isBefore(now.minus(java.time.Duration.ofMinutes(5)));
             
             if (reminderTime.isAfter(now)) {
                 this.minutesUntilDue = java.time.Duration.between(now, reminderTime).toMinutes();
@@ -163,11 +161,11 @@ public class ReminderResponse {
         this.taskTitle = taskTitle;
     }
     
-    public LocalDateTime getReminderTime() {
+    public Instant getReminderTime() {
         return reminderTime;
     }
     
-    public void setReminderTime(LocalDateTime reminderTime) {
+    public void setReminderTime(Instant reminderTime) {
         this.reminderTime = reminderTime;
         calculateComputedFields();
     }
@@ -198,11 +196,11 @@ public class ReminderResponse {
         this.notificationType = notificationType;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
     

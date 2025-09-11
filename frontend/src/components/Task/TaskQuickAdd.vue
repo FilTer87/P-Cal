@@ -286,6 +286,9 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
+// Utils
+import { localDateTimeToUTC, localDateToUTC } from '@/utils/timezone'
+
 // Props
 interface Props {
   initialDate?: string
@@ -442,20 +445,21 @@ const handleSubmit = async () => {
     isAllDay: formData.value.isAllDay
   }
 
-  // Set dates
+  // Set dates with proper timezone conversion
   if (formData.value.isAllDay) {
-    taskData.dueDate = `${formData.value.date}T00:00:00`
-    taskData.startDate = `${formData.value.date}T00:00:00`
-    taskData.endDate = `${formData.value.date}T23:59:59`
+    // For all-day tasks, use localDateToUTC
+    taskData.startDatetime = localDateToUTC(formData.value.date)
+    taskData.endDatetime = localDateToUTC(formData.value.date)
   } else {
-    const dateTime = `${formData.value.date}T${formData.value.time}:00`
-    taskData.dueDate = dateTime
-    taskData.startDate = dateTime
+    // For timed tasks, use localDateTimeToUTC
+    taskData.startDatetime = localDateTimeToUTC(formData.value.date, formData.value.time)
     
-    // End date is 1 hour later by default
-    const endTime = new Date(`${formData.value.date}T${formData.value.time}:00`)
-    endTime.setHours(endTime.getHours() + 1)
-    taskData.endDate = endTime.toISOString().slice(0, 19)
+    // Calculate end time (1 hour later) and convert to UTC
+    const [hour, minute] = formData.value.time.split(':').map(n => parseInt(n))
+    const endHour = hour + 1
+    const endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+    
+    taskData.endDatetime = localDateTimeToUTC(formData.value.date, endTime)
   }
 
   // Validate the task data

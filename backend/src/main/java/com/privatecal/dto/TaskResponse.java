@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.privatecal.entity.Task;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +19,9 @@ public class TaskResponse {
     private String title;
     private String description;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime startDatetime;
+    private Instant startDatetime;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime endDatetime;
+    private Instant endDatetime;
     
     private String color;
     private Boolean isAllDay;
@@ -34,11 +32,9 @@ public class TaskResponse {
     private Long userId;
     private String userFullName;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
     
     // Computed fields
     private Long durationMinutes;
@@ -122,12 +118,17 @@ public class TaskResponse {
     
     // Calculate computed fields
     private void calculateComputedFields() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         if (startDatetime != null && endDatetime != null) {
             this.durationMinutes = java.time.Duration.between(startDatetime, endDatetime).toMinutes();
-            this.isMultiDay = !startDatetime.toLocalDate().equals(endDatetime.toLocalDate());
-            this.isToday = startDatetime.toLocalDate().equals(now.toLocalDate());
+            // Convert to UTC date for comparison
+            java.time.LocalDate startDate = startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            java.time.LocalDate endDate = endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            java.time.LocalDate todayDate = now.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            
+            this.isMultiDay = !startDate.equals(endDate);
+            this.isToday = startDate.equals(todayDate);
             this.isPast = endDatetime.isBefore(now);
             this.isUpcoming = startDatetime.isAfter(now);
         }
@@ -160,20 +161,20 @@ public class TaskResponse {
         this.description = description;
     }
     
-    public LocalDateTime getStartDatetime() {
+    public Instant getStartDatetime() {
         return startDatetime;
     }
     
-    public void setStartDatetime(LocalDateTime startDatetime) {
+    public void setStartDatetime(Instant startDatetime) {
         this.startDatetime = startDatetime;
         calculateComputedFields();
     }
     
-    public LocalDateTime getEndDatetime() {
+    public Instant getEndDatetime() {
         return endDatetime;
     }
     
-    public void setEndDatetime(LocalDateTime endDatetime) {
+    public void setEndDatetime(Instant endDatetime) {
         this.endDatetime = endDatetime;
         calculateComputedFields();
     }
@@ -227,19 +228,19 @@ public class TaskResponse {
         this.userFullName = userFullName;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
     
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
     
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
     
@@ -299,11 +300,11 @@ public class TaskResponse {
     }
     
     /**
-     * Get task date string
+     * Get task date string (UTC)
      */
     public String getTaskDateString() {
         if (startDatetime != null) {
-            return startDatetime.toLocalDate().toString();
+            return startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate().toString();
         }
         return null;
     }

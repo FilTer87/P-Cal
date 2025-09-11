@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "reminders")
@@ -24,7 +24,7 @@ public class Reminder {
     
     @NotNull
     @Column(name = "reminder_time", nullable = false)
-    private LocalDateTime reminderTime;
+    private Instant reminderTime;
     
     @Min(0)
     @Column(name = "reminder_offset_minutes", nullable = false)
@@ -39,7 +39,7 @@ public class Reminder {
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
     public enum NotificationType {
         PUSH, EMAIL
@@ -62,7 +62,7 @@ public class Reminder {
     // Calculate reminder time based on task start time and offset
     public void calculateReminderTime() {
         if (task != null && task.getStartDatetime() != null && reminderOffsetMinutes != null) {
-            this.reminderTime = task.getStartDatetime().minusMinutes(reminderOffsetMinutes);
+            this.reminderTime = task.getStartDatetime().minus(java.time.Duration.ofMinutes(reminderOffsetMinutes));
         }
     }
     
@@ -90,11 +90,11 @@ public class Reminder {
         calculateReminderTime();
     }
     
-    public LocalDateTime getReminderTime() {
+    public Instant getReminderTime() {
         return reminderTime;
     }
     
-    public void setReminderTime(LocalDateTime reminderTime) {
+    public void setReminderTime(Instant reminderTime) {
         this.reminderTime = reminderTime;
     }
     
@@ -123,16 +123,16 @@ public class Reminder {
         this.notificationType = notificationType;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
     
     public boolean isDue() {
-        return reminderTime != null && !isSent && LocalDateTime.now().isAfter(reminderTime);
+        return reminderTime != null && !isSent && Instant.now().isAfter(reminderTime);
     }
     
     @Override

@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -212,7 +213,7 @@ public class NotificationService {
      */
     private String createNotificationMessage(Task task, Reminder reminder) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
-        String startTime = task.getStartDatetime().format(formatter);
+        String startTime = task.getStartDatetime().atZone(ZoneOffset.UTC).format(formatter);
         
         StringBuilder message = new StringBuilder();
         message.append("Reminder: ").append(task.getTitle());
@@ -254,7 +255,7 @@ public class NotificationService {
      */
     private String createEmailBody(Task task, Reminder reminder, User user) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm");
-        String startTime = task.getStartDatetime().format(formatter);
+        String startTime = task.getStartDatetime().atZone(ZoneOffset.UTC).format(formatter);
         
         StringBuilder body = new StringBuilder();
         body.append("Hi ").append(user.getFullName() != null ? user.getFullName() : user.getUsername()).append(",\n\n");
@@ -340,7 +341,7 @@ public class NotificationService {
             String ntfyUrl = ntfyServerUrl + "/" + topic;
             
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd 'at' HH:mm");
-            String startTime = task.getStartDatetime().format(formatter);
+            String startTime = task.getStartDatetime().atZone(ZoneOffset.UTC).format(formatter);
             
             String message = "New task created: " + task.getTitle() + "\nScheduled for: " + startTime;
             

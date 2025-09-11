@@ -16,7 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -119,7 +119,7 @@ public class TaskService {
      * Get tasks in date range for current user
      */
     @Transactional(readOnly = true)
-    public List<TaskResponse> getTasksInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<TaskResponse> getTasksInDateRange(Instant startDate, Instant endDate) {
         User currentUser = userService.getCurrentUser();
         List<Task> tasks = taskRepository.findTasksInDateRangeForUser(currentUser, startDate, endDate);
         
@@ -132,7 +132,7 @@ public class TaskService {
      * Get tasks in date range with pagination
      */
     @Transactional(readOnly = true)
-    public Page<TaskResponse> getTasksInDateRange(LocalDateTime startDate, LocalDateTime endDate, 
+    public Page<TaskResponse> getTasksInDateRange(Instant startDate, Instant endDate, 
                                                  int page, int size, String sortBy, String sortDir) {
         User currentUser = userService.getCurrentUser();
         
@@ -163,7 +163,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getTodayTasks() {
         Long currentUserId = userService.getCurrentUserId();
-        LocalDateTime today = LocalDateTime.now();
+        Instant today = Instant.now();
         List<Task> tasks = taskRepository.findTodayTasksForUser(currentUserId, today);
         
         return tasks.stream()
@@ -177,7 +177,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getUpcomingTasks(int limit) {
         User currentUser = userService.getCurrentUser();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         List<Task> tasks = taskRepository.findUpcomingTasksForUser(currentUser, now);
         
         return tasks.stream()
@@ -192,7 +192,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getOverdueTasks() {
         User currentUser = userService.getCurrentUser();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         List<Task> tasks = taskRepository.findOverdueTasksForUser(currentUser, now);
         
         return tasks.stream()
@@ -313,7 +313,7 @@ public class TaskService {
      * Check if user has tasks in date range
      */
     @Transactional(readOnly = true)
-    public boolean hasTasksInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+    public boolean hasTasksInDateRange(Instant startDate, Instant endDate) {
         User currentUser = userService.getCurrentUser();
         List<Task> tasks = taskRepository.findTasksInDateRangeForUser(currentUser, startDate, endDate);
         return !tasks.isEmpty();
@@ -324,7 +324,7 @@ public class TaskService {
      */
     @Transactional(readOnly = true)
     public List<TaskResponse> getTasksWithDueReminders() {
-        LocalDateTime currentTime = LocalDateTime.now();
+        Instant currentTime = Instant.now();
         List<Task> tasks = taskRepository.findTasksWithDueReminders(currentTime);
         
         return tasks.stream()
@@ -353,7 +353,10 @@ public class TaskService {
         }
         
         if (Boolean.TRUE.equals(taskRequest.getIsAllDay())) {
-            if (!taskRequest.getStartDatetime().toLocalDate().equals(taskRequest.getEndDatetime().toLocalDate())) {
+            // Convert to UTC date for comparison
+            java.time.LocalDate startDate = taskRequest.getStartDatetime().atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            java.time.LocalDate endDate = taskRequest.getEndDatetime().atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            if (!startDate.equals(endDate)) {
                 throw new RuntimeException("All-day tasks must start and end on the same date");
             }
         }
@@ -366,7 +369,7 @@ public class TaskService {
     /**
      * Check for time conflicts
      */
-    private boolean hasTimeConflict(Long excludeTaskId, Long userId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean hasTimeConflict(Long excludeTaskId, Long userId, Instant startTime, Instant endTime) {
         if (excludeTaskId != null) {
             return taskRepository.countConflictingTasksExcludingTask(userId, excludeTaskId, startTime, endTime) > 0;
         } else {
@@ -380,7 +383,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public TaskStatistics getTaskStatistics() {
         User currentUser = userService.getCurrentUser();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         long totalTasks = taskRepository.countByUser(currentUser);
         
@@ -425,7 +428,7 @@ public class TaskService {
     /**
      * Clone/duplicate a task
      */
-    public TaskResponse cloneTask(Long taskId, LocalDateTime newStartTime) {
+    public TaskResponse cloneTask(Long taskId, Instant newStartTime) {
         User currentUser = userService.getCurrentUser();
         
         // Find original task
@@ -437,7 +440,7 @@ public class TaskService {
             originalTask.getStartDatetime(), 
             originalTask.getEndDatetime()
         ).toMinutes();
-        LocalDateTime newEndTime = newStartTime.plusMinutes(durationMinutes);
+        Instant newEndTime = newStartTime.plus(java.time.Duration.ofMinutes(durationMinutes));
         
         // Create task request for the clone
         TaskRequest cloneRequest = new TaskRequest();

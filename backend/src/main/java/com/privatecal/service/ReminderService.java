@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -113,7 +113,7 @@ public class ReminderService {
     @Transactional(readOnly = true)
     public List<ReminderResponse> getUpcomingReminders() {
         Long currentUserId = userService.getCurrentUserId();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         List<Reminder> reminders = reminderRepository.findUpcomingRemindersForUser(currentUserId, now);
         
@@ -126,7 +126,7 @@ public class ReminderService {
      * Get reminders in date range for current user
      */
     @Transactional(readOnly = true)
-    public List<ReminderResponse> getRemindersInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<ReminderResponse> getRemindersInDateRange(Instant startDate, Instant endDate) {
         Long currentUserId = userService.getCurrentUserId();
         
         List<Reminder> reminders = reminderRepository.findRemindersInDateRangeForUser(
@@ -259,7 +259,7 @@ public class ReminderService {
      */
     @Transactional(readOnly = true)
     public List<ReminderResponse> getDueReminders() {
-        LocalDateTime currentTime = LocalDateTime.now();
+        Instant currentTime = Instant.now();
         List<Reminder> reminders = reminderRepository.findDueReminders(currentTime);
         
         return reminders.stream()
@@ -274,7 +274,7 @@ public class ReminderService {
     @Async
     public void processDueReminders() {
         try {
-            LocalDateTime currentTime = LocalDateTime.now();
+            Instant currentTime = Instant.now();
             List<Reminder> dueReminders = reminderRepository.findDueReminders(currentTime);
             
             if (!dueReminders.isEmpty()) {
@@ -327,7 +327,7 @@ public class ReminderService {
     @Transactional(readOnly = true)
     public ReminderStatistics getReminderStatistics() {
         Long currentUserId = userService.getCurrentUserId();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         
         long totalReminders = reminderRepository.findUnsentRemindersForUser(currentUserId).size();
         long dueReminders = reminderRepository.findDueReminders(now)
@@ -363,7 +363,7 @@ public class ReminderService {
     @Async
     public void cleanupOldReminders() {
         try {
-            LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30); // Keep for 30 days
+            Instant cutoffDate = Instant.now().minus(java.time.Duration.ofDays(30)); // Keep for 30 days
             reminderRepository.deleteOldSentReminders(cutoffDate);
             logger.info("Cleaned up old sent reminders older than {}", cutoffDate);
         } catch (Exception e) {

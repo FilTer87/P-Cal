@@ -364,6 +364,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useTasks } from '../../composables/useTasks'
 import { useTheme } from '../../composables/useTheme'
 import { format, addMinutes, subMinutes, parseISO } from 'date-fns'
+import { localDateTimeToUTC, localDateToUTC, utcToLocalDate, utcToLocalTime } from '../../utils/timezone'
 import { 
   TASK_PRIORITY_CONFIG, 
   VALIDATION_MESSAGES,
@@ -465,27 +466,45 @@ watch(
   () => props.task,
   (task) => {
     if (task) {
+      // Helper function to convert UTC datetime to local date/time for form inputs
+      const getLocalDateTime = (utcString: string | undefined) => {
+        if (!utcString) return { date: '', time: '' }
+        return {
+          date: utcToLocalDate(utcString),
+          time: utcToLocalTime(utcString)
+        }
+      }
+
+      const dueDateTime = getLocalDateTime(task.dueDate)
+      const startDateTime = getLocalDateTime(task.startDate)
+      const endDateTime = getLocalDateTime(task.endDate)
+
       formData.value = {
         title: task.title,
         description: task.description || '',
         priority: task.priority,
-        dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
-        dueTime: task.dueDate ? format(new Date(task.dueDate), 'HH:mm') : '09:00',
-        startDate: task.startDate ? format(new Date(task.startDate), 'yyyy-MM-dd') : 
-                   (task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')),
-        startTime: task.startDate ? format(new Date(task.startDate), 'HH:mm') : '09:00',
-        endDate: task.endDate ? format(new Date(task.endDate), 'yyyy-MM-dd') : 
-                 (task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')),
-        endTime: task.endDate ? format(new Date(task.endDate), 'HH:mm') : '10:00',
+        dueDate: dueDateTime.date || format(new Date(), 'yyyy-MM-dd'),
+        dueTime: dueDateTime.time || '09:00',
+        startDate: startDateTime.date || 
+                   dueDateTime.date || 
+                   format(new Date(), 'yyyy-MM-dd'),
+        startTime: startDateTime.time || '09:00',
+        endDate: endDateTime.date || 
+                 dueDateTime.date || 
+                 format(new Date(), 'yyyy-MM-dd'),
+        endTime: endDateTime.time || '10:00',
         location: task.location || '',
         color: task.color || '#3b82f6',
         isAllDay: task.isAllDay || false,
-        reminders: task.reminders.map(reminder => ({
-          id: reminder.id,
-          date: format(new Date(reminder.reminderDateTime), 'yyyy-MM-dd'),
-          time: format(new Date(reminder.reminderDateTime), 'HH:mm'),
-          reminderDateTime: reminder.reminderDateTime
-        }))
+        reminders: task.reminders.map(reminder => {
+          const reminderDateTime = getLocalDateTime(reminder.reminderDateTime)
+          return {
+            id: reminder.id,
+            date: reminderDateTime.date,
+            time: reminderDateTime.time,
+            reminderDateTime: reminder.reminderDateTime
+          }
+        })
       }
     }
   },
@@ -579,6 +598,7 @@ const removeReminder = (index: number) => {
 const addReminderPreset = (minutesBefore: number) => {
   if (formData.value.reminders.length >= 5) return
   
+  // Create datetime in local timezone first
   const startDateTime = formData.value.startDate && formData.value.startTime
     ? parseISO(`${formData.value.startDate}T${formData.value.startTime}:00`)
     : parseISO(`${formData.value.dueDate}T${formData.value.dueTime}:00`)
@@ -588,6 +608,7 @@ const addReminderPreset = (minutesBefore: number) => {
   formData.value.reminders.push({
     date: format(reminderDateTime, 'yyyy-MM-dd'),
     time: format(reminderDateTime, 'HH:mm'),
+    // Convert to UTC for storage
     reminderDateTime: reminderDateTime.toISOString()
   })
 }
@@ -595,7 +616,8 @@ const addReminderPreset = (minutesBefore: number) => {
 const validateReminder = (index: number) => {
   const reminder = formData.value.reminders[index]
   if (reminder.date && reminder.time && !formData.value.isAllDay) {
-    reminder.reminderDateTime = `${reminder.date}T${reminder.time}:00`
+    // Convert local datetime to UTC for storage
+    reminder.reminderDateTime = localDateTimeToUTC(reminder.date, reminder.time)
   }
 }
 
@@ -667,30 +689,51 @@ const handleCancel = () => {
 }
 
 const convertToCreateRequest = (data: TaskFormData): CreateTaskRequest => {
+  // Helper function to convert local datetime to UTC
+  const convertDateTime = (date: string, time: string, isAllDay: boolean) => {
+    if (!date) return undefined
+    
+    if (isAllDay) {
+      return localDateToUTC(date)
+    } else if (time) {
+      return localDateTimeToUTC(date, time)
+    }
+    return undefined
+  }
+
   return {
     title: data.title.trim(),
     description: data.description.trim() || undefined,
-    priority: data.priority,
-    dueDate: data.dueDate && data.dueTime ? `${data.dueDate}T${data.dueTime}:00` : undefined,
-    startDate: data.startDate && data.startTime ? `${data.startDate}T${data.startTime}:00` : undefined,
-    endDate: data.endDate && data.endTime ? `${data.endDate}T${data.endTime}:00` : undefined,
+    startDatetime: convertDateTime(data.startDate, data.startTime, data.isAllDay),
+    endDatetime: convertDateTime(data.endDate, data.endTime, data.isAllDay),
     location: data.location.trim() || undefined,
     color: data.color,
     isAllDay: data.isAllDay,
     reminders: data.reminders.map(reminder => ({
-      reminderDateTime: reminder.reminderDateTime || `${reminder.date}T${reminder.time}:00`
+      reminderOffsetMinutes: reminder.reminderOffsetMinutes || 15,
+      notificationType: reminder.notificationType || 'PUSH'
     }))
   }
 }
 
 const convertToUpdateRequest = (data: TaskFormData): UpdateTaskRequest => {
+  // Helper function to convert local datetime to UTC (same as create)
+  const convertDateTime = (date: string, time: string, isAllDay: boolean) => {
+    if (!date) return undefined
+    
+    if (isAllDay) {
+      return localDateToUTC(date)
+    } else if (time) {
+      return localDateTimeToUTC(date, time)
+    }
+    return undefined
+  }
+
   return {
     title: data.title.trim(),
     description: data.description.trim() || undefined,
-    priority: data.priority,
-    dueDate: data.dueDate && data.dueTime ? `${data.dueDate}T${data.dueTime}:00` : undefined,
-    startDate: data.startDate && data.startTime ? `${data.startDate}T${data.startTime}:00` : undefined,
-    endDate: data.endDate && data.endTime ? `${data.endDate}T${data.endTime}:00` : undefined,
+    startDatetime: convertDateTime(data.startDate, data.startTime, data.isAllDay),
+    endDatetime: convertDateTime(data.endDate, data.endTime, data.isAllDay),
     location: data.location.trim() || undefined,
     color: data.color,
     isAllDay: data.isAllDay

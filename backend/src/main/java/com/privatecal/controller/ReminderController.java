@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -114,10 +114,13 @@ public class ReminderController {
      */
     @GetMapping("/range")
     public ResponseEntity<List<ReminderResponse>> getRemindersInRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
         try {
-            List<ReminderResponse> reminders = reminderService.getRemindersInDateRange(startDate, endDate);
+            // Parse ISO instant strings to Instant
+            Instant startInstant = Instant.parse(startDate);
+            Instant endInstant = Instant.parse(endDate);
+            List<ReminderResponse> reminders = reminderService.getRemindersInDateRange(startInstant, endInstant);
             return ResponseEntity.ok(reminders);
         } catch (Exception e) {
             logger.error("Error getting reminders in range", e);
