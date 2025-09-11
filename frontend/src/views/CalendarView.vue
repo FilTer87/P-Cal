@@ -991,6 +991,7 @@ const getTaskTimePosition = (task: any) => {
   const end = endTimeStr ? new Date(endTimeStr) : new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour
   
   // Calculate position based on hours (each hour = 64px height)
+  // All times now use local timezone for consistent positioning
   const startHour = start.getHours() + start.getMinutes() / 60
   let endHour = end.getHours() + end.getMinutes() / 60
   
@@ -1154,17 +1155,17 @@ const getTasksWithSplitsForDate = (date: Date) => {
         if (currentDay === taskStartDay) {
           // First day: from original start time to end of day
           visualStartTime = task.startDatetime
-          visualEndTime = `${currentDay}T23:59:59.999Z`
+          visualEndTime = `${currentDay}T23:59:59`
           console.log(`🚀 First day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
         } else if (currentDay === taskEndDay) {
           // Last day: from start of day to original end time  
-          visualStartTime = `${currentDay}T00:00:00.000Z`
+          visualStartTime = `${currentDay}T00:00:00`
           visualEndTime = task.endDatetime
           console.log(`🏁 Last day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
         } else {
-          // Middle day: full day
-          visualStartTime = `${currentDay}T00:00:00.000Z`
-          visualEndTime = `${currentDay}T23:59:59.999Z`
+          // Middle day: full day (using local timezone format for consistent positioning)
+          visualStartTime = `${currentDay}T00:00:00`
+          visualEndTime = `${currentDay}T23:59:59`
           console.log(`🔄 Middle day split for "${task.title}": visual full day`)
         }
         
