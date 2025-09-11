@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header -->
     <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div class="px-4 sm:px-6 lg:px-8">
@@ -269,9 +269,9 @@
       </aside>
 
       <!-- Calendar Area -->
-      <main class="flex-1 overflow-hidden md:ml-0">
+      <main class="flex-1 flex flex-col overflow-hidden md:ml-0">
         <!-- Calendar Header -->
-        <div class="p-3 md:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="p-3 md:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div class="flex items-center justify-between">
             <div v-if="isAgendaView">
               <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
@@ -295,7 +295,7 @@
         </div>
 
         <!-- Calendar Content -->
-        <div class="p-2 md:p-4 h-full overflow-y-auto">
+        <div class="flex-1 p-2 md:p-4 overflow-hidden">
           <!-- Month View -->
           <div v-if="isMonthView" class="calendar-grid-mobile md:calendar-grid">
             <!-- Week Days Header -->
@@ -360,41 +360,91 @@
             </div>
 
             <!-- Week Grid -->
-            <div class="flex-1 overflow-auto">
-              <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 min-h-full">
-                <!-- Time Column -->
-                <div class="bg-white dark:bg-gray-800">
-                  <div v-for="hour in 24" :key="hour-1" 
-                    class="h-16 border-b border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                    :class="{ 'border-b-2 border-gray-300 dark:border-gray-500': (hour-1) % 6 === 0 }">
-                    {{ String(hour-1).padStart(2, '0') }}:00
+            <div class="flex-1 relative overflow-hidden">
+              <!-- Scrollable Content -->
+              <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll" class="absolute inset-0 overflow-auto">
+                <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600" style="min-height: 1536px;">
+                  <!-- Time Column -->
+                  <div class="bg-white dark:bg-gray-800">
+                    <div v-for="hour in 24" :key="hour-1" 
+                      class="h-16 border-b border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                      :class="{ 'border-b-2 border-gray-300 dark:border-gray-500': (hour-1) % 6 === 0 }">
+                      {{ String(hour-1).padStart(2, '0') }}:00
+                    </div>
+                  </div>
+
+                  <!-- Day Columns -->
+                  <div v-for="(dayInfo, dayIndex) in weekDaysWithIndicators" :key="dayInfo.day.getTime()" 
+                    class="bg-white dark:bg-gray-800 relative">
+                    
+                    <!-- Time Grid Lines -->
+                    <div v-for="hour in 24" :key="hour-1" 
+                      class="h-16 border-b border-gray-100 dark:border-gray-700"
+                      :class="{ 
+                        'border-b-2 border-gray-200 dark:border-gray-600': (hour-1) % 6 === 0,
+                        'bg-blue-50 dark:bg-blue-900/10': isToday(dayInfo.day)
+                      }">
+                    </div>
+
+                    <!-- Tasks for this day -->
+                    <div class="absolute inset-0 pointer-events-none">
+                      <div v-for="task in getTasksForDate(dayInfo.day)" :key="task.id"
+                        :style="getTaskTimeStyle(task)"
+                        @click="openTaskModalForEdit(task)"
+                        class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
+                        :class="getTaskTimeDisplayClasses(task)">
+                        <div class="truncate font-semibold">{{ task.title }}</div>
+                        <div v-if="task.location" class="truncate text-xs opacity-90">{{ task.location }}</div>
+                        <div class="text-xs opacity-75">{{ formatTaskTime(task) }}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <!-- Day Columns -->
-                <div v-for="day in getWeekDays(currentDate)" :key="day.getTime()" 
-                  class="bg-white dark:bg-gray-800 relative">
+              </div>
+              
+              <!-- Fixed Overflow Indicators (Positioned relative to scroll container) -->
+              <div class="absolute inset-0 pointer-events-none z-50">
+                <div v-for="(dayInfo, dayIndex) in weekDaysWithIndicators" :key="`indicators-${dayInfo.day.getTime()}`"
+                  class="absolute pointer-events-none"
+                  :style="{ 
+                    left: `${12.5 + (dayIndex * 12.5)}%`,
+                    width: '12.5%',
+                    top: '0px',
+                    height: '100%'
+                  }">
                   
-                  <!-- Time Grid Lines -->
-                  <div v-for="hour in 24" :key="hour-1" 
-                    class="h-16 border-b border-gray-100 dark:border-gray-700"
-                    :class="{ 
-                      'border-b-2 border-gray-200 dark:border-gray-600': (hour-1) % 6 === 0,
-                      'bg-blue-50 dark:bg-blue-900/10': isToday(day)
+                  <!-- DEBUG: Always show data -->
+                  <div class="absolute top-2 left-2 bg-black text-white text-xs px-1 rounded pointer-events-auto">
+                    T:{{ dayInfo.indicators.top.length }} B:{{ dayInfo.indicators.bottom.length }}
+                  </div>
+                  
+                  <!-- Top indicators for hidden tasks above -->
+                  <div v-for="(task, index) in dayInfo.indicators.top" 
+                    :key="`top-${task.id}`"
+                    class="absolute w-2 h-2 rounded-full border border-white shadow-sm"
+                    :style="{ 
+                      top: '16px',
+                      right: `${6 + index * 10}px`,
+                      backgroundColor: task.color || '#3B82F6'
                     }">
                   </div>
 
-                  <!-- Tasks for this day -->
-                  <div class="absolute inset-0 pointer-events-none">
-                    <div v-for="task in getTasksForDate(day)" :key="task.id"
-                      :style="getTaskTimeStyle(task)"
-                      @click="openTaskModalForEdit(task)"
-                      class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
-                      :class="getTaskTimeDisplayClasses(task)">
-                      <div class="truncate font-semibold">{{ task.title }}</div>
-                      <div v-if="task.location" class="truncate text-xs opacity-90">{{ task.location }}</div>
-                      <div class="text-xs opacity-75">{{ formatTaskTime(task) }}</div>
-                    </div>
+                  <!-- Bottom indicators for hidden tasks below -->
+                  <div v-for="(task, index) in dayInfo.indicators.bottom" 
+                    :key="`bottom-${task.id}`"
+                    class="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg"
+                    :style="{ 
+                      bottom: '16px',
+                      right: `${6 + index * 10}px`,
+                      backgroundColor: task.color || '#EF4444'
+                    }"
+                    :title="`Hidden below: ${task.title}`">
+                  </div>
+                  
+                  <!-- DEBUG: Show count -->
+                  <div v-if="dayInfo.indicators.bottom.length > 0" 
+                    class="absolute bottom-0 left-0 bg-red-500 text-white text-xs px-1 rounded">
+                    ↓{{dayInfo.indicators.bottom.length}}
                   </div>
                 </div>
               </div>
@@ -518,7 +568,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -565,6 +615,32 @@ const showUserMenu = ref(false)
 const showStatistics = ref(false)
 const selectedTaskForEdit = ref<Task | null>(null)
 const createTaskDate = ref<Date | undefined>(undefined)
+
+// Weekly view scroll tracking
+const weeklyScrollContainer = ref<HTMLElement | null>(null)
+const scrollTop = ref(0)
+const scrollHeight = ref(0)
+const clientHeight = ref(0)
+
+// Force reactivity with ref
+const indicatorsUpdateTrigger = ref(0)
+
+// Watch scroll changes to force indicators update
+watch([scrollTop, clientHeight, scrollHeight], () => {
+  indicatorsUpdateTrigger.value++
+})
+
+// Computed property for overflow indicators to ensure reactivity
+const weekDaysWithIndicators = computed(() => {
+  // Force reactivity on scroll changes
+  indicatorsUpdateTrigger.value
+  
+  const weekDays = calendar.getWeekDays(currentDate.value)
+  return weekDays.map(day => ({
+    day,
+    indicators: getTasksOverflowIndicators(calendar.getTasksForDate(day))
+  }))
+})
 
 // Computed properties from composables
 const {
@@ -821,6 +897,88 @@ const openTaskModalForEdit = (task: Task) => {
   calendar.openCreateTaskModal()
 }
 
+// Weekly view scroll management
+const handleWeeklyScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  scrollTop.value = target.scrollTop
+  scrollHeight.value = target.scrollHeight
+  clientHeight.value = target.clientHeight
+}
+
+// Overflow indicators logic
+const getTasksOverflowIndicators = (dayTasks: Task[]) => {
+  if (!dayTasks.length) return { top: [], bottom: [] }
+  
+  const visibleTop = scrollTop.value
+  const visibleBottom = scrollTop.value + clientHeight.value
+  
+  const topHiddenTasks: Task[] = []
+  const bottomHiddenTasks: Task[] = []
+  
+  console.log('📊 Indicator calculation:', {
+    visibleTop,
+    visibleBottom,
+    scrollTop: scrollTop.value,
+    clientHeight: clientHeight.value,
+    tasksCount: dayTasks.length
+  })
+  
+  dayTasks.forEach(task => {
+    if (!task.startDatetime) return
+    
+    const start = new Date(task.startDatetime)
+    const end = task.endDatetime ? new Date(task.endDatetime) : new Date(start.getTime() + 60 * 60 * 1000)
+    
+    const startHour = start.getHours() + start.getMinutes() / 60
+    let endHour = end.getHours() + end.getMinutes() / 60
+    
+    // Fix for tasks that span midnight or have end time before start time
+    if (endHour < startHour) {
+      endHour += 24 // Add 24 hours if end is next day
+    }
+    
+    const taskTop = startHour * 64
+    const taskBottom = endHour * 64
+    
+    console.log(`📋 Task "${task.title}":`, {
+      startHour,
+      endHour,
+      taskTop,
+      taskBottom,
+      visibleTop,
+      visibleBottom,
+      isHiddenAbove: taskBottom <= visibleTop,
+      isHiddenBelow: taskTop >= visibleBottom,
+      isVisible: !(taskBottom <= visibleTop) && !(taskTop >= visibleBottom)
+    })
+    
+    // Task completamente sopra l'area visibile
+    if (taskBottom <= visibleTop) {
+      topHiddenTasks.push(task)
+      console.log(`⬆️ Adding "${task.title}" to TOP indicators`)
+    }
+    // Task completamente sotto l'area visibile  
+    else if (taskTop >= visibleBottom) {
+      bottomHiddenTasks.push(task)
+      console.log(`⬇️ Adding "${task.title}" to BOTTOM indicators`)
+    } else {
+      console.log(`👁️ "${task.title}" is VISIBLE`)
+    }
+  })
+  
+  console.log('🎯 Final result:', {
+    topCount: topHiddenTasks.length,
+    bottomCount: bottomHiddenTasks.length,
+    topTasks: topHiddenTasks.map(t => t.title),
+    bottomTasks: bottomHiddenTasks.map(t => t.title)
+  })
+  
+  return {
+    top: topHiddenTasks,
+    bottom: bottomHiddenTasks
+  }
+}
+
 // Weekly view helper methods
 const getTaskTimePosition = (task: Task) => {
   if (!task.startDatetime) return { top: '0px', height: '32px' }
@@ -830,7 +988,13 @@ const getTaskTimePosition = (task: Task) => {
   
   // Calculate position based on hours (each hour = 64px height)
   const startHour = start.getHours() + start.getMinutes() / 60
-  const endHour = end.getHours() + end.getMinutes() / 60
+  let endHour = end.getHours() + end.getMinutes() / 60
+  
+  // For VISUAL positioning: limit to current day (max 24:00)
+  if (endHour < startHour) {
+    // Task spans midnight - show only until end of day for this column
+    endHour = 24
+  }
   
   const topPosition = startHour * 64 // 64px per hour (h-16 = 4rem = 64px)
   const height = Math.max((endHour - startHour) * 64, 32) // Minimum 32px height
@@ -914,6 +1078,13 @@ onMounted(async () => {
   // Set up event listeners
   document.addEventListener('keydown', handleKeyboardShortcuts)
   document.addEventListener('click', handleClickOutside)
+
+  // Initialize scroll values for weekly view
+  if (weeklyScrollContainer.value) {
+    scrollTop.value = weeklyScrollContainer.value.scrollTop
+    scrollHeight.value = weeklyScrollContainer.value.scrollHeight
+    clientHeight.value = weeklyScrollContainer.value.clientHeight
+  }
 })
 
 onUnmounted(() => {
