@@ -11,7 +11,13 @@ import type {
   NotificationType 
 } from '../types/task'
 import { format, addMinutes, parseISO } from 'date-fns'
-import { localDateTimeToUTC, localDateToUTC } from '../utils/timezone'
+import { 
+  transformTaskFromBackend,
+  transformTasksFromBackend,
+  transformTaskForCreation, 
+  transformTaskForUpdate,
+  transformTaskToFormData
+} from '../services/taskDateService'
 
 export function useTasks() {
   const tasksStore = useTasksStore()
@@ -215,71 +221,15 @@ export function useTasks() {
   }
 
   const createTaskFormFromTask = (task: Task): TaskFormData => {
-    const startDateTime = new Date(task.startDatetime)
-    const endDateTime = new Date(task.endDatetime)
-    
-    return {
-      title: task.title,
-      description: task.description || '',
-      startDate: format(startDateTime, 'yyyy-MM-dd'),
-      startTime: format(startDateTime, 'HH:mm'),
-      endDate: format(endDateTime, 'yyyy-MM-dd'),
-      endTime: format(endDateTime, 'HH:mm'),
-      location: task.location || '',
-      color: task.color,
-      isAllDay: task.isAllDay,
-      reminders: task.reminders.map(reminder => ({
-        id: reminder.id,
-        offsetMinutes: reminder.reminderOffsetMinutes,
-        notificationType: reminder.notificationType
-      }))
-    }
+    return transformTaskToFormData(task)
   }
 
   const convertFormToTaskRequest = (formData: TaskFormData): CreateTaskRequest => {
-    // Create start and end datetime with proper timezone conversion
-    const startDatetime = formData.isAllDay 
-      ? localDateToUTC(formData.startDate)
-      : localDateTimeToUTC(formData.startDate, formData.startTime)
-      
-    const endDatetime = formData.isAllDay
-      ? localDateToUTC(formData.endDate) 
-      : localDateTimeToUTC(formData.endDate, formData.endTime)
-
-    return {
-      title: formData.title.trim(),
-      description: formData.description.trim() || undefined,
-      startDatetime,
-      endDatetime,
-      location: formData.location.trim() || undefined,
-      color: formData.color,
-      isAllDay: formData.isAllDay,
-      reminders: formData.reminders.map(reminder => ({
-        reminderOffsetMinutes: reminder.offsetMinutes,
-        notificationType: reminder.notificationType
-      }))
-    }
+    return transformTaskForCreation(formData)
   }
 
   const convertFormToUpdateRequest = (formData: TaskFormData): UpdateTaskRequest => {
-    // Create start and end datetime with proper timezone conversion
-    const startDatetime = formData.isAllDay 
-      ? localDateToUTC(formData.startDate)
-      : localDateTimeToUTC(formData.startDate, formData.startTime)
-      
-    const endDatetime = formData.isAllDay
-      ? localDateToUTC(formData.endDate) 
-      : localDateTimeToUTC(formData.endDate, formData.endTime)
-
-    return {
-      title: formData.title.trim(),
-      description: formData.description.trim() || undefined,
-      startDatetime,
-      endDatetime,
-      location: formData.location.trim() || undefined,
-      color: formData.color,
-      isAllDay: formData.isAllDay
-    }
+    return transformTaskForUpdate(formData)
   }
 
   // Validation

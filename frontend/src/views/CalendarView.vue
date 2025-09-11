@@ -80,193 +80,22 @@
         class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden"></div>
 
       <!-- Sidebar -->
-      <aside :class="[
-        'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 ease-in-out z-50',
-        'md:relative md:translate-x-0 md:w-80',
-        'fixed inset-y-0 left-0 w-80 transform',
-        showMobileSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-      ]">
-        <div class="p-4">
-          <!-- User Profile & Settings -->
-          <div class="mb-6">
-            <!-- User Profile Header (Always Visible, Clickable) -->
-            <div class="flex items-center justify-between mb-4 cursor-pointer" @click="toggleUserMenu">
-              <div class="flex items-center space-x-3">
-                <div
-                  class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                  {{ userInitials }}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {{ userFullName }}
-                  </p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ user?.username }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center space-x-2">
-                <!-- Theme Toggle -->
-                <button @click.stop="toggleTheme"
-                  class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  :title="`Cambia tema: ${themeName}`">
-                  <SunIcon v-if="isDarkMode" class="h-5 w-5" />
-                  <MoonIcon v-else class="h-5 w-5" />
-                </button>
-                
-                <!-- Dropdown Arrow -->
-                <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200" 
-                  :class="{ 'rotate-180': showUserMenu }" />
-              </div>
-            </div>
-
-            <!-- User Menu Actions (Collapsible) -->
-            <div v-show="showUserMenu" class="space-y-1 transition-all duration-200">
-              <button @click="showProfile"
-                class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profilo
-              </button>
-
-              <button @click="showSettings"
-                class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Impostazioni
-              </button>
-
-              <button @click="handleLogout"
-                class="w-full flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Disconnetti
-              </button>
-            </div>
-          </div>
-
-          <!-- Statistics Section (Collapsible) -->
-          <div class="mb-6">
-            <!-- Statistics Header (Clickable) -->
-            <div class="flex items-center justify-between mb-3 cursor-pointer" @click="toggleStatistics">
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                Statistiche
-              </h3>
-              <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200" 
-                :class="{ 'rotate-180': showStatistics }" />
-            </div>
-            
-            <!-- Statistics Content (Collapsible) -->
-            <div v-show="showStatistics" class="transition-all duration-200">
-              <div class="grid grid-cols-2 gap-2 sm:gap-3">
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-2 sm:p-3 rounded-md">
-                  <div class="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {{ taskStats?.pending ?? 0 }}
-                  </div>
-                  <div class="text-xs text-blue-600 dark:text-blue-400">
-                    In corso
-                  </div>
-                </div>
-                <div class="bg-green-50 dark:bg-green-900/20 p-2 sm:p-3 rounded-md">
-                  <div class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400">
-                    {{ taskStats?.completed ?? 0 }}
-                  </div>
-                  <div class="text-xs text-green-600 dark:text-green-400">
-                    Completate
-                  </div>
-                </div>
-                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-md">
-                  <div class="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                    {{ taskStats?.today ?? 0 }}
-                  </div>
-                  <div class="text-xs text-yellow-600 dark:text-yellow-400">
-                    Oggi
-                  </div>
-                </div>
-                <div class="bg-red-50 dark:bg-red-900/20 p-2 sm:p-3 rounded-md">
-                  <div class="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
-                    {{ taskStats?.overdue ?? 0 }}
-                  </div>
-                  <div class="text-xs text-red-600 dark:text-red-400">
-                    In ritardo
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Today's Tasks -->
-          <div class="mb-6" v-if="todayTasks && todayTasks.length > 0">
-            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-              Attività di oggi
-            </h3>
-            <div class="space-y-2">
-              <div v-for="task in todayTasks.slice(0, 5)" :key="task.id" @click="openTaskModal(task)"
-                class="p-3 rounded-md cursor-pointer transition-colors" :class="[
-                  task.completed
-                    ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                ]">
-                <div class="flex items-center space-x-2">
-                  <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium truncate" :class="{
-                      'text-gray-900 dark:text-white': !task.completed,
-                      'text-gray-500 dark:text-gray-400 line-through': task.completed
-                    }">
-                      {{ task.title }}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {{ task.dueDate ? formatTime(task.dueDate) : 'Nessuna ora' }}
-                    </p>
-                  </div>
-                  <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>
-                </div>
-              </div>
-            </div>
-            <div v-if="todayTasks && todayTasks.length > 5" class="mt-2 text-center">
-              <button class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                Mostra altre {{ todayTasks.length - 5 }} attività
-              </button>
-            </div>
-          </div>
-
-          <!-- Upcoming Reminders -->
-          <div v-if="upcomingReminders && upcomingReminders.length > 0">
-            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-              Promemoria imminenti
-            </h3>
-            <div class="space-y-2">
-              <div v-for="reminder in upcomingReminders.slice(0, 3)" :key="reminder.id"
-                class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
-                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                  {{ getTaskById(reminder.taskId)?.title || 'Attività eliminata' }}
-                </p>
-                <p class="text-xs text-yellow-600 dark:text-yellow-400">
-                  {{ formatReminderTimeShort(reminder) }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- New Task Button -->
-          <button @click="openCreateTaskModalWithDate()" class="w-full btn btn-primary mb-6" title="Nuova attività (Ctrl + N)">
-            <PlusIcon class="h-4 w-4 mr-2" />
-            Nuova Attività
-          </button>
-          
-        </div>
-      </aside>
+      <CalendarSidebar 
+        :show-mobile="showMobileSidebar"
+        :user="user"
+        :task-stats="taskStats"
+        :today-tasks="todayTasks"
+        :upcoming-reminders="upcomingReminders"
+        :is-dark-mode="isDarkMode"
+        :theme-name="themeName"
+        @theme-toggle="toggleTheme"
+        @show-profile="showProfile"
+        @show-settings="showSettings"
+        @logout="handleLogout"
+        @task-click="openTaskModal"
+        @task-toggle="toggleTaskCompletion"
+        @new-task="openCreateTaskModalWithDate()"
+      />
 
       <!-- Calendar Area -->
       <main class="flex-1 flex flex-col overflow-hidden md:ml-0">
@@ -343,113 +172,17 @@
           </div>
 
           <!-- Week View -->
-          <div v-else-if="isWeekView" class="h-full flex flex-col">
-            <!-- Week Header -->
-            <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 mb-4">
-              <div class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center">
-                Ora
-              </div>
-              <div v-for="day in getWeekDays(currentDate)" :key="day.getTime()"
-                class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center" :class="{
-                  'bg-blue-50 dark:bg-blue-900/20': isToday(day),
-                  'text-blue-600 dark:text-blue-400': isToday(day)
-                }">
-                <div>{{ getWeekDayName(day, true) }}</div>
-                <div class="text-lg font-bold">{{ day.getDate() }}</div>
-              </div>
-            </div>
-
-            <!-- Week Grid -->
-            <div class="flex-1 relative overflow-hidden">
-              <!-- Scrollable Content -->
-              <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll" class="absolute inset-0 overflow-auto">
-                <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600" style="min-height: 1536px;">
-                  <!-- Time Column -->
-                  <div class="bg-white dark:bg-gray-800">
-                    <div v-for="hour in 24" :key="hour-1" 
-                      class="h-16 border-b border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                      :class="{ 'border-b-2 border-gray-300 dark:border-gray-500': (hour-1) % 6 === 0 }">
-                      {{ String(hour-1).padStart(2, '0') }}:00
-                    </div>
-                  </div>
-
-                  <!-- Day Columns -->
-                  <div v-for="(dayInfo, dayIndex) in weekDaysWithIndicators" :key="dayInfo.day.getTime()" 
-                    class="bg-white dark:bg-gray-800 relative">
-                    
-                    <!-- Time Grid Lines -->
-                    <div v-for="hour in 24" :key="hour-1" 
-                      class="h-16 border-b border-gray-100 dark:border-gray-700"
-                      :class="{ 
-                        'border-b-2 border-gray-200 dark:border-gray-600': (hour-1) % 6 === 0,
-                        'bg-blue-50 dark:bg-blue-900/10': isToday(dayInfo.day)
-                      }">
-                    </div>
-
-                    <!-- Tasks for this day (including split multi-day tasks) -->
-                    <div class="absolute inset-0 pointer-events-none">
-                      <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
-                        :style="getTaskTimeStyle(task)"
-                        @click="openTaskModalForEdit(task)"
-                        class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
-                        :class="getTaskTimeDisplayClasses(task)">
-                        <div class="truncate font-semibold">{{ task.title }}</div>
-                        <div v-if="task.location" class="truncate text-xs opacity-90">{{ task.location }}</div>
-                        <div class="text-xs opacity-75">{{ formatTaskTime(task) }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Fixed Overflow Indicators (Positioned relative to scroll container) -->
-              <div class="absolute inset-0 pointer-events-none z-50">
-                <div v-for="(dayInfo, dayIndex) in weekDaysWithIndicators" :key="`indicators-${dayInfo.day.getTime()}`"
-                  class="absolute pointer-events-none"
-                  :style="{ 
-                    left: `${12.5 + (dayIndex * 12.5)}%`,
-                    width: '12.5%',
-                    top: '0px',
-                    height: '100%'
-                  }">
-                  
-                  <!-- DEBUG: Always show data -->
-                  <div class="absolute top-2 left-2 bg-black text-white text-xs px-1 rounded pointer-events-auto">
-                    T:{{ dayInfo.indicators.top.length }} B:{{ dayInfo.indicators.bottom.length }}
-                  </div>
-                  
-                  <!-- Top indicators for hidden tasks above -->
-                  <div v-for="(task, index) in dayInfo.indicators.top" 
-                    :key="`top-${task.id}`"
-                    class="absolute w-3 h-3 rounded-full border border-white shadow-sm"
-                    :style="{ 
-                      top: '16px',
-                      right: `${6 + index * 10}px`,
-                      backgroundColor: task.color || '#3B82F6'
-                    }">
-                  </div>
-
-                  <!-- Bottom indicators for hidden tasks below -->
-                  <div v-for="(task, index) in dayInfo.indicators.bottom" 
-                    :key="`bottom-${task.id}`"
-                    class="absolute w-3 h-3 rounded-full border border-white shadow-lg"
-                    :style="{ 
-                      bottom: '16px',
-                      right: `${6 + index * 10}px`,
-                      backgroundColor: task.color || '#EF4444'
-                    }"
-                    :title="`Hidden below: ${task.title}`">
-                  </div>
-                  
-                  <!-- DEBUG: Show count -->
-                  <div v-if="dayInfo.indicators.bottom.length > 0" 
-                    class="absolute bottom-0 left-0 bg-red-500 text-white text-xs px-1 rounded">
-                    ↓{{dayInfo.indicators.bottom.length}}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <WeekView 
+            v-else-if="isWeekView"
+            :current-date="currentDate"
+            :tasks="allWeekTasks"
+            :scroll-top="scrollTop"
+            :scroll-height="scrollHeight"
+            :client-height="clientHeight"
+            @task-click="openTaskModalForEdit"
+            @scroll="handleWeeklyScroll"
+            ref="weekViewRef"
+          />
 
           <!-- Day View -->
           <div v-else-if="isDayView" class="h-full">
@@ -578,6 +311,8 @@ import {
   MoonIcon
 } from '@heroicons/vue/24/outline'
 import TaskModal from '../components/TaskModal.vue'
+import WeekView from '../components/Calendar/WeekView.vue'
+import CalendarSidebar from '../components/Calendar/CalendarSidebar.vue'
 import type { Task } from '../types/task'
 
 // Composables
@@ -611,13 +346,12 @@ const { showError, showConfirmation } = useNotifications()
 
 // Reactive state
 const showMobileSidebar = ref(false)
-const showUserMenu = ref(false)
-const showStatistics = ref(false)
 const selectedTaskForEdit = ref<Task | null>(null)
 const createTaskDate = ref<Date | undefined>(undefined)
 
-// Weekly view scroll tracking
+// Weekly view scroll tracking  
 const weeklyScrollContainer = ref<HTMLElement | null>(null)
+const weekViewRef = ref<InstanceType<typeof WeekView> | null>(null)
 const scrollTop = ref(0)
 const scrollHeight = ref(0)
 const clientHeight = ref(0)
@@ -834,28 +568,6 @@ const handleClickOutside = (event: Event) => {
 
 const closeMobileSidebar = () => {
   showMobileSidebar.value = false
-}
-
-// Close mobile sidebar on route/navigation changes
-const handleMobileSidebarClose = () => {
-  if (showMobileSidebar.value) {
-    showMobileSidebar.value = false
-  }
-}
-
-// Accordion Methods
-const toggleUserMenu = () => {
-  showUserMenu.value = !showUserMenu.value
-  if (showUserMenu.value) {
-    showStatistics.value = false
-  }
-}
-
-const toggleStatistics = () => {
-  showStatistics.value = !showStatistics.value
-  if (showStatistics.value) {
-    showUserMenu.value = false
-  }
 }
 
 // Task Modal Methods

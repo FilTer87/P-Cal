@@ -286,8 +286,8 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
-// Utils
-import { localDateTimeToUTC, localDateToUTC } from '@/utils/timezone'
+// Services  
+import { transformQuickTaskData } from '@/services/taskDateService'
 
 // Props
 interface Props {
@@ -445,22 +445,17 @@ const handleSubmit = async () => {
     isAllDay: formData.value.isAllDay
   }
 
-  // Set dates with proper timezone conversion
-  if (formData.value.isAllDay) {
-    // For all-day tasks, use localDateToUTC
-    taskData.startDatetime = localDateToUTC(formData.value.date)
-    taskData.endDatetime = localDateToUTC(formData.value.date)
-  } else {
-    // For timed tasks, use localDateTimeToUTC
-    taskData.startDatetime = localDateTimeToUTC(formData.value.date, formData.value.time)
-    
-    // Calculate end time (1 hour later) and convert to UTC
-    const [hour, minute] = formData.value.time.split(':').map(n => parseInt(n))
-    const endHour = hour + 1
-    const endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-    
-    taskData.endDatetime = localDateTimeToUTC(formData.value.date, endTime)
-  }
+  // Transform to proper format with timezone conversion
+  const transformedData = transformQuickTaskData({
+    title: formData.value.title,
+    date: formData.value.date,
+    time: formData.value.time,
+    isAllDay: formData.value.isAllDay,
+    color: formData.value.color
+  })
+  
+  // Merge with taskData
+  Object.assign(taskData, transformedData)
 
   // Validate the task data
   const validation = validateTaskData(taskData)
