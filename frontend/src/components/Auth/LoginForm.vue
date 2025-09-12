@@ -238,7 +238,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 import type { LoginFormData } from '@/types/auth'
 
@@ -255,7 +255,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Composables
 const { login, isLoading } = useAuth()
-const { showError, showSuccess } = useNotifications()
+const { showError, showSuccess } = useCustomToast()
 
 // Form state
 const form = reactive<LoginFormData>({

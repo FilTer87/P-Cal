@@ -191,7 +191,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAuth } from '../composables/useAuth'
 import { useTheme } from '../composables/useTheme'
-import { useNotifications } from '../composables/useNotifications'
+import { useCustomToast } from '../composables/useCustomToast'
 import { validateLoginForm } from '../utils/validators'
 import type { LoginFormData } from '../types/auth'
 
@@ -199,7 +199,7 @@ import type { LoginFormData } from '../types/auth'
 const router = useRouter()
 const { login, isLoading, requireGuest } = useAuth()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
-const { showError } = useNotifications()
+const { showError } = useCustomToast()
 
 // Form state
 const form = ref<LoginFormData>({

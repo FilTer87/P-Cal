@@ -414,7 +414,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 
@@ -423,7 +423,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Composables
-const { showError, showSuccess } = useNotifications()
+const { showError, showSuccess } = useCustomToast()
 
 // Component state
 const currentStep = ref<'request' | 'sent' | 'reset' | 'success'>('request')

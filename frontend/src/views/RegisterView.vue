@@ -307,7 +307,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAuth } from '../composables/useAuth'
 import { useTheme } from '../composables/useTheme'
-import { useNotifications } from '../composables/useNotifications'
+import { useCustomToast } from '../composables/useCustomToast'
 import { validateRegistrationForm } from '../utils/validators'
 import type { RegisterFormData } from '../types/auth'
 
@@ -315,7 +315,7 @@ import type { RegisterFormData } from '../types/auth'
 const router = useRouter()
 const { register, isLoading, requireGuest } = useAuth()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
-const { showError } = useNotifications()
+const { showError } = useCustomToast()
 
 // Form state
 const form = ref<RegisterFormData>({

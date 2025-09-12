@@ -140,13 +140,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 
 // Composables
 const { theme: currentTheme, setTheme } = useTheme()
-const { showSuccess } = useNotifications()
+const { showSuccess } = useCustomToast()
 
 // Theme options
 const themeOptions = [

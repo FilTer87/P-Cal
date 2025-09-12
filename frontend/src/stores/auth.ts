@@ -8,7 +8,7 @@ import type {
   AuthResponse 
 } from '../types/auth'
 import { authApi } from '../services/authApi'
-import { useNotifications } from '../composables/useNotifications'
+import { useCustomToast } from '../composables/useCustomToast'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   // Actions
-  const { showSuccess, showError } = useNotifications()
+  const { showSuccess, showError } = useCustomToast()
 
   // Setup event listeners for API interceptor events
   const setupEventListeners = () => {
@@ -223,8 +223,8 @@ export const useAuthStore = defineStore('auth', () => {
       
       // During initialization, be more lenient with errors
       // Don't clear auth data immediately - the token might still work for other endpoints
-      if (!duringInitialization && (error.status === 401 || error.status === 403)) {
-        console.log('🧹 Clearing auth data due to 401/403 error (not during initialization)')
+      if (!duringInitialization && (error.status === 401)) {
+        console.log('🧹 Clearing auth data due to 401 error (not during initialization)')
         clearAuthData()
       } else if (duringInitialization) {
         console.log('⚠️ Token verification failed during initialization - keeping stored auth data for now')

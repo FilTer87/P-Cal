@@ -3,17 +3,38 @@
     <div class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <router-view />
     </div>
+    
+    <!-- Custom Toast Container -->
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useTheme } from './composables/useTheme'
+import { useCustomToast } from './composables/useCustomToast'
+import ToastContainer from './components/Common/ToastContainer.vue'
 
 const { isDarkMode, initializeTheme } = useTheme()
+const { showError: showCustomError } = useCustomToast()
+
+let apiErrorHandler: ((event: any) => void) | null = null
 
 onMounted(() => {
   initializeTheme()
+  
+  // Listen for API errors from the service
+  apiErrorHandler = (event: any) => {
+    showCustomError(event.detail.message)
+  }
+  
+  window.addEventListener('api-error', apiErrorHandler)
+})
+
+onUnmounted(() => {
+  if (apiErrorHandler) {
+    window.removeEventListener('api-error', apiErrorHandler)
+  }
 })
 </script>
 

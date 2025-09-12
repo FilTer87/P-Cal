@@ -141,7 +141,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 
 // Props
@@ -167,7 +167,7 @@ const {
   extendSession,
   logout
 } = useAuth()
-const { showSuccess, showWarning } = useNotifications()
+const { showSuccess, showWarning } = useCustomToast()
 
 // State
 const showModal = ref(false)

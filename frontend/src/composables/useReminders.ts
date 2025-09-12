@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useNotifications } from './useNotifications'
+import { useCustomToast } from './useCustomToast'
 import { reminderApi } from '../services/reminderApi'
 import type { 
   Reminder, 
@@ -10,7 +10,11 @@ import type {
 import { format, addMinutes, subMinutes, parseISO } from 'date-fns'
 
 export function useReminders() {
-  const { showSuccess, showError, showReminderSet } = useNotifications()
+  const { showSuccess, showError } = useCustomToast()
+
+  const showReminderSet = (reminderTime: string) => {
+    showSuccess(`Promemoria impostato per ${reminderTime}`)
+  }
 
   // State
   const reminders = ref<Reminder[]>([])

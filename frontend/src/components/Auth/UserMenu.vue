@@ -301,7 +301,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useTheme } from '@/composables/useTheme'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 import Modal from '@/components/Common/Modal.vue'
@@ -320,7 +320,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Composables
 const { user, userFullName, userInitials, logout, hasRole } = useAuth()
 const { theme: currentTheme, setTheme } = useTheme()
-const { showSuccess, showError } = useNotifications()
+const { showSuccess, showError } = useCustomToast()
 
 // Refs
 const menuContainer = ref<HTMLElement>()

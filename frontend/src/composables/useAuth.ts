@@ -1,13 +1,13 @@
 import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { useNotifications } from './useNotifications'
+import { useCustomToast } from './useCustomToast'
 import type { LoginCredentials, RegisterCredentials, User } from '../types/auth'
 
 export function useAuth() {
   const authStore = useAuthStore()
   const router = useRouter()
-  const { showError, showSuccess, showAuthError } = useNotifications()
+  const { showError, showSuccess, showAuthError } = useCustomToast()
 
   // Computed properties
   const user = computed(() => authStore.user)

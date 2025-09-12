@@ -479,7 +479,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 import type { RegisterFormData } from '@/types/auth'
@@ -495,7 +495,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Composables
 const { register, isLoading } = useAuth()
-const { showError, showSuccess } = useNotifications()
+const { showError, showSuccess } = useCustomToast()
 
 // Form state
 const form = reactive<RegisterFormData & { 

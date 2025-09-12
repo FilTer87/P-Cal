@@ -321,7 +321,6 @@ import { useCalendar } from '../composables/useCalendar'
 import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
 import { useTheme } from '../composables/useTheme'
-import { useNotifications } from '../composables/useNotifications'
 
 // Utilities
 import {
@@ -342,7 +341,6 @@ const calendar = useCalendar()
 const tasks = useTasks()
 const reminders = useReminders()
 const theme = useTheme()
-const { showError, showConfirmation } = useNotifications()
 
 // Reactive state
 const showMobileSidebar = ref(false)

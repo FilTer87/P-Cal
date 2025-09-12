@@ -182,7 +182,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useReminders } from '../../composables/useReminders'
-import { useNotifications } from '../../composables/useNotifications'
+import { useCustomToast } from '../../composables/useCustomToast'
 import type { Reminder } from '../../types/task'
 import ReminderForm from './ReminderForm.vue'
 import ReminderPresets from './ReminderPresets.vue'
@@ -222,7 +222,7 @@ const {
   createReminder
 } = useReminders()
 
-const { showSuccess } = useNotifications()
+const { showSuccess } = useCustomToast()
 
 // Local state
 const showReminderForm = ref(false)

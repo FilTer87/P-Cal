@@ -1,19 +1,9 @@
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition ease-out duration-300"
-      enter-from-class="opacity-0 translate-y-2"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition ease-in duration-200"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-2"
-    >
-      <div
-        v-if="show"
-        class="fixed top-4 right-4 z-50 max-w-sm w-full"
-        role="alert"
-        aria-live="assertive"
-      >
+  <div
+    class="w-full"
+    role="alert"
+    aria-live="assertive"
+  >
         <div
           :class="[
             'rounded-lg shadow-lg border p-4 transition-all duration-200',
@@ -100,23 +90,8 @@
             </div>
           </div>
 
-          <!-- Progress Bar (for auto-dismiss) -->
-          <div 
-            v-if="autoDismiss && duration"
-            class="mt-3 bg-black bg-opacity-10 rounded-full h-1 overflow-hidden"
-          >
-            <div
-              class="h-full bg-current transition-all linear"
-              :style="{
-                width: `${progressWidth}%`,
-                transitionDuration: `${duration}ms`
-              }"
-            />
-          </div>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -149,18 +124,14 @@ const props = withDefaults(defineProps<Props>(), {
   duration: 5000
 })
 
-const show = ref(true)
-const progressWidth = ref(0)
-let dismissTimer: ReturnType<typeof setTimeout> | null = null
-let progressTimer: ReturnType<typeof setInterval> | null = null
 
 // Style configurations
 const toastTypeClasses = {
-  success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-  error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
-  warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
-  info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-  reminder: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800'
+  success: 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700',
+  error: 'bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700',
+  warning: 'bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:border-yellow-700',
+  info: 'bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700',
+  reminder: 'bg-purple-50 dark:bg-purple-900 border-purple-200 dark:border-purple-700'
 }
 
 const iconClasses = {
@@ -205,11 +176,7 @@ const closeButtonClasses = {
 
 // Methods
 const close = () => {
-  show.value = false
-  cleanupTimers()
-  setTimeout(() => {
-    props.onClose?.()
-  }, 300) // Wait for transition to complete
+  props.onClose?.()
 }
 
 const handleAction = () => {
@@ -217,65 +184,6 @@ const handleAction = () => {
   close()
 }
 
-const cleanupTimers = () => {
-  if (dismissTimer) {
-    clearTimeout(dismissTimer)
-    dismissTimer = null
-  }
-  if (progressTimer) {
-    clearInterval(progressTimer)
-    progressTimer = null
-  }
-}
-
-const startAutoDismiss = () => {
-  if (!props.autoDismiss || !props.duration) return
-
-  // Start progress animation
-  progressWidth.value = 100
-  
-  const progressStep = 100 / (props.duration / 50) // Update every 50ms
-  let currentProgress = 100
-
-  progressTimer = setInterval(() => {
-    currentProgress -= progressStep
-    if (currentProgress <= 0) {
-      progressWidth.value = 0
-      cleanupTimers()
-    } else {
-      progressWidth.value = currentProgress
-    }
-  }, 50)
-
-  // Auto dismiss
-  dismissTimer = setTimeout(() => {
-    close()
-  }, props.duration)
-}
-
-const pauseAutoDismiss = () => {
-  cleanupTimers()
-}
-
-const resumeAutoDismiss = () => {
-  startAutoDismiss()
-}
-
-// Lifecycle
-onMounted(() => {
-  startAutoDismiss()
-})
-
-onUnmounted(() => {
-  cleanupTimers()
-})
-
-// Export methods for parent component control
-defineExpose({
-  close,
-  pauseAutoDismiss,
-  resumeAutoDismiss
-})
 </script>
 
 <style scoped>

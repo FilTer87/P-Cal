@@ -706,7 +706,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { useNotifications } from '@/composables/useNotifications'
+import { useCustomToast } from '@/composables/useCustomToast'
 import { useTheme } from '@/composables/useTheme'
 import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
@@ -715,7 +715,7 @@ import type { User } from '@/types/auth'
 
 // Composables
 const { user, userFullName, userInitials, updateProfile, logout, isLoading } = useAuth()
-const { showError, showSuccess } = useNotifications()
+const { showError, showSuccess } = useCustomToast()
 const { theme, setTheme } = useTheme()
 
 // Tab icons (these would be actual icon components in a real app)

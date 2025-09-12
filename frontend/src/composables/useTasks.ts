@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { useTasksStore } from '../stores/tasks'
-import { useNotifications } from './useNotifications'
+import { useCustomToast } from './useCustomToast'
 import type { 
   Task, 
   CreateTaskRequest, 
@@ -21,7 +21,15 @@ import {
 
 export function useTasks() {
   const tasksStore = useTasksStore()
-  const { showSuccess, showError, showTaskCompleted, showTaskCreated } = useNotifications()
+  const { showSuccess, showError } = useCustomToast()
+
+  const showTaskCompleted = (taskTitle: string) => {
+    showSuccess(`Attività "${taskTitle}" completata!`)
+  }
+
+  const showTaskCreated = (taskTitle: string) => {
+    showSuccess(`Attività "${taskTitle}" creata con successo!`)
+  }
 
   // Form state
   const isFormLoading = ref(false)
@@ -82,7 +90,6 @@ export function useTasks() {
       }
       return null
     } catch (error: any) {
-      showError(error.message || 'Errore nella creazione dell\'attività')
       return null
     } finally {
       isFormLoading.value = false
@@ -101,7 +108,6 @@ export function useTasks() {
       }
       return null
     } catch (error: any) {
-      showError(error.message || 'Errore nell\'aggiornamento dell\'attività')
       return null
     } finally {
       isFormLoading.value = false
@@ -118,7 +124,6 @@ export function useTasks() {
       }
       return success
     } catch (error: any) {
-      showError(error.message || 'Errore nell\'eliminazione dell\'attività')
       return false
     } finally {
       isFormLoading.value = false
@@ -410,7 +415,6 @@ export function useTasks() {
       showSuccess(`${taskIds.length} attività completate`)
       return true
     } catch (error: any) {
-      showError('Errore nelle operazioni multiple')
       return false
     } finally {
       isFormLoading.value = false
@@ -425,7 +429,6 @@ export function useTasks() {
       showSuccess(`${taskIds.length} attività eliminate`)
       return true
     } catch (error: any) {
-      showError('Errore nelle operazioni multiple')
       return false
     } finally {
       isFormLoading.value = false

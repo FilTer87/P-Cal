@@ -10,7 +10,7 @@ import type {
   DailyTasks
 } from '../types/task'
 import { taskApi } from '../services/taskApi'
-import { useNotifications } from '../composables/useNotifications'
+import { useCustomToast } from '../composables/useCustomToast'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -174,7 +174,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const highPriorityTasks = computed(() => [])
 
   // Actions
-  const { showSuccess, showError } = useNotifications()
+  const { showSuccess, showError } = useCustomToast()
 
   const fetchTasks = async (force = false) => {
     if (!force && isInitialized.value) return
@@ -188,7 +188,6 @@ export const useTasksStore = defineStore('tasks', () => {
       isInitialized.value = true
     } catch (err: any) {
       error.value = err.message || 'Errore nel caricamento delle attività'
-      showError('Errore nel caricamento delle attività')
     } finally {
       isLoading.value = false
     }
@@ -220,7 +219,6 @@ export const useTasksStore = defineStore('tasks', () => {
     } catch (err: any) {
       console.error('📅 Error fetching tasks by date range:', err)
       error.value = err.message || 'Errore nel caricamento delle attività'
-      showError('Errore nel caricamento delle attività per il periodo selezionato')
     } finally {
       isLoading.value = false
     }
@@ -242,11 +240,9 @@ export const useTasksStore = defineStore('tasks', () => {
         throw new Error('Dati task non validi ricevuti dal server')
       }
       
-      showSuccess('Attività creata con successo!')
       return newTask
     } catch (err: any) {
       error.value = err.message || 'Errore nella creazione dell\'attività'
-      showError('Errore nella creazione dell\'attività')
       return null
     } finally {
       isLoading.value = false
@@ -272,11 +268,9 @@ export const useTasksStore = defineStore('tasks', () => {
         throw new Error('Dati task non validi ricevuti dal server')
       }
       
-      showSuccess('Attività aggiornata con successo!')
       return updatedTask
     } catch (err: any) {
       error.value = err.message || 'Errore nell\'aggiornamento dell\'attività'
-      showError('Errore nell\'aggiornamento dell\'attività')
       return null
     } finally {
       isLoading.value = false
@@ -290,11 +284,9 @@ export const useTasksStore = defineStore('tasks', () => {
     try {
       await taskApi.deleteTask(taskId)
       tasks.value = (tasks.value || []).filter(task => task.id !== taskId)
-      showSuccess('Attività eliminata con successo!')
       return true
     } catch (err: any) {
       error.value = err.message || 'Errore nell\'eliminazione dell\'attività'
-      showError('Errore nell\'eliminazione dell\'attività')
       return false
     } finally {
       isLoading.value = false
@@ -332,7 +324,6 @@ export const useTasksStore = defineStore('tasks', () => {
       tasks.value = results
     } catch (err: any) {
       error.value = err.message || 'Errore nella ricerca'
-      showError('Errore nella ricerca delle attività')
     } finally {
       isLoading.value = false
     }

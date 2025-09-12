@@ -1,6 +1,11 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import type { ApiResponse, ApiError } from '../types/api'
 
+// Extended config for API requests with notification control
+interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+  _showErrorNotification?: boolean
+}
+
 class ApiClient {
   private client: AxiosInstance
   private refreshPromise: Promise<any> | null = null
@@ -53,17 +58,12 @@ class ApiClient {
         return response
       },
       async (error) => {
-        console.log('📥 Response interceptor error:', {
-          status: error.response?.status,
-          url: error.config?.url,
-          hasRetry: error.config?._retry
-        })
         
         const originalRequest = error.config
 
-        // Handle 401 Unauthorized or 403 Forbidden - Token expired/invalid
-        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
-          console.log(`🔒 ${error.response?.status} ${error.response?.status === 401 ? 'Unauthorized' : 'Forbidden'} detected, attempting token refresh...`)
+        // Handle 401 Unauthorized - Token expired/invalid
+        if ((error.response?.status === 401) && !originalRequest._retry) {
+          console.log(`🔒 ${error.response?.status} Unauthorized detected, attempting token refresh...`)
           originalRequest._retry = true
 
           try {
@@ -174,7 +174,8 @@ class ApiClient {
         }
 
         // Handle other errors
-        return Promise.reject(this.handleError(error))
+        const showNotification = error.config?._showErrorNotification !== false
+        return Promise.reject(this.handleError(error, showNotification))
       }
     )
   }
@@ -211,7 +212,7 @@ class ApiClient {
     }
   }
 
-  private handleError(error: any): ApiError {
+  private handleError(error: any, showNotification = true): ApiError {
     const apiError: ApiError = {
       message: 'Si è verificato un errore imprevisto',
       timestamp: new Date().toISOString()
@@ -239,6 +240,14 @@ class ApiClient {
       apiError.message = error.message || 'Errore nella configurazione della richiesta'
     }
 
+    // Show notification automatically (unless disabled)
+    if (showNotification && apiError.status !== 401 && apiError.status !== 403) {
+      // Don't show notifications for auth errors (handled by interceptor)
+      window.dispatchEvent(new CustomEvent('api-error', {
+        detail: { message: apiError.message, status: apiError.status }
+      }))
+    }
+
     return apiError
   }
 
@@ -261,7 +270,7 @@ class ApiClient {
   }
 
   // HTTP Methods
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async get<T = any>(url: string, config?: ExtendedAxiosRequestConfig): Promise<T> {
     const response = await this.client.get<ApiResponse<T> | T>(url, config)
     
     // Handle both wrapped ApiResponse and direct responses
@@ -272,7 +281,7 @@ class ApiClient {
     return response.data as T
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T = any>(url: string, data?: any, config?: ExtendedAxiosRequestConfig): Promise<T> {
     const response = await this.client.post<ApiResponse<T> | T>(url, data, config)
     
     // Handle both wrapped ApiResponse and direct responses (for auth endpoints)
@@ -283,7 +292,7 @@ class ApiClient {
     return response.data as T
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T = any>(url: string, data?: any, config?: ExtendedAxiosRequestConfig): Promise<T> {
     const response = await this.client.put<ApiResponse<T> | T>(url, data, config)
     
     // Handle both wrapped ApiResponse and direct responses
@@ -294,7 +303,7 @@ class ApiClient {
     return response.data as T
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T = any>(url: string, data?: any, config?: ExtendedAxiosRequestConfig): Promise<T> {
     const response = await this.client.patch<ApiResponse<T> | T>(url, data, config)
     
     // Handle both wrapped ApiResponse and direct responses
@@ -305,7 +314,7 @@ class ApiClient {
     return response.data as T
   }
 
-  async delete<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T = any>(url: string, data?: any, config?: ExtendedAxiosRequestConfig): Promise<T> {
     const response = await this.client.delete<ApiResponse<T> | T>(url, { ...config, data })
     
     // Handle both wrapped ApiResponse and direct responses
@@ -387,6 +396,26 @@ class ApiClient {
   // Remove header
   removeHeader(key: string) {
     delete this.client.defaults.headers.common[key]
+  }
+
+  // Utility method to call APIs without showing error notifications
+  withoutErrorNotification() {
+    return {
+      get: <T = any>(url: string, config?: AxiosRequestConfig) => 
+        this.get<T>(url, { ...config, _showErrorNotification: false }),
+      
+      post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
+        this.post<T>(url, data, { ...config, _showErrorNotification: false }),
+      
+      put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
+        this.put<T>(url, data, { ...config, _showErrorNotification: false }),
+      
+      patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
+        this.patch<T>(url, data, { ...config, _showErrorNotification: false }),
+      
+      delete: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
+        this.delete<T>(url, data, { ...config, _showErrorNotification: false })
+    }
   }
 }
 

@@ -295,7 +295,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { useTasks } from '../composables/useTasks'
-import { useNotifications } from '../composables/useNotifications'
+import { useCustomToast } from '../composables/useCustomToast'
 import { NotificationType, NOTIFICATION_TYPE_CONFIG, REMINDER_PRESETS, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
 
@@ -328,7 +328,14 @@ const {
   validateTaskForm
 } = useTasks()
 
-const { showConfirmation } = useNotifications()
+const { showSuccess, showError } = useCustomToast()
+
+// Local confirmation dialog implementation
+const showConfirmation = (message: string, onConfirm: () => void) => {
+  if (window.confirm(message)) {
+    onConfirm()
+  }
+}
 
 // Form state
 const formData = ref<TaskFormData>(createEmptyTaskForm())

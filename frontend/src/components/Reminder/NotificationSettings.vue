@@ -237,7 +237,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
-import { useNotifications } from '../../composables/useNotifications'
+import { useCustomToast } from '../../composables/useCustomToast'
 import { useNTFY } from '../../composables/useNTFY'
 import { useNotificationPermissions } from '../../composables/useNotificationPermissions'
 import LoadingSpinner from '../Common/LoadingSpinner.vue'
@@ -256,7 +256,7 @@ interface NotificationSettings {
 }
 
 const { user } = useAuth()
-const { showSuccess, showError } = useNotifications()
+const { showSuccess, showError } = useCustomToast()
 const { testConnection, sendNotification } = useNTFY()
 const { 
   permission: browserPermission, 
