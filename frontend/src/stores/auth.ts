@@ -263,6 +263,9 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('accessToken', authResponse.accessToken)
     localStorage.setItem('refreshToken', authResponse.refreshToken)
     localStorage.setItem('tokenExpiresAt', tokenExpiresAt.value.toString())
+    
+    // Clear tasks store for new user
+    window.dispatchEvent(new CustomEvent('auth-user-changed'))
   }
 
   const clearAuthData = () => {
@@ -278,6 +281,9 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('tokenExpiresAt')
+    
+    // Clear tasks store when user changes
+    window.dispatchEvent(new CustomEvent('auth-user-changed'))
   }
 
   const getAuthState = (): AuthState => ({

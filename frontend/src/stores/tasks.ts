@@ -442,6 +442,21 @@ export const useTasksStore = defineStore('tasks', () => {
     })
   }
 
+  const resetStore = () => {
+    console.log('🔄 Resetting tasks store for user change')
+    tasks.value = []
+    cachedOverdueTasks.value = []
+    cachedTodayTasks.value = []
+    cachedStats.value = null
+    isInitialized.value = false
+    clearFilters()
+  }
+
+  // Listen for user changes (logout/login)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('auth-user-changed', resetStore)
+  }
+
   return {
     // State
     tasks,
