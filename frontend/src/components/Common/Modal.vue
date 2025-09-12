@@ -312,8 +312,14 @@ defineExpose({
   }
   
   
-  .max-h-[90vh] {
-    @apply max-h-screen sm:max-h-[90vh];
+  .max-h-\[90vh\] {
+    max-height: 100vh;
+  }
+  
+  @media (min-width: 640px) {
+    .max-h-\[90vh\] {
+      max-height: 90vh;
+    }
   }
 }
 

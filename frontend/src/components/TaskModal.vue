@@ -490,8 +490,9 @@ watch(() => props.task, () => {
 }
 
 .modal-content {
-  @apply relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+  @apply relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full overflow-y-auto;
   @apply p-6;
+  max-height: 90vh;
 }
 
 /* Custom scrollbar for webkit browsers */

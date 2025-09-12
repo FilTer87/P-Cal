@@ -947,8 +947,9 @@ onUnmounted(() => {
 }
 
 .modal-content {
-  @apply relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4;
+  @apply relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full overflow-y-auto m-4;
   @apply p-4 md:p-6;
+  max-height: 90vh;
 }
 
 /* Responsive utility classes */
