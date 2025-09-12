@@ -15,10 +15,10 @@
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <form @submit.prevent="handleSubmit" class="space-y-3">
         <!-- Title -->
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Titolo <span class="text-red-500">*</span>
           </label>
           <input
@@ -35,7 +35,7 @@
 
         <!-- Description -->
         <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Descrizione
           </label>
           <textarea
@@ -52,7 +52,7 @@
 
         <!-- All Day Toggle -->
         <div>
-          <label class="flex items-center space-x-2">
+          <label class="flex items-center space-x-2 mb-1">
             <input
               v-model="formData.isAllDay"
               type="checkbox"
@@ -68,7 +68,7 @@
         <!-- Start Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Data di inizio <span class="text-red-500">*</span>
             </label>
             <input
@@ -83,7 +83,7 @@
           </div>
           
           <div v-if="!formData.isAllDay">
-            <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Ora di inizio
             </label>
             <input
@@ -101,7 +101,7 @@
         <!-- End Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Data di fine <span class="text-red-500">*</span>
             </label>
             <input
@@ -116,7 +116,7 @@
           </div>
           
           <div v-if="!formData.isAllDay">
-            <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Ora di fine
             </label>
             <input
@@ -133,7 +133,7 @@
 
         <!-- Location -->
         <div>
-          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Luogo
           </label>
           <input
@@ -150,7 +150,7 @@
 
         <!-- Color -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Colore
           </label>
           <div class="flex flex-wrap gap-2">
@@ -178,7 +178,7 @@
         <!-- Reminders Section -->
         <div>
           <div class="flex items-center justify-between mb-3">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Promemoria
             </label>
             <button
