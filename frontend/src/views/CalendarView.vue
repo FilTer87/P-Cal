@@ -434,7 +434,7 @@ const tasksByDateInRange = computed(() => {
   if (!range) return {}
 
   const result: Record<string, any[]> = {}
-  const allTasks = tasks.allTasks.value || []
+  const allTasks = tasks.allTasks || []
 
   console.log('📅 Agenda view debug:', {
     range,

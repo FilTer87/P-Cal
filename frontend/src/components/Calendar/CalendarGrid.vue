@@ -376,6 +376,13 @@ defineExpose({
   opacity: 0.7;
 }
 
+.overflow-fix {
+  float: left;
+  width: 100%;
+  overflow-y: scroll;
+  height: 0;
+}
+
 /* Print styles */
 @media print {
   .calendar-grid {
