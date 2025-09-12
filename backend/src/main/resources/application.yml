@@ -58,8 +58,10 @@ logging:
 app:
   jwt:
     secret: ${JWT_SECRET:privatecal-jwt-secret-key-2024-very-secure}
-    access-token-expiration: 900000    # 15 minutes
-    refresh-token-expiration: 604800000 # 7 days
+    access-token-expiration: 60000    # 1 minute (test)
+    # access-token-expiration: 900000    # 15 minutes
+    refresh-token-expiration: 240000 # 4 minutes (test)
+    # refresh-token-expiration: 604800000 # 7 days
   
   ntfy:
     server-url: ${NTFY_SERVER_URL:https://ntfy.sh}

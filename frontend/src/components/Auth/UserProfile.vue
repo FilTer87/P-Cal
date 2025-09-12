@@ -1145,9 +1145,6 @@ button:focus {
     @apply mx-4;
   }
   
-  .grid.grid-cols-1.md\:grid-cols-2 {
-    @apply grid-cols-1;
-  }
   
   .space-x-8 {
     @apply space-x-4;

@@ -56,10 +56,40 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   const { showSuccess, showError } = useNotifications()
 
+  // Setup event listeners for API interceptor events
+  const setupEventListeners = () => {
+    // Listen for token refresh events from API interceptor
+    window.addEventListener('auth-token-refreshed', (event: any) => {
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken, tokenExpiresAt: newExpiresAt } = event.detail
+      console.log('📡 Received token refresh event, updating store with:', {
+        accessToken: newAccessToken ? newAccessToken.slice(0, 20) + '...' : 'undefined',
+        refreshToken: newRefreshToken ? newRefreshToken.slice(0, 20) + '...' : 'undefined',
+        tokenExpiresAt: new Date(newExpiresAt).toLocaleString()
+      })
+      accessToken.value = newAccessToken
+      refreshToken.value = newRefreshToken
+      tokenExpiresAt.value = newExpiresAt
+      console.log('📡 Store updated. Current values:', {
+        accessToken: accessToken.value ? accessToken.value.slice(0, 20) + '...' : 'undefined',
+        refreshToken: refreshToken.value ? refreshToken.value.slice(0, 20) + '...' : 'undefined'
+      })
+    })
+
+    // Listen for auth failure events
+    window.addEventListener('auth-failure', () => {
+      console.log('📡 Received auth failure event, clearing store')
+      clearAuthData()
+    })
+  }
+
   const initializeAuth = async () => {
     if (isInitialized.value) return
 
     console.log('🔧 Initializing auth...')
+    
+    // Setup event listeners first
+    setupEventListeners()
+    
     try {
       // Load auth data from localStorage
       const savedToken = localStorage.getItem('accessToken')
@@ -87,15 +117,10 @@ export const useAuthStore = defineStore('auth', () => {
           user: user.value?.username
         })
 
-        // Check if token is expired and try to refresh
-        if (isTokenExpired.value && refreshToken.value) {
-          console.log('🔄 Token expired, refreshing...')
-          await refreshAccessToken()
-        } else {
-          console.log('✅ Token is still valid, skipping backend verification during initialization')
-          // During initialization, we trust the localStorage data
-          // Backend verification can happen later when actually making API calls
-        }
+        // Token refresh is now handled automatically by API interceptor
+        // We just trust the localStorage data during initialization
+        console.log('✅ Auth data restored from localStorage')
+        console.log('🔄 Token refresh will be handled automatically by API interceptor when needed')
       } else {
         console.log('❌ No complete auth data found in localStorage')
       }
@@ -154,30 +179,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Token refresh is now handled by API interceptor only
+  // This method is kept for backward compatibility but delegates to interceptor
   const refreshAccessToken = async (): Promise<boolean> => {
-    if (!refreshToken.value) {
-      clearAuthData()
-      return false
-    }
-
-    try {
-      const response = await authApi.refreshToken(refreshToken.value)
-      
-      accessToken.value = response.accessToken
-      refreshToken.value = response.refreshToken
-      tokenExpiresAt.value = Date.now() + (response.expiresIn * 1000)
-      
-      // Save to localStorage
-      localStorage.setItem('accessToken', response.accessToken)
-      localStorage.setItem('refreshToken', response.refreshToken)
-      localStorage.setItem('tokenExpiresAt', tokenExpiresAt.value.toString())
-      
+    console.log('⚠️ refreshAccessToken called - this should not happen as refresh is handled by API interceptor')
+    
+    // Just sync store with localStorage without clearing
+    const token = localStorage.getItem('accessToken')
+    const refresh = localStorage.getItem('refreshToken')
+    const expires = localStorage.getItem('tokenExpiresAt')
+    
+    if (token && refresh) {
+      accessToken.value = token
+      refreshToken.value = refresh  
+      tokenExpiresAt.value = expires ? parseInt(expires) : null
       return true
-    } catch (error) {
-      console.error('Failed to refresh token:', error)
-      clearAuthData()
-      return false
     }
+    
+    // Don't clear auth data here - let the API interceptor handle it
+    return false
   }
 
   const verifyToken = async (duringInitialization = false): Promise<boolean> => {

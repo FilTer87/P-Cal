@@ -145,13 +145,6 @@ export const useTasksStore = defineStore('tasks', () => {
       thisWeek: localStats.thisWeek // Always use local calculation
     }
     
-    console.log('📊 taskStats computed:', result, {
-      cachedStats: cachedStats.value,
-      localStats,
-      cachedOverdue: cachedOverdueTasks.value?.length,
-      cachedToday: cachedTodayTasks.value?.length,
-      localTasks: tasks.value?.length
-    })
     
     return result
   })
@@ -167,9 +160,7 @@ export const useTasksStore = defineStore('tasks', () => {
           dailyTasks[dateKey] = []
         }
         dailyTasks[dateKey].push(task)
-        console.log(`📅 Added task "${task.title}" to date ${dateKey}`)
       } else {
-        console.log(`📅 Task is null or has no startDatetime:`, task)
       }
     })
     
@@ -207,17 +198,12 @@ export const useTasksStore = defineStore('tasks', () => {
     isLoading.value = true
     error.value = null
 
-    console.log(`📅 Fetching tasks for date range: ${startDate} to ${endDate}`)
 
     try {
       const response = await taskApi.getTasksByDateRange(startDate, endDate)
-      console.log(`📅 Raw API response:`, response)
-      console.log(`📅 Response type:`, typeof response)
-      console.log(`📅 Is Array:`, Array.isArray(response))
       
       // Ensure response is an array
       const tasksArray = Array.isArray(response) ? response : []
-      console.log(`📅 Found ${tasksArray.length} tasks in range:`, tasksArray.map(t => `${t.title} (${t.startDatetime || t.startDateTime})`))
       
       // Update tasks with fetched data (merge with existing)
       const existingTaskIds = new Set((tasks.value || []).map(task => task.id))

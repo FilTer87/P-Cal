@@ -69,10 +69,6 @@
             height: '100%'
           }">
           
-          <!-- DEBUG: Always show data -->
-          <div class="absolute top-2 left-2 bg-black text-white text-xs px-1 rounded pointer-events-auto">
-            T:{{ dayInfo.indicators.top.length }} B:{{ dayInfo.indicators.bottom.length }}
-          </div>
           
           <!-- Top indicators for hidden tasks above -->
           <div v-for="(task, index) in dayInfo.indicators.top" 
@@ -95,12 +91,6 @@
               backgroundColor: task.color || '#EF4444'
             }"
             :title="`Hidden below: ${task.title}`">
-          </div>
-          
-          <!-- DEBUG: Show count -->
-          <div v-if="dayInfo.indicators.bottom.length > 0" 
-            class="absolute bottom-0 left-0 bg-red-500 text-white text-xs px-1 rounded">
-            ↓{{dayInfo.indicators.bottom.length}}
           </div>
         </div>
       </div>

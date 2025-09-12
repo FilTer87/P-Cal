@@ -89,12 +89,9 @@ export function useAuth() {
   }
 
   const refreshToken = async (): Promise<boolean> => {
-    try {
-      return await authStore.refreshAccessToken()
-    } catch (error) {
-      console.error('Token refresh failed:', error)
-      return false
-    }
+    console.log('⚠️ Manual refresh token called - now handled by API interceptor')
+    // Just return true as refresh is handled automatically by API interceptor
+    return true
   }
 
   const verifyToken = async (): Promise<boolean> => {

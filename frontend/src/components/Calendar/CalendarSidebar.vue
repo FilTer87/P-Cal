@@ -190,6 +190,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import {
   PlusIcon,
   SunIcon,
@@ -216,12 +218,13 @@ const props = withDefaults(defineProps<Props>(), {
   themeName: 'chiaro'
 })
 
+// Composables
+const router = useRouter()
+const { logout } = useAuth()
+
 // Emits
 const emit = defineEmits<{
   themeToggle: []
-  showProfile: []
-  showSettings: []
-  logout: []
   taskClick: [task: Task]
   taskToggle: [taskId: number]
   newTask: []
@@ -258,16 +261,20 @@ const handleThemeToggle = () => {
   emit('themeToggle')
 }
 
-const handleShowProfile = () => {
-  emit('showProfile')
+const handleShowProfile = async () => {
+  await router.push('/profile')
 }
 
-const handleShowSettings = () => {
-  emit('showSettings')
+const handleShowSettings = async () => {
+  await router.push('/settings')
 }
 
-const handleLogout = () => {
-  emit('logout')
+const handleLogout = async () => {
+  try {
+    await logout()
+  } catch (error) {
+    console.error('Errore durante il logout:', error)
+  }
 }
 
 const handleTaskClick = (task: Task) => {

@@ -35,6 +35,24 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/'
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../components/Auth/UserProfile.vue'),
+    meta: { 
+      requiresAuth: true,
+      title: 'Profilo Utente - PrivateCal'
+    }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/SettingsView.vue'),
+    meta: { 
+      requiresAuth: true,
+      title: 'Impostazioni - PrivateCal'
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }

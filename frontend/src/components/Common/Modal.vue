@@ -311,9 +311,6 @@ defineExpose({
     @apply p-2;
   }
   
-  .rounded-lg {
-    @apply rounded-none sm:rounded-lg;
-  }
   
   .max-h-[90vh] {
     @apply max-h-screen sm:max-h-[90vh];
