@@ -177,6 +177,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Exclude public endpoints
         if (path.startsWith("/api/public/") ||
             path.startsWith("/actuator/") ||
+            path.equals("/error") ||
             path.equals("/") ||
             path.equals("/favicon.ico") ||
             path.startsWith("/static/") ||

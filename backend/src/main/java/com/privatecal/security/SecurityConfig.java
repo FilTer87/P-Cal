@@ -161,6 +161,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 
+                // Error handling endpoint
+                .requestMatchers("/error").permitAll()
+                
                 // Health check and actuator endpoints
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")

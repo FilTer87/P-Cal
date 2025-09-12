@@ -31,10 +31,10 @@ public class JwtUtils {
     private String jwtSecret;
     
     @Value("${app.jwt.access-token-expiration}")
-    private long accessTokenExpiration; // 15 minutes in milliseconds
+    private long accessTokenExpiration;
     
     @Value("${app.jwt.refresh-token-expiration}")
-    private long refreshTokenExpiration; // 7 days in milliseconds
+    private long refreshTokenExpiration;
     
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
     private static final String ACCESS_TOKEN_TYPE = "access";
