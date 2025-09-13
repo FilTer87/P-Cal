@@ -273,7 +273,7 @@ public class NotificationService {
         }
         
         long minutesUntil = java.time.Duration.between(
-            java.time.LocalDateTime.now(), 
+            Instant.now(), 
             task.getStartDatetime()
         ).toMinutes();
         

@@ -154,7 +154,7 @@ export class TaskApi {
    * Get pending tasks
    */
   async getPendingTasks(params?: PaginationParams): Promise<Task[]> {
-    return apiClient.get<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/pending`, { params })
+    return apiClient.get<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/upcoming`, { params })
   }
 
   /**

@@ -39,11 +39,22 @@ export interface UpdateTaskRequest {
 export interface Reminder {
   id: number
   taskId: number
+  taskTitle?: string
+  reminderTime: string
   reminderOffsetMinutes: number
+  isSent: boolean
+  sent?: boolean // for backward compatibility
   notificationType: NotificationType
-  sent: boolean
   createdAt: string
-  updatedAt: string
+  isDue?: boolean
+  isOverdue?: boolean
+  description?: string
+  minutesUntilDue?: number
+  formattedTimeUntilDue?: string
+  pushNotification?: boolean
+  emailNotification?: boolean
+  status?: string
+  active?: boolean
 }
 
 export interface CreateReminderRequest {

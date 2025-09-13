@@ -335,6 +335,9 @@ import { it } from 'date-fns/locale'
 // import { formatTaskPriority } from '../utils/formatters' // Removed as priority is not handled
 import { CALENDAR_VIEWS, LOCALE_STRINGS } from '../utils/constants'
 
+// Reminder notification service
+import { startReminderNotifications, stopReminderNotifications } from '../services/reminderNotificationService'
+
 // Composable instances
 const auth = useAuth()
 const calendar = useCalendar()
@@ -564,18 +567,24 @@ const handleTaskCreated = async (task: Task) => {
   // Refresh tasks data
   await tasks.fetchTasks()
   await tasks.refreshStatistics()
+  // Refresh reminders to update sidebar
+  await reminders.fetchAllReminders()
 }
 
 const handleTaskUpdated = async (task: Task) => {
   // Refresh tasks data
   await tasks.fetchTasks()
   await tasks.refreshStatistics()
+  // Refresh reminders to update sidebar
+  await reminders.fetchAllReminders()
 }
 
 const handleTaskDeleted = async (taskId: number) => {
   // Refresh tasks data
   await tasks.fetchTasks()
   await tasks.refreshStatistics()
+  // Refresh reminders to update sidebar
+  await reminders.fetchAllReminders()
 }
 
 // Override calendar methods to use our enhanced modal
@@ -785,6 +794,10 @@ onMounted(async () => {
     scrollHeight.value = weeklyScrollContainer.value.scrollHeight
     clientHeight.value = weeklyScrollContainer.value.clientHeight
   }
+
+  // Start reminder notification service
+  console.log('🔔 Starting reminder notification service from CalendarView')
+  await startReminderNotifications()
 })
 
 // Multi-day task splitting logic - collect all tasks from the week first
@@ -892,6 +905,10 @@ const getTasksWithSplitsForDate = (date: Date) => {
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyboardShortcuts)
   document.removeEventListener('click', handleClickOutside)
+  
+  // Stop reminder notification service
+  console.log('🔔 Stopping reminder notification service from CalendarView')
+  stopReminderNotifications()
 })
 </script>
 

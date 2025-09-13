@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useCustomToast } from './useCustomToast'
 import { reminderApi } from '../services/reminderApi'
 import type { 
@@ -22,34 +22,40 @@ export function useReminders() {
   const error = ref<string | null>(null)
 
   // Computed properties
-  const upcomingReminders = computed(() => 
-    (reminders.value || []).filter(reminder => 
-      !reminder.sent && 
-      new Date(reminder.reminderDateTime) > new Date()
-    ).sort((a, b) => 
-      new Date(a.reminderDateTime).getTime() - new Date(b.reminderDateTime).getTime()
+  const upcomingReminders = computed(() => {
+    const now = new Date()
+    const upcoming = (reminders.value || []).filter(reminder => {
+      if (reminder.isSent || reminder.sent) return false
+      const reminderTime = new Date(reminder.reminderTime)
+      const isUpcoming = reminderTime > now
+      console.log(`📅 Reminder ${reminder.id}: ${reminder.reminderTime} -> Local: ${reminderTime.toLocaleString()}, isUpcoming: ${isUpcoming}`)
+      return isUpcoming
+    }).sort((a, b) => 
+      new Date(a.reminderTime).getTime() - new Date(b.reminderTime).getTime()
     )
-  )
+    console.log(`📅 Total upcoming reminders: ${upcoming.length}`)
+    return upcoming
+  })
 
   const overdueReminders = computed(() => 
     (reminders.value || []).filter(reminder => 
-      !reminder.sent && 
-      new Date(reminder.reminderDateTime) < new Date()
+      !(reminder.isSent || reminder.sent) && 
+      new Date(reminder.reminderTime) < new Date()
     )
   )
 
   const sentReminders = computed(() => 
-    (reminders.value || []).filter(reminder => reminder.sent)
+    (reminders.value || []).filter(reminder => reminder.isSent || reminder.sent)
   )
 
   const pendingReminders = computed(() => 
-    (reminders.value || []).filter(reminder => !reminder.sent)
+    (reminders.value || []).filter(reminder => !(reminder.isSent || reminder.sent))
   )
 
   const todayReminders = computed(() => {
     const today = format(new Date(), 'yyyy-MM-dd')
     return (reminders.value || []).filter(reminder => 
-      format(new Date(reminder.reminderDateTime), 'yyyy-MM-dd') === today
+      format(new Date(reminder.reminderTime), 'yyyy-MM-dd') === today
     )
   })
 
@@ -363,6 +369,31 @@ export function useReminders() {
     overdue: overdueReminders.value.length,
     upcoming: upcomingReminders.value.length,
     today: todayReminders.value.length
+  })
+
+  // Handle reminder notification events
+  const handleReminderNotified = (event: CustomEvent) => {
+    const { reminderId } = event.detail
+    const reminderIndex = (reminders.value || []).findIndex(r => r.id === reminderId)
+    
+    if (reminderIndex !== -1 && reminders.value) {
+      // Mark reminder as sent in local state
+      reminders.value[reminderIndex] = {
+        ...reminders.value[reminderIndex],
+        isSent: true,
+        sent: true
+      }
+      console.log(`📅 Updated local state for reminder ${reminderId} - marked as sent`)
+    }
+  }
+
+  // Set up event listeners
+  onMounted(() => {
+    window.addEventListener('reminder-notified', handleReminderNotified as EventListener)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('reminder-notified', handleReminderNotified as EventListener)
   })
 
   return {

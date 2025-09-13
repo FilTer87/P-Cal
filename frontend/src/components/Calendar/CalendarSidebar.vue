@@ -288,6 +288,11 @@ const handleNewTask = () => {
 }
 
 const getTaskTitle = (taskId: number) => {
+  // Try to find the task in the reminder data first (it includes taskTitle)
+  const reminder = props.upcomingReminders?.find(r => r.taskId === taskId)
+  if (reminder?.taskTitle) return reminder.taskTitle
+  
+  // Fallback to finding in todayTasks
   const task = props.todayTasks?.find(t => t.id === taskId)
   return task?.title || 'Attività eliminata'
 }

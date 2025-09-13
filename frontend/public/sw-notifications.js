@@ -56,19 +56,6 @@ self.addEventListener('notificationclick', (event) => {
         return clients.openWindow(urlToOpen)
       })
     )
-  } else if (action === 'snooze') {
-    // Handle snooze action
-    event.waitUntil(
-      // Schedule a new notification in 10 minutes
-      scheduleNotification({
-        title: notification.title,
-        body: notification.body,
-        icon: notification.icon,
-        badge: notification.badge,
-        data: data,
-        showTime: Date.now() + (10 * 60 * 1000) // 10 minutes from now
-      })
-    )
   }
   
   // Send message to all clients about the click

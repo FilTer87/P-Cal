@@ -91,7 +91,7 @@ export class ReminderApi {
    * Get pending reminders
    */
   async getPendingReminders(params?: PaginationParams): Promise<Reminder[]> {
-    return apiClient.get<Reminder[]>(`${API_ENDPOINTS.REMINDERS.BASE}/pending`, { params })
+    return apiClient.get<Reminder[]>(`${API_ENDPOINTS.REMINDERS.BASE}/upcoming`, { params })
   }
 
   /**

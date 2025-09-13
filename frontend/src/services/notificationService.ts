@@ -128,26 +128,21 @@ class BrowserNotificationService {
     const { taskTitle, taskId, timeLeft, baseUrl = '' } = params
 
     const options: NotificationOptions = {
-      body: `Il tuo task "${taskTitle}" inizia tra ${timeLeft}`,
-      icon: `${baseUrl}/favicon.ico`,
-      badge: `${baseUrl}/badge-icon.png`,
+      body: `Il tuo task "${taskTitle}" ${timeLeft}`,
+      icon: undefined, // Remove problematic icon paths
+      badge: undefined, // Remove problematic badge paths
       tag: `reminder-${taskId}`,
       requireInteraction: true,
       data: {
         type: 'reminder',
         taskId,
-        url: `${baseUrl}/tasks/${taskId}`
+        url: `/` // Base URL since tasks don't have dedicated pages
       },
       actions: [
         {
           action: 'view',
-          title: 'Visualizza Task',
-          icon: `${baseUrl}/icons/view.png`
-        },
-        {
-          action: 'snooze',
-          title: 'Posticipa 10min',
-          icon: `${baseUrl}/icons/snooze.png`
+          title: 'Visualizza Task'
+          // Remove icon from actions to avoid 404s
         }
       ],
       vibrate: [200, 100, 200]
