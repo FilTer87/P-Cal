@@ -87,9 +87,13 @@
                   Primo giorno della settimana nel calendario
                 </p>
               </div>
-              <select class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select 
+                :value="settings.weekStartDay" 
+                @change="changeWeekStartDay"
+                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
                 <option value="0">Domenica</option>
-                <option value="1" selected>Lunedì</option>
+                <option value="1">Lunedì</option>
               </select>
             </div>
             
@@ -102,10 +106,15 @@
                   Vista che si apre all'avvio dell'applicazione
                 </p>
               </div>
-              <select class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="week" selected>Settimana</option>
+              <select 
+                :value="settings.settings.calendarView" 
+                @change="changeDefaultView"
+                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="week">Settimana</option>
                 <option value="month">Mese</option>
                 <option value="day">Giorno</option>
+                <option value="agenda">Agenda</option>
               </select>
             </div>
           </div>
@@ -152,15 +161,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useCustomToast } from '@/composables/useCustomToast'
+import { useSettingsStore } from '@/stores/settings'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 
 // Composables
 const { theme: currentTheme, setTheme } = useTheme()
 const { showSuccess } = useCustomToast()
+const settings = useSettingsStore()
 
 // Theme options
 const themeOptions = [
@@ -174,6 +185,23 @@ const changeTheme = (newTheme: 'light' | 'dark' | 'system') => {
   setTheme(newTheme)
   showSuccess(`Tema cambiato in ${newTheme === 'light' ? 'chiaro' : newTheme === 'dark' ? 'scuro' : 'sistema'}`)
 }
+
+const changeWeekStartDay = (event: Event) => {
+  const value = parseInt((event.target as HTMLSelectElement).value)
+  settings.updateWeekStartDay(value as 0 | 1)
+  showSuccess(`Inizio settimana cambiato in ${value === 0 ? 'Domenica' : 'Lunedì'}`)
+}
+
+const changeDefaultView = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value as 'month' | 'week' | 'day' | 'agenda'
+  settings.updateCalendarView(value)
+  showSuccess(`Vista predefinita cambiata in ${value === 'month' ? 'Mese' : value === 'week' ? 'Settimana' : value === 'day' ? 'Giorno' : 'Agenda'}`)
+}
+
+// Initialize settings on mount
+onMounted(() => {
+  settings.loadSettings()
+})
 </script>
 
 <style scoped>

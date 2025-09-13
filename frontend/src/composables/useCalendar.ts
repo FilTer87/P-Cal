@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import { useCalendarStore } from '../stores/calendar'
 import { useTasksStore } from '../stores/tasks'
+import { useSettingsStore } from '../stores/settings'
 import { format, addDays, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { it } from 'date-fns/locale'
 import type { CalendarView, CalendarDate, CalendarWeek, CalendarMonth } from '../types/calendar'
@@ -9,6 +10,7 @@ import type { Task } from '../types/task'
 export function useCalendar() {
   const calendarStore = useCalendarStore()
   const tasksStore = useTasksStore()
+  const settingsStore = useSettingsStore()
 
   // State
   const showTaskModal = ref(false)
@@ -230,7 +232,7 @@ export function useCalendar() {
 
   // Week utilities
   const getWeekDays = (date: Date): Date[] => {
-    const start = startOfWeek(date, { weekStartsOn: 1 })
+    const start = startOfWeek(date, { weekStartsOn: settingsStore.weekStartDay })
     const days: Date[] = []
     
     for (let i = 0; i < 7; i++) {
@@ -245,8 +247,8 @@ export function useCalendar() {
 
   const getWeekRange = (date: Date): { start: Date; end: Date } => {
     return {
-      start: startOfWeek(date, { weekStartsOn: 1 }),
-      end: endOfWeek(date, { weekStartsOn: 1 })
+      start: startOfWeek(date, { weekStartsOn: settingsStore.weekStartDay }),
+      end: endOfWeek(date, { weekStartsOn: settingsStore.weekStartDay })
     }
   }
 

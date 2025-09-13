@@ -26,8 +26,12 @@ import type {
   DateRange
 } from '../types/calendar'
 import { useTasksStore } from './tasks'
+import { useSettingsStore } from './settings'
 
 export const useCalendarStore = defineStore('calendar', () => {
+  // Get settings store for week start configuration
+  const settingsStore = useSettingsStore()
+  
   // State
   const currentDate = ref(new Date())
   const selectedDate = ref<Date | null>(null)
@@ -56,19 +60,20 @@ export const useCalendarStore = defineStore('calendar', () => {
   const viewDateRange = computed((): DateRange => {
     const start = startOfDay(currentDate.value)
     const end = endOfDay(currentDate.value)
+    const weekStartsOn = settingsStore.weekStartDay
 
     switch (viewMode.value) {
       case 'day':
         return { start, end }
       case 'week':
         return {
-          start: startOfWeek(currentDate.value, { weekStartsOn: 1 }),
-          end: endOfWeek(currentDate.value, { weekStartsOn: 1 })
+          start: startOfWeek(currentDate.value, { weekStartsOn }),
+          end: endOfWeek(currentDate.value, { weekStartsOn })
         }
       case 'month':
         return {
-          start: startOfWeek(startOfMonth(currentDate.value), { weekStartsOn: 1 }),
-          end: endOfWeek(endOfMonth(currentDate.value), { weekStartsOn: 1 })
+          start: startOfWeek(startOfMonth(currentDate.value), { weekStartsOn }),
+          end: endOfWeek(endOfMonth(currentDate.value), { weekStartsOn })
         }
       case 'agenda':
         // Show tasks from today for the configured number of days
@@ -91,7 +96,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     while (currentDay <= end) {
       const dayTasks = tasksStore.getTasksByDate(format(currentDay, 'yyyy-MM-dd'))
       
-      days.push({
+      const dayData = {
         date: new Date(currentDay),
         dayOfMonth: currentDay.getDate(),
         isCurrentMonth: isSameMonth(currentDay, currentDate.value),
@@ -111,8 +116,9 @@ export const useCalendarStore = defineStore('calendar', () => {
             isOverdue: taskDate ? new Date(taskDate) < new Date() && !task.completed : false
           }
         })
-      })
+      }
       
+      days.push(dayData)
       currentDay = addDays(currentDay, 1)
     }
     

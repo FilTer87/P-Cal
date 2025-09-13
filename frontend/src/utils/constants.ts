@@ -169,12 +169,13 @@ export const LOCALE_CONFIG = {
   timezone: 'Europe/Rome',
   dateFormat: 'dd/MM/yyyy',
   timeFormat: 'HH:mm',
-  firstDayOfWeek: 1, // Monday
+  // firstDayOfWeek now managed by settings store
   weekendDays: [0, 6] // Sunday, Saturday
 } as const
 
 /**
  * Italian locale strings
+ * Note: weekdaysShort and weekdaysMin are now generated dynamically based on user settings
  */
 export const LOCALE_STRINGS = {
   months: [
@@ -188,8 +189,6 @@ export const LOCALE_STRINGS = {
   weekdays: [
     'Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'
   ],
-  weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
-  weekdaysMin: ['D', 'L', 'M', 'M', 'G', 'V', 'S'],
   today: 'Oggi',
   yesterday: 'Ieri',
   tomorrow: 'Domani',

@@ -128,7 +128,7 @@
           <!-- Month View -->
           <div v-if="isMonthView" class="calendar-grid-mobile md:calendar-grid">
             <!-- Week Days Header -->
-            <div v-for="day in LOCALE_STRINGS.weekdaysShort" :key="day" class="calendar-day-header">
+            <div v-for="day in settings.weekdaysShort" :key="day" class="calendar-day-header">
               {{ day }}
             </div>
 
@@ -317,6 +317,7 @@ import type { Task } from '../types/task'
 
 // Composables
 import { useAuth } from '../composables/useAuth'
+import { useRouter } from 'vue-router'
 import { useCalendar } from '../composables/useCalendar'
 import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
@@ -333,17 +334,21 @@ import {
 } from '../utils/dateHelpers'
 import { it } from 'date-fns/locale'
 // import { formatTaskPriority } from '../utils/formatters' // Removed as priority is not handled
-import { CALENDAR_VIEWS, LOCALE_STRINGS } from '../utils/constants'
+import { CALENDAR_VIEWS } from '../utils/constants'
 
 // Reminder notification service
 import { startReminderNotifications, stopReminderNotifications } from '../services/reminderNotificationService'
 
 // Composable instances
 const auth = useAuth()
+const $router = useRouter()
 const calendar = useCalendar()
 const tasks = useTasks()
 const reminders = useReminders()
 const theme = useTheme()
+// Settings store
+import { useSettingsStore } from '../stores/settings'
+const settings = useSettingsStore()
 
 // Reactive state
 const showMobileSidebar = ref(false)
@@ -524,8 +529,9 @@ const showProfile = () => {
 }
 
 const showSettings = () => {
-  showError('Funzionalità impostazioni non ancora implementata')
   showMobileSidebar.value = false
+  // Navigate to settings page
+  $router.push('/settings')
 }
 
 const handleLogout = () => {
@@ -774,6 +780,9 @@ onMounted(async () => {
   // Initialize auth and require authentication
   await auth.requireAuth()
 
+  // Initialize settings 
+  settings.loadSettings()
+  
   // Initialize calendar view mode
   calendar.initializeViewMode()
 
