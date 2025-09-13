@@ -237,6 +237,9 @@ export function useCalendar() {
       days.push(addDays(start, i))
     }
     
+    // Debug logging for week days generation
+    console.debug('📅 Week days generated:', days.map(d => `${format(d, 'yyyy-MM-dd')} (${format(d, 'E')})`).join(', '))
+    
     return days
   }
 

@@ -144,7 +144,13 @@ export const useTasksStore = defineStore('tasks', () => {
     (tasks.value || []).forEach(task => {
       // Use startDatetime for task date grouping
       if (task && task.startDatetime) {
-        const dateKey = format(new Date(task.startDatetime), 'yyyy-MM-dd')
+        // Parse datetime properly handling timezone
+        const taskDate = new Date(task.startDatetime)
+        
+        // Debug logging for timezone issues
+        console.debug(`🕐 Task ${task.id} (${task.title}): ${task.startDatetime} -> Local: ${taskDate.toLocaleString()}, Date key: ${format(taskDate, 'yyyy-MM-dd')}`)
+        
+        const dateKey = format(taskDate, 'yyyy-MM-dd')
         if (!dailyTasks[dateKey]) {
           dailyTasks[dateKey] = []
         }

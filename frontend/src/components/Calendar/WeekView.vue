@@ -100,6 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
 import type { Task } from '../../types/task'
 
@@ -155,23 +156,38 @@ const getWeekDayName = (date: Date, short = false) => {
 
 // Task filtering and splitting logic
 const getTasksWithSplitsForDate = (date: Date) => {
-  const currentDay = date.toISOString().split('T')[0]
+  const currentDay = format(date, 'yyyy-MM-dd')
   const allTasksWithSplits: Task[] = []
+  
+  // Debug logging for date matching
+  console.debug(`🗓️ Getting tasks for column ${currentDay} (${format(date, 'E')})`)
+  
+  const matchingTasks: string[] = []
 
   props.tasks.forEach(task => {
     if (!task.startDatetime || !task.endDatetime) return
 
-    const taskStartDay = task.startDatetime.split('T')[0]
-    const taskEndDay = task.endDatetime.split('T')[0]
+    // Use local timezone for date extraction, not UTC string split
+    const taskStartDay = format(new Date(task.startDatetime), 'yyyy-MM-dd')
+    const taskEndDay = format(new Date(task.endDatetime), 'yyyy-MM-dd')
+    
+    // Debug logging for timezone comparison
+    const utcStartDay = task.startDatetime.split('T')[0]
+    const utcEndDay = task.endDatetime.split('T')[0]
+    if (taskStartDay !== utcStartDay || taskEndDay !== utcEndDay) {
+      console.debug(`🕐 Timezone fix for Task ${task.id}: UTC(${utcStartDay}-${utcEndDay}) -> Local(${taskStartDay}-${taskEndDay})`)
+    }
 
     if (taskStartDay === taskEndDay) {
       // Single-day task
       if (taskStartDay === currentDay) {
         allTasksWithSplits.push(task)
+        matchingTasks.push(`Task ${task.id} (${task.title}) matches single-day`)
       }
     } else {
       // Multi-day task - ONLY if currentDay is within the task range
       if (currentDay >= taskStartDay && currentDay <= taskEndDay) {
+        matchingTasks.push(`Task ${task.id} (${task.title}) matches multi-day (${taskStartDay} to ${taskEndDay})`)
         let visualStartTime: string
         let visualEndTime: string
         
@@ -202,6 +218,10 @@ const getTasksWithSplitsForDate = (date: Date) => {
       }
     }
   })
+  
+  if (matchingTasks.length > 0) {
+    console.debug(`✅ Column ${currentDay}: ${matchingTasks.join('; ')}`)
+  }
   
   return allTasksWithSplits
 }
