@@ -22,11 +22,25 @@ public class CustomErrorController implements ErrorController {
     
     @RequestMapping("/error")
     public ResponseEntity<Map<String, Object>> handleError(HttpServletRequest request) {
-        // Get the original error status
-        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-        String errorMessage = (String) request.getAttribute("javax.servlet.error.message");
-        String requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
-        Throwable exception = (Throwable) request.getAttribute("javax.servlet.error.exception");
+        // Get the original error status using correct attribute names
+        Integer statusCode = (Integer) request.getAttribute("jakarta.servlet.error.status_code");
+        String errorMessage = (String) request.getAttribute("jakarta.servlet.error.message");
+        String requestUri = (String) request.getAttribute("jakarta.servlet.error.request_uri");
+        Throwable exception = (Throwable) request.getAttribute("jakarta.servlet.error.exception");
+        
+        // Fallback to legacy names if jakarta attributes are not found
+        if (statusCode == null) {
+            statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+        }
+        if (errorMessage == null) {
+            errorMessage = (String) request.getAttribute("javax.servlet.error.message");
+        }
+        if (requestUri == null) {
+            requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
+        }
+        if (exception == null) {
+            exception = (Throwable) request.getAttribute("javax.servlet.error.exception");
+        }
         
         // Default to 500 if no status code is found
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;

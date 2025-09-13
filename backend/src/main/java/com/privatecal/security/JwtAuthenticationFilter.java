@@ -79,16 +79,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication in security context", e);
+            logger.debug("JWT authentication failed: {}", e.getMessage());
             
-            // Clear security context on error
+            // Clear security context on error but don't handle the error here
+            // Let Spring Security handle the authentication failure
             SecurityContextHolder.clearContext();
-            
-            // Set error response for JWT errors
-            if (isJwtError(e)) {
-                handleJwtError(response, e);
-                return;
-            }
         }
         
         // Continue with the filter chain
@@ -110,54 +105,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
     
-    /**
-     * Check if the exception is a JWT-related error
-     */
-    private boolean isJwtError(Exception e) {
-        return e instanceof io.jsonwebtoken.JwtException || 
-               e.getCause() instanceof io.jsonwebtoken.JwtException;
-    }
-    
-    /**
-     * Handle JWT-specific errors
-     */
-    private void handleJwtError(HttpServletResponse response, Exception e) throws IOException {
-        logger.error("JWT error: {}", e.getMessage());
-        
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        
-        String errorMessage = determineErrorMessage(e);
-        String jsonResponse = String.format(
-            "{\"error\": \"Unauthorized\", \"message\": \"%s\", \"timestamp\": \"%s\"}", 
-            errorMessage, 
-            java.time.Instant.now().toString()
-        );
-        
-        response.getWriter().write(jsonResponse);
-    }
-    
-    /**
-     * Determine appropriate error message based on exception type
-     */
-    private String determineErrorMessage(Exception e) {
-        if (e instanceof io.jsonwebtoken.ExpiredJwtException) {
-            return "JWT token has expired";
-        } else if (e instanceof io.jsonwebtoken.UnsupportedJwtException) {
-            return "JWT token is unsupported";
-        } else if (e instanceof io.jsonwebtoken.MalformedJwtException) {
-            return "JWT token is malformed";
-        } else if (e instanceof io.jsonwebtoken.security.SignatureException) {
-            return "JWT signature validation failed";
-        } else if (e instanceof io.jsonwebtoken.security.SecurityException) {
-            return "JWT security validation failed";
-        } else if (e instanceof IllegalArgumentException) {
-            return "JWT token is invalid";
-        } else {
-            return "JWT token authentication failed";
-        }
-    }
     
     /**
      * Check if request should be excluded from JWT authentication

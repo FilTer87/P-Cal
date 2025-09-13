@@ -295,7 +295,7 @@ public class NotificationService {
     private String determinePriority(Reminder reminder) {
         Task task = reminder.getTask();
         long minutesUntil = java.time.Duration.between(
-            java.time.LocalDateTime.now(), 
+            Instant.now(), 
             task.getStartDatetime()
         ).toMinutes();
         
