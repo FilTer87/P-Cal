@@ -340,7 +340,7 @@ export const validateRegistrationForm = (data: {
   confirmPassword: string
   firstName?: string
   lastName?: string
-  acceptTerms: boolean
+  // acceptTerms: boolean
 }): FormValidationResult => {
   const errors: Record<string, string> = {}
   
@@ -385,9 +385,9 @@ export const validateRegistrationForm = (data: {
   }
   
   // Terms acceptance validation
-  if (!data.acceptTerms) {
-    errors.acceptTerms = 'Devi accettare i termini e condizioni'
-  }
+  // if (!data.acceptTerms) {
+  //   errors.acceptTerms = 'Devi accettare i termini e condizioni'
+  // }
   
   return {
     isValid: Object.keys(errors).length === 0,

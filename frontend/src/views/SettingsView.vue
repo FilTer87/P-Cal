@@ -97,8 +97,8 @@
           </div>
         </div>
 
-        <!-- Privacy Settings -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <!-- Privacy Settings - NO DATA ACQUIRED -->
+        <!-- <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Privacy
           </h2>
@@ -118,7 +118,7 @@
               </label>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Back to Calendar -->
         <div class="pt-4">

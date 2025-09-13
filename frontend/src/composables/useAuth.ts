@@ -89,7 +89,7 @@ export function useAuth() {
   }
 
   const refreshToken = async (): Promise<boolean> => {
-    console.log('⚠️ Manual refresh token called - now handled by API interceptor')
+    console.debug('⚠️ Manual refresh token called - now handled by API interceptor')
     // Just return true as refresh is handled automatically by API interceptor
     return true
   }

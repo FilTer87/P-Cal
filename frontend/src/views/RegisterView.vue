@@ -186,7 +186,7 @@
             </div>
 
             <!-- Terms Acceptance -->
-            <div class="flex items-start">
+            <!-- <div class="flex items-start">
               <div class="flex items-center h-5">
                 <input
                   id="acceptTerms"
@@ -211,7 +211,7 @@
             </div>
             <p v-if="errors.acceptTerms" class="error-message ml-7">
               {{ errors.acceptTerms }}
-            </p>
+            </p> -->
 
             <!-- Submit Button -->
             <div>
@@ -339,7 +339,7 @@ const isFormValid = computed(() => {
          form.value.email.trim() !== '' &&
          form.value.password !== '' &&
          form.value.confirmPassword !== '' &&
-         form.value.acceptTerms &&
+        //  form.value.acceptTerms &&
          Object.keys(errors.value).length === 0
 })
 

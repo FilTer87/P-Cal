@@ -74,8 +74,7 @@
       </div>
 
       <!-- Statistics Section (Collapsible) -->
-      <div class="mb-6">
-        <!-- Statistics Header (Clickable) -->
+      <!-- <div class="mb-6">
         <div class="flex items-center justify-between mb-3 cursor-pointer" @click="toggleStatistics">
           <h3 class="text-sm font-medium text-gray-900 dark:text-white">
             Statistiche
@@ -84,7 +83,6 @@
             :class="{ 'rotate-180': showStatistics }" />
         </div>
         
-        <!-- Statistics Content (Collapsible) -->
         <div v-show="showStatistics" class="transition-all duration-200">
           <div class="grid grid-cols-2 gap-2 sm:gap-3">
             <div class="bg-blue-50 dark:bg-blue-900/20 p-2 sm:p-3 rounded-md">
@@ -121,7 +119,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Today's Tasks -->
       <div class="mb-6" v-if="todayTasks && todayTasks.length > 0">
@@ -146,7 +144,7 @@
                   {{ task.title }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ task.dueDate ? formatTime(task.dueDate) : 'Nessuna ora' }}
+                  {{ task.endDatetime ? formatTime(task.endDatetime) : 'Nessuna ora' }}
                 </p>
               </div>
               <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>

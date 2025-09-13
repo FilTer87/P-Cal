@@ -332,7 +332,7 @@ import {
   isToday as isDateToday
 } from '../utils/dateHelpers'
 import { it } from 'date-fns/locale'
-// import { formatTaskPriority } from '../utils/formatters' // Removed as priority no longer exists
+// import { formatTaskPriority } from '../utils/formatters' // Removed as priority is not handled
 import { CALENDAR_VIEWS, LOCALE_STRINGS } from '../utils/constants'
 
 // Composable instances
