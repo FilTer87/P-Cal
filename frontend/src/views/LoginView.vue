@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="text-center">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">PrivateCal</h1>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">P-Cal</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Il tuo calendario personale
         </p>
@@ -167,13 +167,13 @@
 
     <!-- Footer -->
     <footer class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
-      <p>© 2024 PrivateCal. Tutti i diritti riservati.</p>
+      <!-- <p>© 2025 P-Cal. Tutti i diritti riservati.</p> -->
       <p class="mt-1">
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Privacy</a>
         ·
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Termini</a>
-        ·
-        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a>
+        <!-- ·
+        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a> --> <!-- TODO -->
       </p>
     </footer>
   </div>

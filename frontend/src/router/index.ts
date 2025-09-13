@@ -9,7 +9,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/LoginView.vue'),
     meta: { 
       requiresGuest: true,
-      title: 'Accesso - PrivateCal'
+      title: 'Accesso - P-Cal'
     }
   },
   {
@@ -18,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/RegisterView.vue'),
     meta: { 
       requiresGuest: true,
-      title: 'Registrazione - PrivateCal'
+      title: 'Registrazione - P-Cal'
     }
   },
   {
@@ -27,7 +27,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/CalendarView.vue'),
     meta: { 
       requiresAuth: true,
-      title: 'Calendario - PrivateCal'
+      title: 'Calendario - P-Cal'
     }
   },
   {
@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../components/Auth/UserProfile.vue'),
     meta: { 
       requiresAuth: true,
-      title: 'Profilo Utente - PrivateCal'
+      title: 'Profilo Utente - P-Cal'
     }
   },
   {
@@ -49,7 +49,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/SettingsView.vue'),
     meta: { 
       requiresAuth: true,
-      title: 'Impostazioni - PrivateCal'
+      title: 'Impostazioni - P-Cal'
     }
   },
   {

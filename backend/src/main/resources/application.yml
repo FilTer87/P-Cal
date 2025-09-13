@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: PrivateCal Backend
+    name: P-Cal Backend
   
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/calendar_db}
@@ -44,6 +44,15 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
 
 logging:
   level:

@@ -6,6 +6,14 @@ import com.privatecal.dto.UserResponse;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -22,6 +30,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "User authentication and authorization endpoints")
 public class AuthController {
     
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -39,9 +48,22 @@ public class AuthController {
      * User login endpoint
      * POST /api/auth/login
      */
+    @Operation(
+        summary = "User Login", 
+        description = "Authenticate user with username/email and password. Returns JWT tokens on successful authentication."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Login successful", 
+                    content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid credentials or request format"),
+        @ApiResponse(responseCode = "401", description = "Authentication failed"),
+        @ApiResponse(responseCode = "429", description = "Too many failed login attempts")
+    })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest loginRequest, 
-                                            HttpServletRequest request) {
+    public ResponseEntity<AuthResponse> login(
+            @Parameter(description = "Login credentials", required = true)
+            @RequestBody AuthRequest loginRequest, 
+            HttpServletRequest request) {
         try {
             // Custom validation for login request
             if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
@@ -117,7 +139,7 @@ public class AuthController {
                 try {
                     notificationService.sendTestNotification(
                         response.getUser().getId(),
-                        "Welcome to PrivateCal! Your account has been created successfully."
+                        "Welcome to P-Cal! Your account has been created successfully."
                     );
                 } catch (Exception e) {
                     logger.warn("Failed to send welcome notification", e);

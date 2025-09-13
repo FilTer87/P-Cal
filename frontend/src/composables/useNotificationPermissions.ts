@@ -117,7 +117,7 @@ export function useNotificationPermissions() {
 
   const sendTestNotification = async (): Promise<void> => {
     await sendBrowserNotification(
-      'Test Notifica PrivateCal',
+      'Test Notifica P-Cal',
       {
         body: 'Questa è una notifica di test per verificare che tutto funzioni correttamente.',
         icon: '/favicon.ico',

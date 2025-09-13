@@ -337,7 +337,7 @@ const testBrowserNotification = async () => {
   try {
     await sendBrowserNotification(
       'Test Notifica Browser',
-      'Questo è un test delle notifiche browser per PrivateCal',
+      'Questo è un test delle notifiche browser per P-Cal',
       {
         icon: '/favicon.ico',
         tag: 'test-notification'
@@ -370,7 +370,7 @@ const testNTFYNotification = async () => {
       server: settings.value.ntfyServer,
       topic: settings.value.ntfyTopic,
       title: 'Test Notifica NTFY',
-      message: 'Questo è un test delle notifiche NTFY per PrivateCal',
+      message: 'Questo è un test delle notifiche NTFY per P-Cal',
       tags: ['test', '🧪'],
       priority: 3
     })

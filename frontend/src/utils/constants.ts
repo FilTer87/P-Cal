@@ -5,11 +5,11 @@ import type { CalendarView } from '../types/calendar'
  * Application metadata
  */
 export const APP_INFO = {
-  name: 'PrivateCal',
+  name: 'P-Cal',
   version: '2.0.0',
   description: 'Sistema di gestione attività e calendario personale',
-  author: 'PrivateCal Team',
-  website: 'https://privatecal.app'
+  author: 'Filippo Terenzi',
+  website: '' // TODO
 } as const
 
 /**

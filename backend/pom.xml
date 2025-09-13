@@ -15,8 +15,8 @@
     <groupId>com.privatecal</groupId>
     <artifactId>privatecal-backend</artifactId>
     <version>2.0.0</version>
-    <name>PrivateCal Backend</name>
-    <description>Calendar application backend with JWT authentication and NTFY notifications</description>
+    <name>P-Cal Backend</name>
+    <description>Calendar application APIs with JWT auth and NTFY notifications</description>
     
     <licenses>
         <license>
@@ -102,6 +102,13 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+        
+        <!-- SpringDoc OpenAPI (Swagger) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
         </dependency>
         
         <!-- Development Tools -->

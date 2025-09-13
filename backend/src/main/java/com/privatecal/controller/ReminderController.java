@@ -3,6 +3,14 @@ package com.privatecal.controller;
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.ReminderResponse;
 import com.privatecal.service.ReminderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +29,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/reminders")
+@Tag(name = "Reminders", description = "Reminder management endpoints for creating and managing task notifications")
+@SecurityRequirement(name = "Bearer Authentication")
 public class ReminderController {
     
     private static final Logger logger = LoggerFactory.getLogger(ReminderController.class);
@@ -47,9 +57,21 @@ public class ReminderController {
      * Create reminder for a task
      * POST /api/reminders/task/{taskId}
      */
+    @Operation(
+        summary = "Create Task Reminder", 
+        description = "Create a notification reminder for a specific task. The reminder will be triggered at the specified time before the task starts."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Reminder created successfully", 
+                    content = @Content(schema = @Schema(implementation = ReminderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid reminder data"),
+        @ApiResponse(responseCode = "404", description = "Task not found"),
+        @ApiResponse(responseCode = "401", description = "Authentication required")
+    })
     @PostMapping("/task/{taskId}")
-    public ResponseEntity<ReminderResponse> createReminderForTask(@PathVariable Long taskId, 
-                                                                 @Valid @RequestBody ReminderRequest reminderRequest) {
+    public ResponseEntity<ReminderResponse> createReminderForTask(
+            @Parameter(description = "Task ID", required = true) @PathVariable Long taskId, 
+            @Parameter(description = "Reminder details", required = true) @Valid @RequestBody ReminderRequest reminderRequest) {
         try {
             logger.debug("Creating reminder for task ID: {}", taskId);
             

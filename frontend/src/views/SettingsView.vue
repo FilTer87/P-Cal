@@ -1,6 +1,20 @@
 <template>
   <div class="settings-view min-h-screen bg-gray-50 dark:bg-gray-900">
     <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
+      <!-- Back to Calendar -->
+        <div class="absolute fixed right-4">
+          <router-link 
+            to="/"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Torna al Calendario
+          </router-link>
+        </div>
+
       <!-- Page Header -->
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">

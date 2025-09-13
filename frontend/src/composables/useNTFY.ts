@@ -187,8 +187,8 @@ export function useNTFY() {
   const sendTestNotification = async (): Promise<boolean> => {
     try {
       const response = await sendNotification({
-        title: 'Test PrivateCal',
-        message: 'Questa è una notifica di test da PrivateCal. Se la ricevi, la configurazione funziona correttamente!',
+        title: 'Test P-Cal',
+        message: 'Questa è una notifica di test da P-Cal. Se la ricevi, la configurazione funziona correttamente!',
         tags: ['test', '🧪'],
         priority: 3,
         click: window.location.origin

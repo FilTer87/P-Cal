@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b-2 border-gray-200 dark:border-gray-700" style="height: 3.9rem;">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Mobile Menu Button + Logo and Title -->
@@ -16,7 +16,7 @@
             </button>
 
             <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              PrivateCal
+              P-Cal
             </h1>
             <span class="ml-2 text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
               {{ formatDisplayDate(currentDate) }}

@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -159,7 +160,7 @@ public class NotificationService {
             // Create simple test payload
             Map<String, Object> payload = new HashMap<>();
             payload.put("topic", topic);
-            payload.put("title", "PrivateCal Test");
+            payload.put("title", "P-Cal Test");
             payload.put("message", message);
             payload.put("priority", "default");
             payload.put("tags", "test");
@@ -232,7 +233,7 @@ public class NotificationService {
         }
         
         long minutesUntil = java.time.Duration.between(
-            java.time.LocalDateTime.now(), 
+            Instant.now(),
             task.getStartDatetime()
         ).toMinutes();
         
@@ -283,7 +284,7 @@ public class NotificationService {
         }
         
         body.append("\nBest regards,\n");
-        body.append("PrivateCal Team");
+        body.append("P-Cal Team"); // TODO - replace with custom name from env
         
         return body.toString();
     }

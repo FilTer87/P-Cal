@@ -1,5 +1,5 @@
 /**
- * Service Worker for PrivateCal Notifications
+ * Service Worker for P-Cal Notifications
  * Handles background notifications and click events
  */
 
@@ -7,13 +7,13 @@ const CACHE_NAME = 'privatecal-notifications-v1'
 
 // Install event
 self.addEventListener('install', (event) => {
-  console.log('PrivateCal Notification Service Worker installed')
+  console.log('P-Cal Notification Service Worker installed')
   self.skipWaiting()
 })
 
 // Activate event
 self.addEventListener('activate', (event) => {
-  console.log('PrivateCal Notification Service Worker activated')
+  console.log('P-Cal Notification Service Worker activated')
   event.waitUntil(self.clients.claim())
 })
 
@@ -227,7 +227,7 @@ self.addEventListener('push', (event) => {
       
       event.waitUntil(
         showNotification({
-          title: data.title || 'PrivateCal',
+          title: data.title || 'P-Cal',
           body: data.message || data.body || 'Hai una nuova notifica',
           icon: data.icon || '/favicon.ico',
           badge: '/badge-icon.png',
@@ -243,7 +243,7 @@ self.addEventListener('push', (event) => {
       // Show generic notification
       event.waitUntil(
         showNotification({
-          title: 'PrivateCal',
+          title: 'P-Cal',
           body: 'Hai una nuova notifica',
           icon: '/favicon.ico',
           badge: '/badge-icon.png'
