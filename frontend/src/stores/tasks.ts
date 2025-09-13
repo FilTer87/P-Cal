@@ -79,11 +79,11 @@ export const useTasksStore = defineStore('tasks', () => {
   })
 
   const completedTasks = computed(() => 
-    (tasks.value || []).filter(task => task && task.completed)
+    (tasks.value || []).filter(task => task && task.completed === true)
   )
 
   const pendingTasks = computed(() => 
-    (tasks.value || []).filter(task => task && !task.completed)
+    (tasks.value || []).filter(task => task && task.completed !== true)
   )
 
   // Note: This computed property only works on locally loaded tasks
@@ -125,28 +125,17 @@ export const useTasksStore = defineStore('tasks', () => {
   })
 
   const taskStats = computed((): TaskStats => {
-    // Calculate local stats
+    // Since the backend doesn't have a 'completed' field, all tasks are considered pending
     const localStats = {
       total: tasks.value?.length || 0,
-      completed: completedTasks.value?.length || 0,
-      pending: pendingTasks.value?.length || 0,
+      completed: 0, // No completed tasks since backend doesn't support this field
+      pending: tasks.value?.length || 0, // All tasks are pending
       overdue: (cachedOverdueTasks.value && Array.isArray(cachedOverdueTasks.value)) ? cachedOverdueTasks.value.length : (overdueTasks.value?.length || 0),
       today: (cachedTodayTasks.value && Array.isArray(cachedTodayTasks.value)) ? cachedTodayTasks.value.length : (todayTasks.value?.length || 0),
       thisWeek: thisWeekTasks.value?.length || 0
     }
     
-    // Merge stats, prioritizing fresh cached data from server when available
-    const result = {
-      total: localStats.total, // Always use local count of loaded tasks
-      completed: localStats.completed, // Always use local count of completed tasks  
-      pending: localStats.pending, // Always use local count of pending tasks
-      overdue: localStats.overdue, // Use cached from dedicated API, fallback to local
-      today: localStats.today, // Use cached from dedicated API, fallback to local
-      thisWeek: localStats.thisWeek // Always use local calculation
-    }
-    
-    
-    return result
+    return localStats
   })
 
   const tasksByDate = computed((): DailyTasks => {
@@ -406,13 +395,11 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const fetchTaskStats = async () => {
     try {
-      console.log('📊 Fetching task stats...')
       const stats = await taskApi.getTaskStats()
-      console.log('📊 Task stats response:', stats)
       cachedStats.value = stats
       return stats
     } catch (err: any) {
-      console.error('📊 Failed to fetch task stats:', err)
+      // If API endpoint doesn't exist, just return null and use local calculations
       return null
     }
   }
@@ -420,21 +407,14 @@ export const useTasksStore = defineStore('tasks', () => {
   const refreshTasks = () => fetchTasks(true)
   
   const refreshStatistics = async () => {
-    console.log('📊 Starting refresh statistics...')
     await Promise.all([
       fetchOverdueTasks(),
       fetchTodayTasks(),
       fetchTaskStats()
     ])
-    console.log('📊 Statistics refresh completed. Final cached values:', {
-      overdue: cachedOverdueTasks.value?.length || 0,
-      today: cachedTodayTasks.value?.length || 0,
-      stats: cachedStats.value
-    })
   }
 
   const resetStore = () => {
-    console.log('🔄 Resetting tasks store for user change')
     tasks.value = []
     cachedOverdueTasks.value = []
     cachedTodayTasks.value = []

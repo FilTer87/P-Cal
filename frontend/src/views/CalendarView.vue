@@ -255,7 +255,7 @@
               </div>
             </div>
 
-            <div v-if="Object.keys(tasksByDateInRange).length === 0" class="text-center py-8">
+            <div v-if="Object.keys(tasksByDateInRange || {}).length === 0" class="text-center py-8">
               <p class="text-gray-500 dark:text-gray-400">
                 Nessuna attività in questo periodo
               </p>
@@ -434,13 +434,9 @@ const tasksByDateInRange = computed(() => {
   if (!range) return {}
 
   const result: Record<string, any[]> = {}
-  const allTasks = tasks.allTasks || []
+  const allTasks = Array.isArray(tasks.allTasks?.value) ? tasks.allTasks.value : 
+                     Array.isArray(tasks.allTasks) ? tasks.allTasks : []
 
-  console.log('📅 Agenda view debug:', {
-    range,
-    totalTasks: allTasks.length,
-    tasks: allTasks.map(t => ({ id: t.id, title: t.title, startDatetime: t.startDatetime }))
-  })
 
   allTasks.forEach(task => {
     if (task && task.startDatetime) {
@@ -449,20 +445,10 @@ const tasksByDateInRange = computed(() => {
         const dateKey = formatDate(taskDate, 'yyyy-MM-dd')
         if (!result[dateKey]) result[dateKey] = []
         result[dateKey].push(task)
-        console.log(`✅ Task "${task.title}" added to agenda for ${dateKey}`)
-      } else {
-        console.log(`❌ Task "${task.title}" outside range:`, {
-          taskDate: taskDate.toISOString(),
-          rangeStart: range.start.toISOString(),
-          rangeEnd: range.end.toISOString()
-        })
       }
-    } else {
-      console.log(`⚠️ Task missing startDatetime:`, task)
     }
   })
 
-  console.log('📅 Final agenda result:', result)
   return result
 })
 
@@ -478,7 +464,7 @@ const sortedTasksByDateInRange = computed(() => {
     .map(([date, dayTasks]) => [
       date, 
       // Also sort tasks within each day by start time
-      dayTasks.sort((a, b) => {
+      (dayTasks || []).sort((a, b) => {
         return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
       })
     ])
@@ -489,7 +475,6 @@ const sortedTasksByDateInRange = computed(() => {
     sortedResult[date] = dayTasks
   })
   
-  console.log('📅 Sorted agenda result:', sortedResult)
   return sortedResult
 })
 
