@@ -34,6 +34,7 @@ export interface UpdateTaskRequest {
   location?: string
   color?: string
   isAllDay?: boolean
+  reminders?: CreateReminderRequest[]
 }
 
 export interface Reminder {

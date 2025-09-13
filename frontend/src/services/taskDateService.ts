@@ -66,7 +66,11 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
-    isAllDay: formData.isAllDay
+    isAllDay: formData.isAllDay,
+    reminders: formData.reminders?.map(reminder => ({
+      reminderOffsetMinutes: reminder.offsetMinutes || reminder.reminderOffsetMinutes,
+      notificationType: reminder.notificationType
+    })) || []
   }
 }
 
