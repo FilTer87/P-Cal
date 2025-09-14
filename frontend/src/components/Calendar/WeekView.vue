@@ -102,6 +102,7 @@
 import { ref, computed } from 'vue'
 import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
+import { useCalendar } from '../../composables/useCalendar'
 import type { Task } from '../../types/task'
 
 // Props
@@ -129,23 +130,11 @@ const emit = defineEmits<{
 const weeklyScrollContainer = ref<HTMLElement | null>(null)
 const indicatorsUpdateTrigger = ref(0)
 
-// Utility functions - isToday is already imported from dateHelpers
+// Get calendar composable with settings-aware functions
+const calendar = useCalendar()
 
-const getWeekDays = (date: Date) => {
-  const days: Date[] = []
-  const startOfWeek = new Date(date)
-  const dayOfWeek = startOfWeek.getDay()
-  const difference = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  startOfWeek.setDate(startOfWeek.getDate() + difference)
-
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(startOfWeek)
-    day.setDate(startOfWeek.getDate() + i)
-    days.push(day)
-  }
-  
-  return days
-}
+// Use the settings-aware getWeekDays from composable
+const getWeekDays = calendar.getWeekDays
 
 const getWeekDayName = (date: Date, short = false) => {
   if (short) {
