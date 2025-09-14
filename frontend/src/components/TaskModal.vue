@@ -84,7 +84,10 @@
           
           <div v-if="!formData.isAllDay">
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di inizio
+              Ora di inizio 
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                ({{ settings.timeFormat === '24h' ? '24h: 15:30' : '12h: 3:30 PM' }})
+              </span>
             </label>
             <input
               id="startTime"
@@ -117,7 +120,10 @@
           
           <div v-if="!formData.isAllDay">
             <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di fine
+              Ora di fine 
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                ({{ settings.timeFormat === '24h' ? '24h: 16:00' : '12h: 4:00 PM' }})
+              </span>
             </label>
             <input
               id="endTime"
@@ -296,6 +302,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
+import { useSettingsStore } from '../stores/settings'
 import { NotificationType, NOTIFICATION_TYPE_CONFIG, REMINDER_PRESETS, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
 
@@ -314,6 +321,9 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+// Settings store for time format
+const settings = useSettingsStore()
 
 const {
   isFormLoading,

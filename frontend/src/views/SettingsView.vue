@@ -117,6 +117,25 @@
                 <option value="agenda">Agenda</option>
               </select>
             </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                  Formato orario
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Formato di visualizzazione degli orari
+                </p>
+              </div>
+              <select 
+                :value="settings.settings.timeFormat" 
+                @change="changeTimeFormat"
+                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="24h">24 ore (15:30)</option>
+                <option value="12h">12 ore (3:30 PM)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -196,6 +215,12 @@ const changeDefaultView = (event: Event) => {
   const value = (event.target as HTMLSelectElement).value as 'month' | 'week' | 'day' | 'agenda'
   settings.updateCalendarView(value)
   showSuccess(`Vista predefinita cambiata in ${value === 'month' ? 'Mese' : value === 'week' ? 'Settimana' : value === 'day' ? 'Giorno' : 'Agenda'}`)
+}
+
+const changeTimeFormat = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value as '12h' | '24h'
+  settings.updateTimeFormat(value)
+  showSuccess(`Formato orario cambiato in ${value === '24h' ? '24 ore' : '12 ore'}`)
 }
 
 // Initialize settings on mount

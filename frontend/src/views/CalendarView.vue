@@ -327,7 +327,7 @@ import { useTheme } from '../composables/useTheme'
 import {
   formatDate,
   formatDateTime,
-  formatTime,
+  formatTime as formatTimeUtil,
   getDayName,
   getDateDescription,
   isToday as isDateToday
@@ -773,6 +773,11 @@ const formatTaskTime = (task: Task) => {
 
 const getWeekDayName = (date: Date, short = false) => {
   return formatDate(date, short ? 'EEE' : 'EEEE', { locale: it })
+}
+
+// Use settings-aware time formatting
+const formatTime = (date: Date | string): string => {
+  return settings.formatTime(date)
 }
 
 // Lifecycle

@@ -25,7 +25,7 @@
             <div v-for="hour in 24" :key="hour-1" 
               class="h-16 border-b border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
               :class="{ 'border-b-2 border-gray-300 dark:border-gray-500': (hour-1) % 6 === 0 }">
-              {{ String(hour-1).padStart(2, '0') }}:00
+              {{ settings.formatHourLabel(hour-1) }}
             </div>
           </div>
 
@@ -103,6 +103,7 @@ import { ref, computed } from 'vue'
 import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
+import { useSettingsStore } from '../../stores/settings'
 import type { Task } from '../../types/task'
 
 // Props
@@ -132,6 +133,7 @@ const indicatorsUpdateTrigger = ref(0)
 
 // Get calendar composable with settings-aware functions
 const calendar = useCalendar()
+const settings = useSettingsStore()
 
 // Use the settings-aware getWeekDays from composable
 const getWeekDays = calendar.getWeekDays
@@ -291,15 +293,7 @@ const formatTaskTime = (task: Task) => {
     return 'Tutto il giorno'
   }
   
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('it-IT', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false
-    })
-  }
-  
-  return `${formatTime(start)} - ${formatTime(end)}`
+  return `${settings.formatTime(start)} - ${settings.formatTime(end)}`
 }
 
 // Overflow indicators logic

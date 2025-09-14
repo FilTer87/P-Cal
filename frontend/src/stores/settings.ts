@@ -26,6 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Computed properties
   const weekStartDay = computed(() => settings.value.weekStartDay)
+  const timeFormat = computed(() => settings.value.timeFormat)
   
   const weekdaysShort = computed(() => {
     if (settings.value.weekStartDay === 0) {
@@ -46,6 +47,39 @@ export const useSettingsStore = defineStore('settings', () => {
       return ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
     }
   })
+
+  // Time formatting utilities
+  const formatTime = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (settings.value.timeFormat === '12h') {
+      return dateObj.toLocaleTimeString('it-IT', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      })
+    } else {
+      return dateObj.toLocaleTimeString('it-IT', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
+    }
+  }
+
+  const formatHourLabel = (hour: number): string => {
+    if (settings.value.timeFormat === '12h') {
+      const period = hour < 12 ? 'AM' : 'PM'
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+      return `${displayHour}:00 ${period}`
+    } else {
+      return `${String(hour).padStart(2, '0')}:00`
+    }
+  }
+
+  const getTimeInputStep = (): string => {
+    // Always use 24h format for HTML input (easier to parse)
+    return '900' // 15 minutes
+  }
 
   // Actions
   const loadSettings = () => {
@@ -135,9 +169,15 @@ export const useSettingsStore = defineStore('settings', () => {
     
     // Computed
     weekStartDay,
+    timeFormat,
     weekdaysShort,
     weekdaysFull,
     weekStartOptions,
+    
+    // Time formatting utilities
+    formatTime,
+    formatHourLabel,
+    getTimeInputStep,
     
     // Actions
     loadSettings,
