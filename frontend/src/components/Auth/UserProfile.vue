@@ -440,86 +440,123 @@
 
         <!-- Preferences Tab -->
         <div v-else-if="activeTab === 'preferences'" class="space-y-8">
-          <form @submit.prevent="handlePreferencesSave" class="space-y-6">
+          <form @submit.prevent="handlePreferencesSave" class="space-y-8">
             <!-- Theme Preference -->
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Preferenze Tema
+                Tema Applicazione
               </h3>
-              <div class="space-y-4">
-                <div class="flex items-center">
-                  <input
-                    id="theme-light"
-                    v-model="preferencesForm.theme"
-                    type="radio"
-                    value="light"
-                    :disabled="isLoading"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <label for="theme-light" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Modalità Chiara
-                  </label>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                    Modalità tema
+                  </h4>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Scegli come visualizzare l'interfaccia
+                  </p>
                 </div>
-                <div class="flex items-center">
-                  <input
-                    id="theme-dark"
-                    v-model="preferencesForm.theme"
-                    type="radio"
-                    value="dark"
+                <div class="flex items-center space-x-2">
+                  <button
+                    v-for="themeOption in themeOptions"
+                    :key="themeOption.value"
+                    type="button"
+                    @click="preferencesForm.theme = themeOption.value"
                     :disabled="isLoading"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <label for="theme-dark" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Modalità Scura
-                  </label>
-                </div>
-                <div class="flex items-center">
-                  <input
-                    id="theme-system"
-                    v-model="preferencesForm.theme"
-                    type="radio"
-                    value="system"
-                    :disabled="isLoading"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <label for="theme-system" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Segui Sistema
-                  </label>
+                    :class="[
+                      'p-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+                      preferencesForm.theme === themeOption.value
+                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ]"
+                    :title="themeOption.label"
+                  >
+                    <component :is="themeOption.icon" class="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            <!-- Timezone Preference -->
+            <!-- App Preferences -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Fuso Orario
-              </label>
-              <select
-                v-model="preferencesForm.timezone"
-                :disabled="isLoading"
-                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
-              >
-                <optgroup label="Italia">
-                  <option value="Europe/Rome">Roma (UTC+1)</option>
-                </optgroup>
-                <optgroup label="Europa">
-                  <option value="Europe/London">Londra (UTC+0)</option>
-                  <option value="Europe/Berlin">Berlino (UTC+1)</option>
-                  <option value="Europe/Paris">Parigi (UTC+1)</option>
-                  <option value="Europe/Madrid">Madrid (UTC+1)</option>
-                  <option value="Europe/Amsterdam">Amsterdam (UTC+1)</option>
-                </optgroup>
-                <optgroup label="Americhe">
-                  <option value="America/New_York">New York (UTC-5)</option>
-                  <option value="America/Los_Angeles">Los Angeles (UTC-8)</option>
-                  <option value="America/Chicago">Chicago (UTC-6)</option>
-                </optgroup>
-                <optgroup label="Asia">
-                  <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
-                  <option value="Asia/Shanghai">Shanghai (UTC+8)</option>
-                  <option value="Asia/Dubai">Dubai (UTC+4)</option>
-                </optgroup>
-              </select>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Preferenze Applicazione
+              </h3>
+              <div class="space-y-6">
+                <!-- Time Format -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Formato orario
+                    </h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Formato di visualizzazione degli orari
+                    </p>
+                  </div>
+                  <select
+                    v-model="preferencesForm.timeFormat"
+                    :disabled="isLoading"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="24h">24 ore (15:30)</option>
+                    <option value="12h">12 ore (3:30 PM)</option>
+                  </select>
+                </div>
+
+                <!-- Default Calendar View -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Visualizzazione predefinita
+                    </h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Vista che si apre all'avvio dell'applicazione
+                    </p>
+                  </div>
+                  <select
+                    v-model="preferencesForm.calendarView"
+                    :disabled="isLoading"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="week">Settimana</option>
+                    <option value="month">Mese</option>
+                    <option value="day">Giorno</option>
+                    <option value="agenda">Agenda</option>
+                  </select>
+                </div>
+
+                <!-- Timezone -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Fuso Orario
+                  </label>
+                  <select
+                    v-model="preferencesForm.timezone"
+                    :disabled="isLoading"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  >
+                    <optgroup label="Italia">
+                      <option value="Europe/Rome">Roma (UTC+1)</option>
+                    </optgroup>
+                    <optgroup label="Europa">
+                      <option value="Europe/London">Londra (UTC+0)</option>
+                      <option value="Europe/Berlin">Berlino (UTC+1)</option>
+                      <option value="Europe/Paris">Parigi (UTC+1)</option>
+                      <option value="Europe/Madrid">Madrid (UTC+1)</option>
+                      <option value="Europe/Amsterdam">Amsterdam (UTC+1)</option>
+                    </optgroup>
+                    <optgroup label="Americhe">
+                      <option value="America/New_York">New York (UTC-5)</option>
+                      <option value="America/Los_Angeles">Los Angeles (UTC-8)</option>
+                      <option value="America/Chicago">Chicago (UTC-6)</option>
+                    </optgroup>
+                    <optgroup label="Asia">
+                      <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+                      <option value="Asia/Shanghai">Shanghai (UTC+8)</option>
+                      <option value="Asia/Dubai">Dubai (UTC+4)</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <!-- Notification Preferences -->
@@ -545,7 +582,7 @@
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div class="flex items-center justify-between">
                   <div>
                     <label for="reminder-notifications" class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -563,6 +600,16 @@
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                 </div>
+              </div>
+            </div>
+
+            <!-- Advanced Notifications Section -->
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Notifiche Avanzate
+              </h3>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <NotificationSettings />
               </div>
             </div>
 
@@ -708,21 +755,32 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useCustomToast } from '@/composables/useCustomToast'
 import { useTheme } from '@/composables/useTheme'
+import { useSettingsStore } from '@/stores/settings'
 import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 import Modal from '@/components/Common/Modal.vue'
+import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
+import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/types/auth'
 
 // Composables
 const { user, userFullName, userInitials, updateProfile, logout, isLoading } = useAuth()
 const { showError, showSuccess } = useCustomToast()
-const { theme, setTheme } = useTheme()
+const { themeMode: currentTheme, setThemeMode } = useTheme()
+const settingsStore = useSettingsStore()
 
 // Tab icons (these would be actual icon components in a real app)
 const PersonIcon = 'svg'
 const SecurityIcon = 'svg'
 const SettingsIcon = 'svg'
 const DangerIcon = 'svg'
+
+// Theme options
+const themeOptions = [
+  { value: 'light', label: 'Modalità chiara', icon: SunIcon },
+  { value: 'dark', label: 'Modalità scura', icon: MoonIcon },
+  { value: 'system', label: 'Segui sistema', icon: ComputerDesktopIcon }
+]
 
 // Component state
 const activeTab = ref('personal')
@@ -761,6 +819,8 @@ const passwordForm = reactive({
 const preferencesForm = reactive({
   theme: 'system' as 'light' | 'dark' | 'system',
   timezone: 'Europe/Rome',
+  timeFormat: '24h' as '12h' | '24h',
+  calendarView: 'week' as 'month' | 'week' | 'day' | 'agenda',
   emailNotifications: true,
   reminderNotifications: true
 })
@@ -982,16 +1042,33 @@ const handlePasswordChange = async () => {
 
 const handlePreferencesSave = async () => {
   try {
-    await authApi.updatePreferences({
+    const updatedPreferences = await authApi.updatePreferences({
       theme: preferencesForm.theme,
       timezone: preferencesForm.timezone,
+      timeFormat: preferencesForm.timeFormat,
+      calendarView: preferencesForm.calendarView,
       emailNotifications: preferencesForm.emailNotifications,
       reminderNotifications: preferencesForm.reminderNotifications
     })
-    
+
     // Update theme if changed
-    setTheme(preferencesForm.theme)
-    
+    setThemeMode(preferencesForm.theme as 'light' | 'dark' | 'system')
+
+    // Update settings store with new values
+    settingsStore.updateTheme(preferencesForm.theme)
+    settingsStore.updateTimeFormat(preferencesForm.timeFormat)
+    settingsStore.updateCalendarView(preferencesForm.calendarView)
+
+    // Optionally update form with server response to ensure consistency
+    if (updatedPreferences) {
+      preferencesForm.theme = updatedPreferences.theme
+      preferencesForm.timezone = updatedPreferences.timezone
+      preferencesForm.timeFormat = updatedPreferences.timeFormat
+      preferencesForm.calendarView = updatedPreferences.calendarView
+      preferencesForm.emailNotifications = updatedPreferences.emailNotifications
+      preferencesForm.reminderNotifications = updatedPreferences.reminderNotifications
+    }
+
     showSuccess('Preferenze salvate con successo!')
   } catch (error) {
     console.error('Preferences save failed:', error)
@@ -1089,13 +1166,23 @@ const confirmDeleteAccount = async () => {
 const loadPreferences = async () => {
   try {
     const preferences = await authApi.getPreferences()
-    preferencesForm.theme = preferences.theme
-    preferencesForm.timezone = preferences.timezone
-    preferencesForm.emailNotifications = preferences.emailNotifications
-    preferencesForm.reminderNotifications = preferences.reminderNotifications
+    preferencesForm.theme = preferences.theme || 'system'
+    preferencesForm.timezone = preferences.timezone || 'Europe/Rome'
+    preferencesForm.timeFormat = preferences.timeFormat || '24h'
+    preferencesForm.calendarView = preferences.calendarView || 'week'
+    preferencesForm.emailNotifications = preferences.emailNotifications ?? true
+    preferencesForm.reminderNotifications = preferences.reminderNotifications ?? true
+
+    // Sync with settings store
+    settingsStore.updateTheme(preferencesForm.theme)
+    settingsStore.updateTimeFormat(preferencesForm.timeFormat)
+    settingsStore.updateCalendarView(preferencesForm.calendarView)
   } catch (error) {
     console.error('Failed to load preferences:', error)
-    // Use defaults
+    // Load defaults from settings store
+    preferencesForm.theme = settingsStore.settings.theme
+    preferencesForm.timeFormat = settingsStore.settings.timeFormat
+    preferencesForm.calendarView = settingsStore.settings.calendarView
   }
 }
 

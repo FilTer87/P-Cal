@@ -3,6 +3,8 @@ package com.privatecal.controller;
 import com.privatecal.dto.AuthRequest;
 import com.privatecal.dto.AuthResponse;
 import com.privatecal.dto.UserResponse;
+import com.privatecal.dto.UserPreferencesRequest;
+import com.privatecal.dto.UserPreferencesResponse;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
@@ -335,18 +337,78 @@ public class AuthController {
         try {
             Long currentUserId = userService.getCurrentUserId();
             String message = request.getOrDefault("message", "This is a test notification from PrivateCal");
-            
+
             notificationService.sendTestNotification(currentUserId, message);
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Test notification sent successfully"
             ));
-            
+
         } catch (Exception e) {
             logger.error("Error sending test notification", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "message", "Failed to send test notification"));
+        }
+    }
+
+    /**
+     * Get current user preferences
+     * GET /api/auth/preferences
+     */
+    @Operation(
+        summary = "Get User Preferences",
+        description = "Retrieve current user's application preferences including theme, timezone, and notification settings."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Preferences retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = UserPreferencesResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Authentication required"),
+        @ApiResponse(responseCode = "500", description = "Server error")
+    })
+    @GetMapping("/preferences")
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<UserPreferencesResponse> getUserPreferences() {
+        try {
+            UserPreferencesResponse preferences = userService.getCurrentUserPreferences();
+            logger.debug("User preferences retrieved successfully");
+            return ResponseEntity.ok(preferences);
+        } catch (Exception e) {
+            logger.error("Error getting user preferences", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Update current user preferences
+     * PUT /api/auth/preferences
+     */
+    @Operation(
+        summary = "Update User Preferences",
+        description = "Update current user's application preferences. Only provided fields will be updated."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Preferences updated successfully",
+                    content = @Content(schema = @Schema(implementation = UserPreferencesResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid preferences data"),
+        @ApiResponse(responseCode = "401", description = "Authentication required"),
+        @ApiResponse(responseCode = "500", description = "Server error")
+    })
+    @PutMapping("/preferences")
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<UserPreferencesResponse> updateUserPreferences(
+            @Parameter(description = "User preferences to update", required = true)
+            @Valid @RequestBody UserPreferencesRequest preferencesRequest) {
+        try {
+            UserPreferencesResponse updatedPreferences = userService.updateCurrentUserPreferences(preferencesRequest);
+            logger.info("User preferences updated successfully");
+            return ResponseEntity.ok(updatedPreferences);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid preferences data: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            logger.error("Error updating user preferences", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     

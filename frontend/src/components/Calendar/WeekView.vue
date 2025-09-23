@@ -18,7 +18,7 @@
     <!-- Week Grid -->
     <div class="flex-1 relative overflow-hidden">
       <!-- Scrollable Content -->
-      <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll" class="absolute inset-0 overflow-auto">
+      <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll" class="absolute inset-0 overflow-auto" style="margin-right: -6px;">
         <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600" style="min-height: 1536px;">
           <!-- Time Column -->
           <div class="bg-white dark:bg-gray-800">

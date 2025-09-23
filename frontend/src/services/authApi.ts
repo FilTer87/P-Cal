@@ -173,10 +173,20 @@ export class AuthApi {
     theme?: 'light' | 'dark' | 'system'
     language?: string
     timezone?: string
+    timeFormat?: '12h' | '24h'
+    calendarView?: 'month' | 'week' | 'day' | 'agenda'
     emailNotifications?: boolean
     reminderNotifications?: boolean
-  }): Promise<void> {
-    return apiClient.put<void>('/auth/preferences', preferences)
+  }): Promise<{
+    theme: 'light' | 'dark' | 'system'
+    language: string
+    timezone: string
+    timeFormat: '12h' | '24h'
+    calendarView: 'month' | 'week' | 'day' | 'agenda'
+    emailNotifications: boolean
+    reminderNotifications: boolean
+  }> {
+    return apiClient.put('/auth/preferences', preferences)
   }
 
   /**
@@ -186,6 +196,8 @@ export class AuthApi {
     theme: 'light' | 'dark' | 'system'
     language: string
     timezone: string
+    timeFormat: '12h' | '24h'
+    calendarView: 'month' | 'week' | 'day' | 'agenda'
     emailNotifications: boolean
     reminderNotifications: boolean
   }> {

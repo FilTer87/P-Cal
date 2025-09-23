@@ -27,50 +27,7 @@
 
       <!-- Settings Sections -->
       <div class="space-y-6">
-        <!-- Notification Settings -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Notifiche
-            </h2>
-            <NotificationSettings />
-          </div>
-        </div>
 
-        <!-- Theme Settings -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Tema
-          </h2>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Modalità tema
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Scegli come visualizzare l'interfaccia
-                </p>
-              </div>
-              <div class="flex items-center space-x-2">
-                <button
-                  v-for="themeOption in themeOptions"
-                  :key="themeOption.value"
-                  @click="changeTheme(themeOption.value)"
-                  :class="[
-                    'p-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-                    currentTheme === themeOption.value
-                      ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  ]"
-                  :title="themeOption.label"
-                >
-                  <component :is="themeOption.icon" class="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Calendar Settings -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -84,11 +41,11 @@
                   Inizio settimana
                 </h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Primo giorno della settimana nel calendario
+                  Primo giorno della settimana nel calendario (solo per questa sessione)
                 </p>
               </div>
-              <select 
-                :value="settings.weekStartDay" 
+              <select
+                :value="settings.weekStartDay"
                 @change="changeWeekStartDay"
                 class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -96,45 +53,11 @@
                 <option value="1">Lunedì</option>
               </select>
             </div>
-            
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Visualizzazione predefinita
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Vista che si apre all'avvio dell'applicazione
-                </p>
-              </div>
-              <select 
-                :value="settings.settings.calendarView" 
-                @change="changeDefaultView"
-                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="week">Settimana</option>
-                <option value="month">Mese</option>
-                <option value="day">Giorno</option>
-                <option value="agenda">Agenda</option>
-              </select>
-            </div>
-            
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Formato orario
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Formato di visualizzazione degli orari
-                </p>
-              </div>
-              <select 
-                :value="settings.settings.timeFormat" 
-                @change="changeTimeFormat"
-                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="24h">24 ore (15:30)</option>
-                <option value="12h">12 ore (3:30 PM)</option>
-              </select>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p class="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Nota:</strong> Per salvare permanentemente le tue preferenze di formato orario e vista predefinita,
+                vai alla sezione <router-link to="/profile" class="underline hover:text-blue-600">Preferenze del Profilo</router-link>.
+              </p>
             </div>
           </div>
         </div>
@@ -180,47 +103,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useTheme } from '@/composables/useTheme'
+import { onMounted } from 'vue'
 import { useCustomToast } from '@/composables/useCustomToast'
 import { useSettingsStore } from '@/stores/settings'
-import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
-import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 
 // Composables
-const { theme: currentTheme, setTheme } = useTheme()
 const { showSuccess } = useCustomToast()
 const settings = useSettingsStore()
 
-// Theme options
-const themeOptions = [
-  { value: 'light', label: 'Modalità chiara', icon: SunIcon },
-  { value: 'dark', label: 'Modalità scura', icon: MoonIcon },
-  { value: 'system', label: 'Segui sistema', icon: ComputerDesktopIcon }
-]
-
 // Methods
-const changeTheme = (newTheme: 'light' | 'dark' | 'system') => {
-  setTheme(newTheme)
-  showSuccess(`Tema cambiato in ${newTheme === 'light' ? 'chiaro' : newTheme === 'dark' ? 'scuro' : 'sistema'}`)
-}
-
 const changeWeekStartDay = (event: Event) => {
   const value = parseInt((event.target as HTMLSelectElement).value)
   settings.updateWeekStartDay(value as 0 | 1)
-  showSuccess(`Inizio settimana cambiato in ${value === 0 ? 'Domenica' : 'Lunedì'}`)
-}
-
-const changeDefaultView = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value as 'month' | 'week' | 'day' | 'agenda'
-  settings.updateCalendarView(value)
-  showSuccess(`Vista predefinita cambiata in ${value === 'month' ? 'Mese' : value === 'week' ? 'Settimana' : value === 'day' ? 'Giorno' : 'Agenda'}`)
-}
-
-const changeTimeFormat = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value as '12h' | '24h'
-  settings.updateTimeFormat(value)
-  showSuccess(`Formato orario cambiato in ${value === '24h' ? '24 ore' : '12 ore'}`)
+  showSuccess(`Inizio settimana cambiato in ${value === 0 ? 'Domenica' : 'Lunedì'} (solo per questa sessione)`)
 }
 
 // Initialize settings on mount

@@ -5,8 +5,8 @@ Una moderna applicazione web di calendario personale con gestione task, reminder
 ## ✨ Caratteristiche
 
 - 📊 **Dashboard completa** con statistiche delle attività
-- 📅 **Viste multiple**: Mese, Settimana, Giorno, Agenda
-- ✅ **Gestione task** con priorità e stati di completamento
+- ~~📅 **Viste multiple**: Mese, Settimana, Giorno, Agenda~~
+- ~~✅ **Gestione task** con priorità e stati di completamento~~
 - ⏰ **Sistema di reminder** con notifiche push via NTFY
 - 🎨 **Tema scuro/chiaro** con preferenze sistema
 - 🔐 **Autenticazione JWT** sicura con refresh token
@@ -16,21 +16,21 @@ Una moderna applicazione web di calendario personale con gestione task, reminder
 ## 🏗️ Architettura
 
 ### Frontend
-- **Vue.js 3** (Composition API)
-- **TypeScript** per type safety
-- **Tailwind CSS** per styling
-- **Pinia** per state management
-- **Vite** per build e development
+- **Vue.js 3**
+- **TypeScript**
+- **Tailwind CSS**
+- **Pinia**
+- **Vite**
 
 ### Backend
-- **Spring Boot 3** (Java 17)
-- **Spring Security** con JWT
-- **JPA/Hibernate** per database
-- **PostgreSQL** come database
-- **Maven** per build management
+- **Spring Boot 3**
+- **Spring Security**
+- **JPA/Hibernate**
+- **PostgreSQL**
+- **Maven**
 
 ### Infrastructure
-- **Docker** e **Docker Compose**
+- **Docker** / **Docker Compose**
 - **Nginx** come reverse proxy
 - **NTFY** server per push notifications
 

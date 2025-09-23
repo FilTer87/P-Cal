@@ -2,15 +2,18 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:15-alpine
+    build:
+      context: ./database
+      dockerfile: Dockerfile
     container_name: privatecal-db
     environment:
       POSTGRES_DB: calendar_db
       POSTGRES_USER: calendar_user
       POSTGRES_PASSWORD: calendar_pass
+      ENABLE_MIGRATIONS: "true"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
     ports:
       - "5432:5432"
     networks:

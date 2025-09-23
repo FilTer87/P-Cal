@@ -48,7 +48,25 @@ public class User {
     @Size(max = 50)
     @Column(length = 50)
     private String timezone = "UTC";
-    
+
+    @Size(max = 10)
+    @Column(length = 10)
+    private String theme = "system";
+
+    @Size(max = 5)
+    @Column(name = "time_format", length = 5)
+    private String timeFormat = "24h";
+
+    @Size(max = 10)
+    @Column(name = "calendar_view", length = 10)
+    private String calendarView = "week";
+
+    @Column(name = "email_notifications")
+    private Boolean emailNotifications = true;
+
+    @Column(name = "reminder_notifications")
+    private Boolean reminderNotifications = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
     
@@ -165,6 +183,46 @@ public class User {
             return lastName;
         }
         return username;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
+    }
+
+    public String getTimeFormat() {
+        return timeFormat;
+    }
+
+    public void setTimeFormat(String timeFormat) {
+        this.timeFormat = timeFormat;
+    }
+
+    public String getCalendarView() {
+        return calendarView;
+    }
+
+    public void setCalendarView(String calendarView) {
+        this.calendarView = calendarView;
+    }
+
+    public Boolean getEmailNotifications() {
+        return emailNotifications;
+    }
+
+    public void setEmailNotifications(Boolean emailNotifications) {
+        this.emailNotifications = emailNotifications;
+    }
+
+    public Boolean getReminderNotifications() {
+        return reminderNotifications;
+    }
+
+    public void setReminderNotifications(Boolean reminderNotifications) {
+        this.reminderNotifications = reminderNotifications;
     }
     
     @Override

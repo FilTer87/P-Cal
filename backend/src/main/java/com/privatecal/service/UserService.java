@@ -1,6 +1,8 @@
 package com.privatecal.service;
 
 import com.privatecal.dto.UserResponse;
+import com.privatecal.dto.UserPreferencesRequest;
+import com.privatecal.dto.UserPreferencesResponse;
 import com.privatecal.entity.User;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
@@ -339,6 +341,103 @@ public class UserService {
         Long currentUserId = getCurrentUserId();
         if (!currentUserId.equals(userId)) {
             throw new RuntimeException("Access denied: User can only access their own data");
+        }
+    }
+
+    /**
+     * Get user preferences
+     */
+    @Transactional(readOnly = true)
+    public UserPreferencesResponse getUserPreferences(Long userId) {
+        logger.debug("Getting preferences for user ID: {}", userId);
+        User user = getUserById(userId);
+        return UserPreferencesResponse.fromUser(user);
+    }
+
+    /**
+     * Get current user preferences
+     */
+    @Transactional(readOnly = true)
+    public UserPreferencesResponse getCurrentUserPreferences() {
+        User currentUser = getCurrentUser();
+        return UserPreferencesResponse.fromUser(currentUser);
+    }
+
+    /**
+     * Update user preferences
+     */
+    public UserPreferencesResponse updateUserPreferences(Long userId, UserPreferencesRequest preferencesRequest) {
+        logger.debug("Updating preferences for user ID: {}", userId);
+
+        User user = getUserById(userId);
+
+        // Update fields if provided (only non-null values)
+        if (preferencesRequest.getTheme() != null) {
+            validateTheme(preferencesRequest.getTheme());
+            user.setTheme(preferencesRequest.getTheme());
+        }
+
+        if (preferencesRequest.getTimezone() != null) {
+            user.setTimezone(preferencesRequest.getTimezone().trim());
+        }
+
+        if (preferencesRequest.getTimeFormat() != null) {
+            validateTimeFormat(preferencesRequest.getTimeFormat());
+            user.setTimeFormat(preferencesRequest.getTimeFormat());
+        }
+
+        if (preferencesRequest.getCalendarView() != null) {
+            validateCalendarView(preferencesRequest.getCalendarView());
+            user.setCalendarView(preferencesRequest.getCalendarView());
+        }
+
+        if (preferencesRequest.getEmailNotifications() != null) {
+            user.setEmailNotifications(preferencesRequest.getEmailNotifications());
+        }
+
+        if (preferencesRequest.getReminderNotifications() != null) {
+            user.setReminderNotifications(preferencesRequest.getReminderNotifications());
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        logger.info("Preferences updated successfully for user: {}", updatedUser.getUsername());
+
+        return UserPreferencesResponse.fromUser(updatedUser);
+    }
+
+    /**
+     * Update current user preferences
+     */
+    public UserPreferencesResponse updateCurrentUserPreferences(UserPreferencesRequest preferencesRequest) {
+        Long currentUserId = getCurrentUserId();
+        return updateUserPreferences(currentUserId, preferencesRequest);
+    }
+
+    /**
+     * Validate theme value
+     */
+    private void validateTheme(String theme) {
+        if (theme != null && !theme.matches("^(light|dark|system)$")) {
+            throw new IllegalArgumentException("Theme must be 'light', 'dark', or 'system'");
+        }
+    }
+
+    /**
+     * Validate time format value
+     */
+    private void validateTimeFormat(String timeFormat) {
+        if (timeFormat != null && !timeFormat.matches("^(12h|24h)$")) {
+            throw new IllegalArgumentException("Time format must be '12h' or '24h'");
+        }
+    }
+
+    /**
+     * Validate calendar view value
+     */
+    private void validateCalendarView(String calendarView) {
+        if (calendarView != null && !calendarView.matches("^(month|week|day|agenda)$")) {
+            throw new IllegalArgumentException("Calendar view must be 'month', 'week', 'day', or 'agenda'");
         }
     }
 }
