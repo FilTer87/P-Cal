@@ -19,6 +19,7 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String fullName;
+    private String displayName;
     private String timezone;
     private long taskCount;
     
@@ -39,6 +40,8 @@ public class UserResponse {
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.fullName = user.getFullName();
+        this.displayName = user.getFullName() != null && !user.getFullName().equals(user.getUsername())
+            ? user.getFullName() : user.getUsername();
         this.timezone = user.getTimezone();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
@@ -89,7 +92,11 @@ public class UserResponse {
         response.setId(user.getId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
         response.setFullName(user.getFullName());
+        response.setDisplayName(user.getFullName() != null && !user.getFullName().equals(user.getUsername())
+            ? user.getFullName() : user.getUsername());
         response.setTimezone(user.getTimezone());
         return response;
     }
@@ -155,6 +162,15 @@ public class UserResponse {
     
     public void setFullName(String fullName) {
         this.fullName = fullName;
+        this.displayName = fullName != null && !fullName.equals(username) ? fullName : username;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
     
     public String getTimezone() {
@@ -200,12 +216,6 @@ public class UserResponse {
                timezone != null && !timezone.trim().isEmpty();
     }
     
-    /**
-     * Get display name (full name or username)
-     */
-    public String getDisplayName() {
-        return fullName != null && !fullName.equals(username) ? fullName : username;
-    }
     
     /**
      * Get user initials

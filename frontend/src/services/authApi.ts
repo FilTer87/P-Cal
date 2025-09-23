@@ -59,7 +59,7 @@ export class AuthApi {
    * Change password
    */
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    return apiClient.put<void>(`${API_ENDPOINTS.AUTH.PROFILE}/password`, {
+    return apiClient.post<void>(`${API_ENDPOINTS.AUTH.PASSWORD}`, {
       currentPassword,
       newPassword
     })

@@ -78,11 +78,13 @@ export interface SearchParams {
 export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
+    BASE: '/auth',
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
-    PROFILE: '/auth/profile'
+    PROFILE: '/auth/profile',
+    PASSWORD: '/auth/change-password'
   },
   // Task endpoints
   TASKS: {

@@ -63,6 +63,8 @@ Una moderna applicazione web di calendario personale con gestione task, reminder
    - Frontend: http://localhost
    - Backend API: http://localhost:8080/api
    - Health Check: http://localhost:8080/actuator/health
+   - API Documentation (Swagger): http://localhost:8080/swagger-ui.html
+   - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
 ## ⚙️ Configurazione
 

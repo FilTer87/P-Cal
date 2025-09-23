@@ -212,9 +212,9 @@ public class AuthController {
     
     /**
      * Update current user profile
-     * PUT /api/auth/me
+     * PUT /api/auth/profile
      */
-    @PutMapping("/me")
+    @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateCurrentUser(@RequestBody UserResponse updateRequest) {
         try {
             UserResponse updatedUser = userService.updateCurrentUserProfile(updateRequest);
