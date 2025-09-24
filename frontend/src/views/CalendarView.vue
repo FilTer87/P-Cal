@@ -86,8 +86,11 @@
         :task-stats="taskStats"
         :today-tasks="todayTasks"
         :upcoming-reminders="upcomingReminders"
+        :current-view-mode="viewMode"
         @task-click="openTaskModal"
         @new-task="openCreateTaskModalWithDate()"
+        @switch-to-day-view="handleSwitchToDayView"
+        @close-sidebar="closeMobileSidebar"
       />
 
       <!-- Calendar Area -->
@@ -157,9 +160,12 @@
                   :class="getTaskDisplayClasses(task)">
                   {{ task.title }}
                 </div>
-                <div v-if="day.tasks && day.tasks.length > 3" class="text-xs text-gray-500 dark:text-gray-400 p-1">
+                <button
+                  v-if="day.tasks && day.tasks.length > 3"
+                  @click.stop="openDayView(day.date)"
+                  class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1 hover:underline transition-colors">
                   +{{ day.tasks.length - 3 }} altro/i
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -741,6 +747,18 @@ const getWeekDayName = (date: Date, short = false) => {
 // Use settings-aware time formatting
 const formatTime = (date: Date | string): string => {
   return settings.formatTime(date)
+}
+
+// Handle switch to day view from sidebar
+const handleSwitchToDayView = () => {
+  currentDate.value = new Date()
+  setViewMode('day')
+}
+
+// Open day view for a specific date (from month view)
+const openDayView = (date: Date) => {
+  currentDate.value = date
+  setViewMode('day')
 }
 
 // Lifecycle

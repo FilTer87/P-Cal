@@ -6,6 +6,15 @@
     showMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
   ]">
     <div class="p-4">
+      <!-- Mobile Close Button -->
+      <div class="md:hidden flex justify-end mb-4">
+        <button @click="handleCloseSidebar" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Chiudi menu">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       <!-- User Profile & Settings -->
       <div class="mb-6">
         <!-- User Profile Header (Always Visible, Clickable) -->
@@ -105,7 +114,7 @@
       </div> -->
 
       <!-- Today's Tasks -->
-      <div class="mb-6" v-if="todayTasks && todayTasks.length > 0">
+      <div class="mb-6" v-if="todayTasks && todayTasks.length > 0 && !isDayView">
         <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
           Attività di oggi
         </h3>
@@ -114,7 +123,8 @@
             class="p-3 rounded-md cursor-pointer transition-colors bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
             <div class="flex items-center space-x-2">
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate text-gray-900 dark:text-white">
+                <p class="text-sm font-medium truncate text-gray-900 dark:text-white"
+                  :class="{ 'line-through opacity-60': isPastTask(task) }">
                   {{ task.title }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -126,7 +136,7 @@
           </div>
         </div>
         <div v-if="todayTasks && todayTasks.length > 5" class="mt-2 text-center">
-          <button class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+          <button @click="showTodayView" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
             Mostra altre {{ todayTasks.length - 5 }} attività
           </button>
         </div>
@@ -178,10 +188,12 @@ interface Props {
   taskStats?: any
   todayTasks?: Task[]
   upcomingReminders?: Reminder[]
+  currentViewMode?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showMobile: false
+  showMobile: false,
+  currentViewMode: 'month'
 })
 
 // Composables
@@ -192,6 +204,8 @@ const { logout } = useAuth()
 const emit = defineEmits<{
   taskClick: [task: Task]
   newTask: []
+  switchToDayView: []
+  closeSidebar: []
 }>()
 
 // State
@@ -210,6 +224,10 @@ const userInitials = computed(() => {
 
 const userFullName = computed(() => {
   return props.user?.fullName || 'Utente'
+})
+
+const isDayView = computed(() => {
+  return props.currentViewMode === 'day'
 })
 
 // Methods
@@ -255,6 +273,23 @@ const getTaskTitle = (taskId: number) => {
 const formatReminderTimeShort = (reminder: Reminder) => {
   if (!reminder.reminderTime) return 'Data non valida'
   return formatTime(reminder.reminderTime)
+}
+
+const isPastTask = (task: Task): boolean => {
+  if (!task.endDatetime) return false
+  return new Date(task.endDatetime) < new Date()
+}
+
+const showTodayView = () => {
+  emit('switchToDayView')
+  // Chiudi la sidebar su mobile
+  if (props.showMobile) {
+    emit('closeSidebar')
+  }
+}
+
+const handleCloseSidebar = () => {
+  emit('closeSidebar')
 }
 </script>
 
