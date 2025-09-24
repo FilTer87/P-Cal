@@ -16,9 +16,9 @@
       </div>
 
       <!-- User Profile & Settings -->
-      <div class="mb-6">
+      <div class="mb-4 rounded-lg transition-colors" :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeSection === 'user' }">
         <!-- User Profile Header (Always Visible, Clickable) -->
-        <div class="flex items-center justify-between mb-4 cursor-pointer" @click="toggleUserMenu">
+        <div class="flex items-center justify-between mb-2 cursor-pointer p-2 rounded-lg" @click="toggleAccordion('user')">
           <div class="flex items-center space-x-3">
             <div
               class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -37,12 +37,12 @@
           <div class="flex items-center space-x-2">
             <!-- Dropdown Arrow -->
             <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200"
-              :class="{ 'rotate-180': showUserMenu }" />
+              :class="{ 'rotate-180': activeSection === 'user' }" />
           </div>
         </div>
 
         <!-- User Menu Actions (Collapsible) -->
-        <div v-show="showUserMenu" class="space-y-1 transition-all duration-200">
+        <div v-show="activeSection === 'user'" class="space-y-1 transition-all duration-200 mb-2 px-2 pb-2">
           <button @click="handleShowProfile"
             class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,11 +114,15 @@
       </div> -->
 
       <!-- Today's Tasks -->
-      <div class="mb-6" v-if="todayTasks && todayTasks.length > 0 && !isDayView">
-        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-          Attività di oggi
-        </h3>
-        <div class="space-y-2">
+      <div class="mb-4 rounded-lg transition-colors" :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeSection === 'tasks' }" v-if="todayTasks && todayTasks.length > 0 && !isDayView">
+        <div class="flex items-center justify-between mb-2 cursor-pointer p-2 rounded-lg" @click="toggleAccordion('tasks')">
+          <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+            Attività di oggi
+          </h3>
+          <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200"
+            :class="{ 'rotate-180': activeSection === 'tasks' }" />
+        </div>
+        <div v-show="activeSection === 'tasks'" class="space-y-2 transition-all duration-200 px-2 pb-2">
           <div v-for="task in todayTasks.slice(0, 5)" :key="task.id" @click="handleTaskClick(task)"
             class="p-3 rounded-md cursor-pointer transition-colors bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
             <div class="flex items-center space-x-2">
@@ -143,11 +147,15 @@
       </div>
 
       <!-- Upcoming Reminders -->
-      <div v-if="upcomingReminders && upcomingReminders.length > 0">
-        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-          Promemoria imminenti
-        </h3>
-        <div class="space-y-2">
+      <div class="mb-4 rounded-lg transition-colors" :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeSection === 'reminders' }" v-if="upcomingReminders && upcomingReminders.length > 0">
+        <div class="flex items-center justify-between mb-2 cursor-pointer p-2 rounded-lg" @click="toggleAccordion('reminders')">
+          <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+            Promemoria imminenti
+          </h3>
+          <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200"
+            :class="{ 'rotate-180': activeSection === 'reminders' }" />
+        </div>
+        <div v-show="activeSection === 'reminders'" class="space-y-2 transition-all duration-200 px-2 pb-2">
           <div v-for="reminder in upcomingReminders.slice(0, 3)" :key="reminder.id"
             class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
             <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
@@ -209,8 +217,7 @@ const emit = defineEmits<{
 }>()
 
 // State
-const showUserMenu = ref(false)
-const showStatistics = ref(false)
+const activeSection = ref<'user' | 'tasks' | 'reminders' | null>('tasks')
 
 // Computed
 const userInitials = computed(() => {
@@ -231,12 +238,12 @@ const isDayView = computed(() => {
 })
 
 // Methods
-const toggleUserMenu = () => {
-  showUserMenu.value = !showUserMenu.value
-}
-
-const toggleStatistics = () => {
-  showStatistics.value = !showStatistics.value
+const toggleAccordion = (section: 'user' | 'tasks' | 'reminders') => {
+  if (activeSection.value === section) {
+    activeSection.value = null
+  } else {
+    activeSection.value = section
+  }
 }
 
 const handleShowProfile = async () => {
