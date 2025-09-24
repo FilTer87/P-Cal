@@ -213,19 +213,19 @@
                 <form v-if="editModes.password" @submit.prevent="handleSecuritySave" class="space-y-3">
                   <div>
                     <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password Attuale</label>
-                    <input v-model="securityForm.currentPassword" :type="showPasswords.current ? 'text' : 'password'"
+                    <input v-model="passwordForm.currentPassword" :type="showPasswords.current ? 'text' : 'password'"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
                   </div>
 
                   <div>
                     <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nuova Password</label>
-                    <input v-model="securityForm.newPassword" :type="showPasswords.new ? 'text' : 'password'"
+                    <input v-model="passwordForm.newPassword" :type="showPasswords.new ? 'text' : 'password'"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
                   </div>
 
                   <div>
                     <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Conferma Password</label>
-                    <input v-model="securityForm.confirmPassword" :type="showPasswords.confirm ? 'text' : 'password'"
+                    <input v-model="passwordForm.confirmPassword" :type="showPasswords.confirm ? 'text' : 'password'"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
                   </div>
 
@@ -239,43 +239,41 @@
 
             <!-- Mobile: Preferences -->
             <div v-else-if="tab.id === 'preferences'" class="space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Preferenze</h3>
-                <button @click="toggleEditMode('preferences')"
-                  class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-700 dark:text-gray-300">
-                  {{ editModes.preferences ? 'Annulla' : 'Modifica' }}
-                </button>
-              </div>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Preferenze</h3>
 
-              <form @submit.prevent="handlePreferencesSave" class="space-y-4">
+              <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema</label>
-                  <select v-model="preferencesForm.theme" :disabled="!editModes.preferences"
+                  <select v-model="preferencesForm.theme" @change="updateTheme(preferencesForm.theme)" :disabled="isLoading"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800">
                     <option v-for="option in themeOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
                   </select>
                 </div>
 
                 <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Formato Orario</label>
+                  <select v-model="preferencesForm.timeFormat" @change="updateTimeFormat" :disabled="isLoading"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800">
+                    <option value="24h">24 ore (15:30)</option>
+                    <option value="12h">12 ore (3:30 PM)</option>
+                  </select>
+                </div>
+
+                <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuso Orario</label>
-                  <input v-model="preferencesForm.timezone" type="text" :disabled="!editModes.preferences"
+                  <input v-model="preferencesForm.timezone" @change="updateTimezone" :disabled="isLoading"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Inizio Settimana</label>
-                  <select v-model.number="preferencesForm.weekStartDay" :disabled="!editModes.preferences"
+                  <select v-model.number="preferencesForm.weekStartDay" @change="updateWeekStartDay" :disabled="isLoading"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800">
                     <option :value="1">Lunedì</option>
                     <option :value="0">Domenica</option>
                   </select>
                 </div>
-
-                <button v-if="editModes.preferences" type="submit" :disabled="isLoading"
-                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50">
-                  {{ isLoading ? 'Salvando...' : 'Salva Preferenze' }}
-                </button>
-              </form>
+              </div>
 
               <NotificationSettings />
             </div>
@@ -287,9 +285,10 @@
                 <p class="text-xs text-red-700 dark:text-red-300 mb-3">
                   Scarica una copia completa dei tuoi dati in formato JSON.
                 </p>
-                <button @click="handleExportData" :disabled="isLoading"
+                <button @click="exportData" :disabled="isLoading"
                   class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50">
-                  Esporta Dati
+                  <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2 inline-block" />
+                  {{ isLoading ? 'Esportando...' : 'Esporta Dati' }}
                 </button>
               </div>
 
