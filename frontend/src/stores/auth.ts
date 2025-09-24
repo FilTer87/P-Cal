@@ -136,11 +136,24 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const response = await authApi.login(credentials)
-      
+
+      // Check if 2FA is required
+      if (response.requiresTwoFactor) {
+        // Don't set auth data, just throw error to trigger 2FA modal
+        throw new Error('2FA_REQUIRED')
+      }
+
       setAuthData(response)
       showSuccess('Accesso effettuato con successo!')
       return true
     } catch (error: any) {
+      // Check if this is a 2FA requirement (status 202)
+      if (error.message === '2FA_REQUIRED' ||
+          error.response?.status === 202 ||
+          error.response?.data?.requiresTwoFactor) {
+        throw error
+      }
+
       const errorMessage = error.response?.data?.message || 'Errore durante l\'accesso'
       showError(errorMessage)
       return false

@@ -21,8 +21,9 @@ public class UserResponse {
     private String fullName;
     private String displayName;
     private String timezone;
+    private Boolean twoFactorEnabled;
     private long taskCount;
-    
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime createdAt;
     
@@ -43,6 +44,7 @@ public class UserResponse {
         this.displayName = user.getFullName() != null && !user.getFullName().equals(user.getUsername())
             ? user.getFullName() : user.getUsername();
         this.timezone = user.getTimezone();
+        this.twoFactorEnabled = user.getTwoFactorEnabled();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
         this.taskCount = user.getTasks() != null ? user.getTasks().size() : 0;
@@ -98,6 +100,7 @@ public class UserResponse {
         response.setDisplayName(user.getFullName() != null && !user.getFullName().equals(user.getUsername())
             ? user.getFullName() : user.getUsername());
         response.setTimezone(user.getTimezone());
+        response.setTwoFactorEnabled(user.getTwoFactorEnabled());
         return response;
     }
     
@@ -180,7 +183,15 @@ public class UserResponse {
     public void setTimezone(String timezone) {
         this.timezone = timezone;
     }
-    
+
+    public Boolean getTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(Boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
     public long getTaskCount() {
         return taskCount;
     }

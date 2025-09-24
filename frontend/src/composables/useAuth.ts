@@ -48,7 +48,14 @@ export function useAuth() {
         await redirectAfterLogin()
       }
       return success
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 2FA required error to be handled by the login component
+      if (error.message === '2FA_REQUIRED' ||
+          error.response?.status === 202 ||
+          error.response?.data?.requiresTwoFactor) {
+        throw error
+      }
+
       console.error('Login failed:', error)
       return false
     }

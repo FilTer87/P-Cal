@@ -205,21 +205,38 @@ export class AuthApi {
   }
 
   /**
-   * Enable two-factor authentication
+   * Setup two-factor authentication (get QR code)
    */
-  async enableTwoFactor(): Promise<{
-    qrCode: string
+  async setupTwoFactor(): Promise<{
+    success: boolean
     secret: string
-    backupCodes: string[]
+    qrCodeUrl: string
+    manualEntryKey: string
   }> {
-    return apiClient.post('/auth/2fa/enable')
+    return apiClient.post('/auth/2fa/setup')
   }
 
   /**
-   * Confirm two-factor authentication setup
+   * Enable two-factor authentication with verification code
    */
-  async confirmTwoFactor(code: string): Promise<void> {
-    return apiClient.post<void>('/auth/2fa/confirm', {
+  async enableTwoFactor(secret: string, code: string): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return apiClient.post('/auth/2fa/enable', {
+      secret,
+      code
+    })
+  }
+
+  /**
+   * Verify two-factor authentication code
+   */
+  async verifyTwoFactorCode(code: string): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return apiClient.post('/auth/2fa/verify', {
       code
     })
   }
@@ -227,18 +244,11 @@ export class AuthApi {
   /**
    * Disable two-factor authentication
    */
-  async disableTwoFactor(password: string, code: string): Promise<void> {
-    return apiClient.post<void>('/auth/2fa/disable', {
-      password,
-      code
-    })
-  }
-
-  /**
-   * Generate new backup codes for 2FA
-   */
-  async generateBackupCodes(password: string): Promise<string[]> {
-    return apiClient.post('/auth/2fa/backup-codes', {
+  async disableTwoFactor(password: string): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return apiClient.post('/auth/2fa/disable', {
       password
     })
   }

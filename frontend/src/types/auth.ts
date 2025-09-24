@@ -7,6 +7,7 @@ export interface User {
   fullName?: string
   displayName?: string
   timezone?: string
+  twoFactorEnabled?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -14,6 +15,7 @@ export interface User {
 export interface LoginCredentials {
   username: string
   password: string
+  twoFactorCode?: string
 }
 
 export interface RegisterCredentials {
@@ -30,6 +32,9 @@ export interface AuthResponse {
   user: User
   tokenType: string
   expiresIn: number
+  requiresTwoFactor?: boolean
+  message?: string
+  success?: boolean
 }
 
 export interface RefreshTokenRequest {

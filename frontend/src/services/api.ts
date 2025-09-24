@@ -55,6 +55,10 @@ class ApiClient {
     // Response interceptor - Handle token refresh and errors
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
+        // Handle 202 Accepted (2FA required) as success with data
+        if (response.status === 202 && response.data?.requiresTwoFactor) {
+          return response
+        }
         return response
       },
       async (error) => {

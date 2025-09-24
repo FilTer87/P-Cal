@@ -176,15 +176,22 @@
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a> --> <!-- TODO -->
       </p>
     </footer>
+    <!-- Two-Factor Verify Modal -->
+    <TwoFactorVerifyModal
+      v-model="showTwoFactorModal"
+      @verify="handleTwoFactorVerify"
+      @cancel="handleTwoFactorCancel"
+      ref="twoFactorModalRef"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  EyeIcon, 
-  EyeSlashIcon, 
+import {
+  EyeIcon,
+  EyeSlashIcon,
   ExclamationTriangleIcon,
   SunIcon,
   MoonIcon
@@ -193,6 +200,8 @@ import { useAuth } from '../composables/useAuth'
 import { useTheme } from '../composables/useTheme'
 import { useCustomToast } from '../composables/useCustomToast'
 import { validateLoginForm } from '../utils/validators'
+import { authApi } from '../services/authApi'
+import TwoFactorVerifyModal from '../components/Auth/TwoFactorVerifyModal.vue'
 import type { LoginFormData } from '../types/auth'
 
 // Composables
@@ -211,6 +220,9 @@ const form = ref<LoginFormData>({
 const errors = ref<Record<string, string>>({})
 const generalError = ref<string>('')
 const showPassword = ref(false)
+const showTwoFactorModal = ref(false)
+const twoFactorModalRef = ref()
+const pendingCredentials = ref<LoginFormData | null>(null)
 
 // Computed
 const isFormValid = computed(() => {
@@ -240,28 +252,82 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   generalError.value = ''
-  
+
   // Validate form
   if (!validateForm()) {
     return
   }
-  
+
   try {
+    // Store credentials for potential 2FA verification
+    pendingCredentials.value = {
+      username: form.value.username.trim(),
+      password: form.value.password,
+      remember: form.value.remember
+    }
+
     const success = await login({
       username: form.value.username.trim(),
       password: form.value.password
     })
-    
+
     if (success) {
-      // Redirect is handled by the auth composable
+      // Check if user has 2FA enabled
+      // The login might succeed partially and require 2FA verification
+      // This will be handled by checking the response
       return
     }
-    
+
     generalError.value = 'Nome utente o password non corretti'
   } catch (error: any) {
     console.error('Login error:', error)
+
+    // Check if error is related to 2FA requirement
+    if (error.message === '2FA_REQUIRED' ||
+        error.response?.status === 202 ||
+        error.response?.data?.requiresTwoFactor) {
+      showTwoFactorModal.value = true
+      return
+    }
+
     generalError.value = error.message || 'Errore durante l\'accesso'
   }
+}
+
+const handleTwoFactorVerify = async (code: string) => {
+  if (!twoFactorModalRef.value || !pendingCredentials.value) return
+
+  try {
+    twoFactorModalRef.value.setLoading(true)
+    twoFactorModalRef.value.setError('')
+
+    // Complete login with 2FA code
+    const success = await login({
+      username: pendingCredentials.value.username,
+      password: pendingCredentials.value.password,
+      twoFactorCode: code
+    })
+
+    if (success) {
+      showTwoFactorModal.value = false
+      pendingCredentials.value = null
+    } else {
+      twoFactorModalRef.value.setError('Codice di verifica non valido')
+    }
+  } catch (error: any) {
+    console.error('2FA verification error:', error)
+    twoFactorModalRef.value.setError(
+      error.response?.data?.message || 'Codice di verifica non valido'
+    )
+  } finally {
+    twoFactorModalRef.value.setLoading(false)
+  }
+}
+
+const handleTwoFactorCancel = () => {
+  showTwoFactorModal.value = false
+  pendingCredentials.value = null
+  generalError.value = ''
 }
 
 // Real-time validation

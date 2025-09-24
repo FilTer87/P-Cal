@@ -31,7 +31,10 @@ public class AuthRequest {
     
     @Size(max = 50, message = "Timezone must be at most 50 characters")
     private String timezone = "UTC";
-    
+
+    @Pattern(regexp = "\\d{6}", message = "2FA code must be 6 digits")
+    private String twoFactorCode;
+
     // Default constructor
     public AuthRequest() {}
     
@@ -108,7 +111,15 @@ public class AuthRequest {
     public void setTimezone(String timezone) {
         this.timezone = timezone;
     }
-    
+
+    public String getTwoFactorCode() {
+        return twoFactorCode;
+    }
+
+    public void setTwoFactorCode(String twoFactorCode) {
+        this.twoFactorCode = twoFactorCode;
+    }
+
     // Helper methods
     
     /**

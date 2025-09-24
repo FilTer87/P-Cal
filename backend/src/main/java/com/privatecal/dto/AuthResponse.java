@@ -25,6 +25,7 @@ public class AuthResponse {
     private UserResponse user;
     private String message;
     private boolean success = true;
+    private boolean requiresTwoFactor = false;
     
     // Default constructor
     public AuthResponse() {}
@@ -106,6 +107,17 @@ public class AuthResponse {
         response.setMessage("Validation failed: " + message);
         return response;
     }
+
+    /**
+     * Create 2FA required response
+     */
+    public static AuthResponse requireTwoFactor(String message) {
+        AuthResponse response = new AuthResponse();
+        response.setSuccess(false);
+        response.setRequiresTwoFactor(true);
+        response.setMessage(message != null ? message : "Two-factor authentication required");
+        return response;
+    }
     
     // Getters and Setters
     public String getAccessToken() {
@@ -179,7 +191,15 @@ public class AuthResponse {
     public void setExpiresIn(Long expiresIn) {
         this.expiresIn = expiresIn;
     }
-    
+
+    public boolean isRequiresTwoFactor() {
+        return requiresTwoFactor;
+    }
+
+    public void setRequiresTwoFactor(boolean requiresTwoFactor) {
+        this.requiresTwoFactor = requiresTwoFactor;
+    }
+
     // Helper methods
     
     /**

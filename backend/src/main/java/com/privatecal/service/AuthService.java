@@ -48,7 +48,10 @@ public class AuthService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
+    @Autowired
+    private TwoFactorService twoFactorService;
+
     /**
      * Authenticate user and generate JWT tokens
      */
@@ -74,25 +77,48 @@ public class AuthService {
             );
             
             UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-            
-            // Generate JWT tokens
+
+            // Get user entity to check 2FA status
+            User user = getUserFromUserDetails(userPrincipal);
+
+            // Check if 2FA is enabled for this user
+            if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
+                // If 2FA code is provided, verify it
+                if (loginRequest.getTwoFactorCode() != null && !loginRequest.getTwoFactorCode().trim().isEmpty()) {
+                    logger.info("Verifying 2FA code for user {}", userPrincipal.getUsername());
+
+                    boolean isValidCode = twoFactorService.verifyCode(user.getTwoFactorSecret(), loginRequest.getTwoFactorCode());
+
+                    if (!isValidCode) {
+                        logger.warn("Invalid 2FA code for user {}", userPrincipal.getUsername());
+                        return AuthResponse.error("Invalid two-factor authentication code");
+                    }
+
+                    logger.info("2FA code verified successfully for user {}", userPrincipal.getUsername());
+                } else {
+                    logger.info("User {} requires 2FA verification", userPrincipal.getUsername());
+                    return AuthResponse.requireTwoFactor("Two-factor authentication required");
+                }
+            }
+
+            // Generate JWT tokens (only if 2FA not required)
             String accessToken = jwtUtils.generateAccessToken(userPrincipal, userPrincipal.getId(), userPrincipal.getFullName());
             String refreshToken = jwtUtils.generateRefreshToken(userPrincipal, userPrincipal.getId());
-            
+
             // Get token expiration times
             LocalDateTime accessTokenExpires = jwtUtils.getAccessTokenExpirationTime();
             LocalDateTime refreshTokenExpires = jwtUtils.getRefreshTokenExpirationTime();
-            
+
             // Create user response
-            UserResponse userResponse = UserResponse.minimal(getUserFromUserDetails(userPrincipal));
-            
+            UserResponse userResponse = UserResponse.minimal(user);
+
             logger.info("User {} logged in successfully", userPrincipal.getUsername());
-            
+
             return AuthResponse.success(
-                accessToken, 
-                refreshToken, 
-                accessTokenExpires, 
-                refreshTokenExpires, 
+                accessToken,
+                refreshToken,
+                accessTokenExpires,
+                refreshTokenExpires,
                 userResponse,
                 "Login successful"
             );
@@ -312,6 +338,13 @@ public class AuthService {
         return AuthResponse.success(null, null, null, null, null);
     }
     
+    /**
+     * Verify password for a user
+     */
+    public boolean verifyPassword(User user, String password) {
+        return passwordEncoder.matches(password, user.getPasswordHash());
+    }
+
     /**
      * Get User entity from UserDetails
      */

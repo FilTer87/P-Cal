@@ -67,6 +67,12 @@ public class User {
     @Column(name = "reminder_notifications")
     private Boolean reminderNotifications = true;
 
+    @Column(name = "two_factor_enabled")
+    private Boolean twoFactorEnabled = false;
+
+    @Column(name = "two_factor_secret")
+    private String twoFactorSecret;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
     
@@ -224,7 +230,23 @@ public class User {
     public void setReminderNotifications(Boolean reminderNotifications) {
         this.reminderNotifications = reminderNotifications;
     }
-    
+
+    public Boolean getTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(Boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

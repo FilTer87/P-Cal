@@ -5,9 +5,14 @@ import com.privatecal.dto.AuthResponse;
 import com.privatecal.dto.UserResponse;
 import com.privatecal.dto.UserPreferencesRequest;
 import com.privatecal.dto.UserPreferencesResponse;
+import com.privatecal.dto.TwoFactorSetupResponse;
+import com.privatecal.dto.TwoFactorVerifyRequest;
+import com.privatecal.dto.TwoFactorDisableRequest;
+import com.privatecal.entity.User;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
+import com.privatecal.service.TwoFactorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,7 +50,10 @@ public class AuthController {
     
     @Autowired
     private NotificationService notificationService;
-    
+
+    @Autowired
+    private TwoFactorService twoFactorService;
+
     /**
      * User login endpoint
      * POST /api/auth/login
@@ -82,12 +90,18 @@ public class AuthController {
                        loginRequest.getUsername(), getClientIpAddress(request));
             
             AuthResponse response = authService.login(loginRequest);
-            
+
+            // Check if 2FA is required
+            if (response.isRequiresTwoFactor()) {
+                logger.info("2FA required for user: {}", loginRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+            }
+
             if (response.isSuccess()) {
                 logger.info("Login successful for user: {}", loginRequest.getUsername());
                 return ResponseEntity.ok(response);
             } else {
-                logger.warn("Login failed for user: {} - {}", 
+                logger.warn("Login failed for user: {} - {}",
                            loginRequest.getUsername(), response.getMessage());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
@@ -463,6 +477,147 @@ public class AuthController {
         }
     }
     
+    /**
+     * Setup Two-Factor Authentication
+     * POST /api/auth/2fa/setup
+     */
+    @PostMapping("/2fa/setup")
+    public ResponseEntity<?> setupTwoFactor() {
+        try {
+            User currentUser = userService.getCurrentUser();
+
+            if (currentUser.getTwoFactorEnabled()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "2FA is already enabled"));
+            }
+
+            TwoFactorSetupResponse setupResponse = twoFactorService.setupTwoFactor(currentUser);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "secret", setupResponse.getSecret(),
+                "qrCodeUrl", setupResponse.getQrCodeUrl(),
+                "manualEntryKey", setupResponse.getManualEntryKey()
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error setting up 2FA", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to setup 2FA"));
+        }
+    }
+
+    /**
+     * Verify and Enable Two-Factor Authentication
+     * POST /api/auth/2fa/enable
+     */
+    @PostMapping("/2fa/enable")
+    public ResponseEntity<?> enableTwoFactor(@Valid @RequestBody Map<String, String> request) {
+        try {
+            String secret = request.get("secret");
+            String code = request.get("code");
+
+            if (secret == null || code == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Secret and code are required"));
+            }
+
+            User currentUser = userService.getCurrentUser();
+
+            if (currentUser.getTwoFactorEnabled()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "2FA is already enabled"));
+            }
+
+            boolean isValid = twoFactorService.verifyCode(secret, code);
+
+            if (!isValid) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Invalid verification code"));
+            }
+
+            twoFactorService.enableTwoFactor(currentUser, secret);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "2FA enabled successfully"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error enabling 2FA", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to enable 2FA"));
+        }
+    }
+
+    /**
+     * Disable Two-Factor Authentication
+     * POST /api/auth/2fa/disable
+     */
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<?> disableTwoFactor(@Valid @RequestBody TwoFactorDisableRequest request) {
+        try {
+            User currentUser = userService.getCurrentUser();
+
+            if (!currentUser.getTwoFactorEnabled()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "2FA is not enabled"));
+            }
+
+            boolean passwordValid = authService.verifyPassword(currentUser, request.getPassword());
+
+            if (!passwordValid) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "Invalid password"));
+            }
+
+            twoFactorService.disableTwoFactor(currentUser);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "2FA disabled successfully"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error disabling 2FA", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to disable 2FA"));
+        }
+    }
+
+    /**
+     * Verify Two-Factor Authentication code during login
+     * POST /api/auth/2fa/verify
+     */
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<?> verifyTwoFactorCode(@Valid @RequestBody TwoFactorVerifyRequest request) {
+        try {
+            User currentUser = userService.getCurrentUser();
+
+            if (!currentUser.getTwoFactorEnabled()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "2FA is not enabled for this user"));
+            }
+
+            boolean isValid = twoFactorService.verifyCode(currentUser.getTwoFactorSecret(), request.getCode());
+
+            if (!isValid) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "Invalid verification code"));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "2FA verification successful"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error verifying 2FA code", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to verify 2FA code"));
+        }
+    }
+
     /**
      * Get client IP address from request
      */

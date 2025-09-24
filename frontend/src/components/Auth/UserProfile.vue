@@ -688,9 +688,21 @@
       </div>
     </div>
 
+    <!-- Two-Factor Setup Modal -->
+    <TwoFactorSetupModal
+      v-model="showTwoFactorSetupModal"
+      @success="handle2FASetupSuccess"
+    />
+
+    <!-- Two-Factor Disable Modal -->
+    <TwoFactorDisableModal
+      v-model="showTwoFactorDisableModal"
+      @success="handle2FADisableSuccess"
+    />
+
     <!-- Delete Account Modal -->
-    <Modal 
-      v-model="showDeleteAccountModal" 
+    <Modal
+      v-model="showDeleteAccountModal"
       title="Conferma Eliminazione Account"
       :persistent="true"
     >
@@ -768,6 +780,8 @@ import { authApi } from '@/services/authApi'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 import Modal from '@/components/Common/Modal.vue'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
+import TwoFactorSetupModal from '@/components/Auth/TwoFactorSetupModal.vue'
+import TwoFactorDisableModal from '@/components/Auth/TwoFactorDisableModal.vue'
 import { SunIcon, MoonIcon, ComputerDesktopIcon, UserIcon, ShieldCheckIcon, Cog6ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/types/auth'
 
@@ -813,6 +827,8 @@ const avatarInput = ref<HTMLInputElement>()
 const showDeleteAccountModal = ref(false)
 const deleteAccountPassword = ref('')
 const deleteAccountError = ref('')
+const showTwoFactorSetupModal = ref(false)
+const showTwoFactorDisableModal = ref(false)
 
 // Edit modes
 const editModes = reactive({
@@ -1136,20 +1152,33 @@ const cancelPasswordEdit = () => {
 }
 
 // Two-Factor Authentication
-const toggle2FA = async () => {
+const toggle2FA = () => {
+  if (user.value?.twoFactorEnabled) {
+    showTwoFactorDisableModal.value = true
+  } else {
+    showTwoFactorSetupModal.value = true
+  }
+}
+
+const handle2FASetupSuccess = async () => {
   try {
-    if (user.value?.twoFactorEnabled) {
-      // Disable 2FA - would need password confirmation
-      showError('Disabilitazione 2FA non ancora implementata')
-    } else {
-      // Enable 2FA
-      const result = await authApi.enableTwoFactor()
-      // TODO: Show QR code modal for 2FA setup
-      showError('Abilitazione 2FA non ancora implementata')
+    const updatedUser = await authApi.getProfile()
+    if (user.value) {
+      user.value.twoFactorEnabled = updatedUser.twoFactorEnabled
     }
   } catch (error) {
-    console.error('2FA toggle failed:', error)
-    showError('Errore durante la modifica dell\'autenticazione a due fattori')
+    console.error('Error refreshing user profile:', error)
+  }
+}
+
+const handle2FADisableSuccess = async () => {
+  try {
+    const updatedUser = await authApi.getProfile()
+    if (user.value) {
+      user.value.twoFactorEnabled = updatedUser.twoFactorEnabled
+    }
+  } catch (error) {
+    console.error('Error refreshing user profile:', error)
   }
 }
 
