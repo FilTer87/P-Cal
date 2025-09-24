@@ -81,6 +81,7 @@
 
       <!-- Sidebar -->
       <CalendarSidebar
+      <CalendarSidebar
         :show-mobile="showMobileSidebar"
         :user="user"
         :task-stats="taskStats"
@@ -515,16 +516,6 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
   
   const colorName = colorMap[color] || 'blue'
   return `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
-}
-
-const handleLogout = () => {
-  showMobileSidebar.value = false
-  showConfirmation(
-    'Sei sicuro di voler uscire?',
-    async () => {
-      await logout()
-    }
-  )
 }
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
