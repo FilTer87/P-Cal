@@ -258,11 +258,12 @@ const getTaskTimeDisplayClasses = (task: Task) => {
   // Color based on task color or default
   const color = task.color || '#3788d8'
   const bgColor = `${color}CC` // Add transparency
+  const isPast = new Date(task.endDatetime) < new Date()
 
   return [
     ...baseClasses,
     {
-      'opacity-75': task.completed
+      'opacity-50': isPast
     }
   ]
 }

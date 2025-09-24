@@ -22,18 +22,12 @@ export const useTasksStore = defineStore('tasks', () => {
   const isInitialized = ref(false)
   
   // Cached statistics from dedicated API endpoints
-  const cachedOverdueTasks = ref<Task[]>([])
   const cachedTodayTasks = ref<Task[]>([])
   const cachedStats = ref<TaskStats | null>(null)
 
   // Getters
   const filteredTasks = computed(() => {
     let filtered = [...(tasks.value || [])].filter(task => task !== null && task !== undefined)
-
-    // Apply completion filter
-    if (filters.value.completed !== undefined) {
-      filtered = filtered.filter(task => task.completed === filters.value.completed)
-    }
 
     // Apply date range filter (using startDatetime)
     if (filters.value.startDateFrom) {
@@ -60,11 +54,6 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     return filtered.sort((a, b) => {
-      // Sort by completion status (incomplete first)
-      if (a.completed !== b.completed) {
-        return a.completed ? 1 : -1
-      }
-      
       // Sort by start date (soonest first)
       if (a.startDatetime && b.startDatetime) {
         return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
@@ -78,23 +67,6 @@ export const useTasksStore = defineStore('tasks', () => {
     })
   })
 
-  const completedTasks = computed(() => 
-    (tasks.value || []).filter(task => task && task.completed === true)
-  )
-
-  const pendingTasks = computed(() => 
-    (tasks.value || []).filter(task => task && task.completed !== true)
-  )
-
-  // Note: This computed property only works on locally loaded tasks
-  // For accurate overdue count, use fetchOverdueTasks() 
-  const overdueTasks = computed(() => 
-    (tasks.value || []).filter(task => {
-      if (!task || task.completed) return false
-      // Task is overdue if end time has passed
-      return task.endDatetime && isBefore(new Date(task.endDatetime), new Date())
-    })
-  )
 
   const todayTasks = computed(() => 
     (cachedTodayTasks.value && cachedTodayTasks.value.length > 0)
@@ -125,17 +97,11 @@ export const useTasksStore = defineStore('tasks', () => {
   })
 
   const taskStats = computed((): TaskStats => {
-    // Since the backend doesn't have a 'completed' field, all tasks are considered pending
-    const localStats = {
+    return {
       total: tasks.value?.length || 0,
-      completed: 0, // No completed tasks since backend doesn't support this field
-      pending: tasks.value?.length || 0, // All tasks are pending
-      overdue: (cachedOverdueTasks.value && Array.isArray(cachedOverdueTasks.value)) ? cachedOverdueTasks.value.length : (overdueTasks.value?.length || 0),
       today: (cachedTodayTasks.value && Array.isArray(cachedTodayTasks.value)) ? cachedTodayTasks.value.length : (todayTasks.value?.length || 0),
       thisWeek: thisWeekTasks.value?.length || 0
     }
-    
-    return localStats
   })
 
   const tasksByDate = computed((): DailyTasks => {
@@ -288,20 +254,6 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const toggleTaskCompletion = async (taskId: number): Promise<boolean> => {
-    const task = (tasks.value || []).find(t => t.id === taskId)
-    if (!task) return false
-
-    return await updateTask(taskId, { completed: !task.completed }) !== null
-  }
-
-  const markTaskCompleted = async (taskId: number): Promise<boolean> => {
-    return await updateTask(taskId, { completed: true }) !== null
-  }
-
-  const markTaskPending = async (taskId: number): Promise<boolean> => {
-    return await updateTask(taskId, { completed: false }) !== null
-  }
 
   const searchTasks = async (query: string) => {
     if (!query.trim()) {
@@ -359,30 +311,15 @@ export const useTasksStore = defineStore('tasks', () => {
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + days)
 
-    return (tasks.value || []).filter(task => 
-      task && task.startDatetime && 
-      !task.completed &&
+    return (tasks.value || []).filter(task =>
+      task && task.startDatetime &&
       isAfter(new Date(task.startDatetime), new Date()) &&
       isBefore(new Date(task.startDatetime), futureDate)
-    ).sort((a, b) => 
+    ).sort((a, b) =>
       new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
     )
   }
 
-  const fetchOverdueTasks = async () => {
-    try {
-      console.log('📊 Fetching overdue tasks...')
-      const overdue = await taskApi.getOverdueTasks()
-      console.log('📊 Overdue tasks response:', overdue)
-      const overdueArray = Array.isArray(overdue) ? overdue : []
-      cachedOverdueTasks.value = overdueArray
-      console.log(`📊 Cached ${overdueArray.length} overdue tasks`)
-      return overdueArray
-    } catch (err: any) {
-      console.error('📊 Failed to fetch overdue tasks:', err)
-      return []
-    }
-  }
 
   const fetchTodayTasks = async () => {
     try {
@@ -414,7 +351,6 @@ export const useTasksStore = defineStore('tasks', () => {
   
   const refreshStatistics = async () => {
     await Promise.all([
-      fetchOverdueTasks(),
       fetchTodayTasks(),
       fetchTaskStats()
     ])
@@ -422,7 +358,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const resetStore = () => {
     tasks.value = []
-    cachedOverdueTasks.value = []
     cachedTodayTasks.value = []
     cachedStats.value = null
     isInitialized.value = false
@@ -442,34 +377,26 @@ export const useTasksStore = defineStore('tasks', () => {
     filters,
     searchQuery,
     isInitialized,
-    cachedOverdueTasks,
     cachedTodayTasks,
     cachedStats,
     
     // Getters
     filteredTasks,
-    completedTasks,
-    pendingTasks,
-    overdueTasks,
     todayTasks,
     thisWeekTasks,
     taskStats,
     tasksByDate,
     urgentTasks,
     highPriorityTasks,
-    
+
     // Actions
     fetchTasks,
     fetchTasksByDateRange,
-    fetchOverdueTasks,
     fetchTodayTasks,
     fetchTaskStats,
     createTask,
     updateTask,
     deleteTask,
-    toggleTaskCompletion,
-    markTaskCompleted,
-    markTaskPending,
     searchTasks,
     clearSearch,
     setFilters,

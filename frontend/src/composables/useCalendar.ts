@@ -123,22 +123,6 @@ export function useCalendar() {
     return getTasksForDate(date).length
   }
 
-  const getCompletedTasksForDate = (date: Date): Task[] => {
-    return getTasksForDate(date).filter(task => task.completed)
-  }
-
-  const getPendingTasksForDate = (date: Date): Task[] => {
-    return getTasksForDate(date).filter(task => !task.completed)
-  }
-
-  const getOverdueTasksForDate = (date: Date): Task[] => {
-    const now = new Date()
-    return getTasksForDate(date).filter(task => 
-      !task.completed && 
-      task.dueDate && 
-      new Date(task.dueDate) < now
-    )
-  }
 
   // Task modal management
   const openTaskModal = (task: Task) => {
@@ -316,10 +300,7 @@ export function useCalendar() {
     })
 
     return {
-      totalTasks: tasks.length,
-      completedTasks: tasks.filter(t => t.completed).length,
-      pendingTasks: tasks.filter(t => !t.completed).length,
-      overdueTasks: tasks.filter(t => !t.completed && new Date(t.dueDate!) < new Date()).length
+      totalTasks: tasks.length
     }
   }
 
@@ -342,7 +323,6 @@ export function useCalendar() {
         id: task.id,
         title: task.title,
         description: task.description,
-        completed: task.completed,
         priority: task.priority,
         dueDate: task.dueDate,
         reminders: task.reminders.length
@@ -399,9 +379,6 @@ export function useCalendar() {
     getTasksForDate,
     hasTasksOnDate,
     getTaskCountForDate,
-    getCompletedTasksForDate,
-    getPendingTasksForDate,
-    getOverdueTasksForDate,
 
     // Modal management
     openTaskModal,

@@ -10,14 +10,6 @@ export const formatTaskPriority = (priority: TaskPriority): string => {
   return priorityConfig?.label || priority
 }
 
-/**
- * Format task status for display
- */
-export const formatTaskStatus = (completed: boolean, overdue = false): string => {
-  if (completed) return 'Completata'
-  if (overdue) return 'In ritardo'
-  return 'In corso'
-}
 
 /**
  * Format file size in human readable format
@@ -98,46 +90,38 @@ export const formatTimeAgo = (date: Date | string): string => {
 /**
  * Format task due date with context
  */
-export const formatTaskDueDate = (dueDate: string, completed = false): {
+export const formatTaskDueDate = (dueDate: string): {
   text: string
   color: 'green' | 'blue' | 'yellow' | 'red' | 'gray'
-  isOverdue: boolean
+  isPast: boolean
 } => {
   if (!dueDate) {
     return {
       text: 'Nessuna scadenza',
       color: 'gray',
-      isOverdue: false
+      isPast: false
     }
   }
-  
-  if (completed) {
-    return {
-      text: `Completata il ${formatDate(dueDate)}`,
-      color: 'green',
-      isOverdue: false
-    }
-  }
-  
+
   const now = new Date()
   const due = new Date(dueDate)
-  const isOverdue = due < now
+  const isPast = due < now
   const description = getDateDescription(due)
-  
-  if (isOverdue) {
+
+  if (isPast) {
     const timeAgo = formatTimeAgo(due).replace('fa', 'fa')
     return {
-      text: `In ritardo di ${timeAgo}`,
-      color: 'red',
-      isOverdue: true
+      text: `Passato di ${timeAgo}`,
+      color: 'gray',
+      isPast: true
     }
   }
-  
+
   const timeUntil = formatTimeAgo(due).replace('tra', '').trim()
   return {
     text: `Scade ${description.toLowerCase()} (${timeUntil})`,
     color: due.getTime() - now.getTime() <= 24 * 60 * 60 * 1000 ? 'yellow' : 'blue',
-    isOverdue: false
+    isPast: false
   }
 }
 
@@ -285,7 +269,6 @@ export const formatApiError = (error: any): string => {
  */
 export const formatCalendarEvent = (task: {
   title: string
-  completed: boolean
   priority: TaskPriority
   dueDate?: string
 }): {
@@ -294,14 +277,13 @@ export const formatCalendarEvent = (task: {
   color: string
 } => {
   const priorityConfig = TASK_PRIORITIES.find(p => p.value === task.priority)
-  const baseClassName = task.completed ? 'task-completed' : 'task-pending'
-  
+
   return {
-    title: task.completed ? `✓ ${task.title}` : task.title,
-    className: `${baseClassName} priority-${task.priority.toLowerCase()}`,
-    color: task.completed ? '#22c55e' : (priorityConfig?.color.includes('red') ? '#ef4444' : 
-                                       priorityConfig?.color.includes('orange') ? '#f97316' :
-                                       priorityConfig?.color.includes('yellow') ? '#eab308' : '#3b82f6')
+    title: task.title,
+    className: `priority-${task.priority.toLowerCase()}`,
+    color: priorityConfig?.color.includes('red') ? '#ef4444' :
+           priorityConfig?.color.includes('orange') ? '#f97316' :
+           priorityConfig?.color.includes('yellow') ? '#eab308' : '#3b82f6'
   }
 }
 

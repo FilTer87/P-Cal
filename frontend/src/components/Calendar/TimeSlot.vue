@@ -68,7 +68,7 @@
           'task-in-slot absolute left-0 right-0 z-10',
           {
             'mb-0.5': index < visibleTasks.length - 1 && variant === 'day',
-            'opacity-75': task.completed
+            'opacity-50': new Date(task.endDatetime) < new Date()
           }
         ]"
         :style="getTaskPositionStyle(task, index)"
@@ -79,9 +79,7 @@
           :compact="compact"
           :draggable="allowTaskDrag"
           :show-time="false"
-          :show-completion="showTaskCompletion"
           @click="$emit('task-click', task)"
-          @toggle-completion="$emit('task-toggle-completion', $event)"
           @edit-task="$emit('task-edit', $event)"
           @delete-task="$emit('task-delete', $event)"
           @drag-start="$emit('task-drag-start', $event)"
@@ -202,7 +200,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'click': [{ time: string; date: Date }]
   'task-click': [task: Task]
-  'task-toggle-completion': [taskId: number]
   'task-edit': [task: Task]
   'task-delete': [task: Task]
   'task-drag-start': [task: Task]

@@ -111,19 +111,10 @@
         </h3>
         <div class="space-y-2">
           <div v-for="task in todayTasks.slice(0, 5)" :key="task.id" @click="handleTaskClick(task)"
-            class="p-3 rounded-md cursor-pointer transition-colors" :class="[
-              task.completed
-                ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-                : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-            ]">
+            class="p-3 rounded-md cursor-pointer transition-colors bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
             <div class="flex items-center space-x-2">
-              <input type="checkbox" :checked="task.completed" @click.stop="handleTaskToggle(task.id)"
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate" :class="{
-                  'text-gray-900 dark:text-white': !task.completed,
-                  'text-gray-500 dark:text-gray-400 line-through': task.completed
-                }">
+                <p class="text-sm font-medium truncate text-gray-900 dark:text-white">
                   {{ task.title }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -200,7 +191,6 @@ const { logout } = useAuth()
 // Emits
 const emit = defineEmits<{
   taskClick: [task: Task]
-  taskToggle: [taskId: number]
   newTask: []
 }>()
 
@@ -247,9 +237,6 @@ const handleTaskClick = (task: Task) => {
   emit('taskClick', task)
 }
 
-const handleTaskToggle = (taskId: number) => {
-  emit('taskToggle', taskId)
-}
 
 const handleNewTask = () => {
   emit('newTask')

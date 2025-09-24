@@ -5,7 +5,7 @@
       getCardClasses(),
       getPriorityBorderColor(),
       {
-        'opacity-60': task.completed,
+        'opacity-50': isPastEvent,
         'hover:shadow-md': !disabled,
         'transform hover:-translate-y-0.5': variant === 'month' && !disabled,
         'border-l-0 border-t-4': variant === 'agenda'
@@ -41,10 +41,10 @@
 
     <!-- Task content -->
     <div :class="['p-2', { 'pr-6': showPriority && variant !== 'agenda', 'ml-2': task.color }]">
-      <!-- Header: Time and completion status -->
-      <div 
-        v-if="showTime || showCompletion || task.isAllDay"
-        class="flex items-center justify-between mb-1"
+      <!-- Header: Time -->
+      <div
+        v-if="showTime || task.isAllDay"
+        class="flex items-center mb-1"
       >
         <!-- Time display -->
         <div
@@ -58,22 +58,6 @@
           <CalendarDaysIcon v-if="task.isAllDay" class="w-3 h-3" />
           <span>{{ formatTaskTime() }}</span>
         </div>
-
-        <!-- Completion checkbox -->
-        <button
-          v-if="showCompletion"
-          @click.stop="toggleCompletion"
-          :class="[
-            'flex-shrink-0 w-4 h-4 rounded border-2 transition-colors',
-            getCompletionCheckboxClasses()
-          ]"
-          :aria-label="task.completed ? 'Segna come non completata' : 'Segna come completata'"
-        >
-          <CheckIcon 
-            v-if="task.completed" 
-            class="w-3 h-3 text-white m-0.5" 
-          />
-        </button>
       </div>
 
       <!-- Task title -->
@@ -81,7 +65,6 @@
         'font-medium leading-tight',
         getTitleClasses(),
         {
-          'line-through': task.completed,
           'text-xs': variant === 'month' && isSmallCard,
           'text-sm': variant === 'month' && !isSmallCard || variant === 'week' || variant === 'day',
           'text-base': variant === 'agenda'
@@ -172,18 +155,9 @@
         </div>
       </div>
 
-      <!-- Overdue indicator -->
-      <div
-        v-if="isOverdue && !task.completed"
-        class="flex items-center mt-1 text-xs text-red-600 dark:text-red-400"
-      >
-        <ExclamationTriangleIcon class="w-3 h-3 mr-1" />
-        <span>In ritardo</span>
-      </div>
-
       <!-- Due soon indicator -->
       <div
-        v-if="isDueSoon && !task.completed && !isOverdue"
+        v-if="isDueSoon"
         class="flex items-center mt-1 text-xs text-yellow-600 dark:text-yellow-400"
       >
         <ClockIcon class="w-3 h-3 mr-1" />
@@ -209,11 +183,9 @@ import { TASK_PRIORITY_CONFIG } from '../../types/task'
 
 // Icons
 import {
-  CheckIcon,
   BellIcon,
   PencilIcon,
   TrashIcon,
-  ExclamationTriangleIcon,
   ClockIcon,
   CalendarDaysIcon,
   MapPinIcon
@@ -224,7 +196,6 @@ interface Props {
   task: Task
   variant?: 'month' | 'week' | 'day' | 'agenda'
   showTime?: boolean
-  showCompletion?: boolean
   showPriority?: boolean
   showDescription?: boolean
   showActions?: boolean
@@ -236,7 +207,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   variant: 'month',
   showTime: true,
-  showCompletion: false,
   showPriority: true,
   showDescription: true,
   showActions: true,
@@ -248,7 +218,6 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   'click': [task: Task]
-  'toggle-completion': [taskId: number]
   'edit-task': [task: Task]
   'delete-task': [task: Task]
   'drag-start': [task: Task]
@@ -256,10 +225,10 @@ const emit = defineEmits<{
 }>()
 
 // Composables
-const { toggleTaskCompletion, isOverdue: isTaskOverdue, isDueSoon: isTaskDueSoon } = useTasks()
-const { 
-  textClass, 
-  cardClass, 
+const { isPastEvent: isTaskPastEvent, isDueSoon: isTaskDueSoon } = useTasks()
+const {
+  textClass,
+  cardClass,
   getTaskPriorityColors,
   getThemeValue
 } = useTheme()
@@ -267,7 +236,7 @@ const {
 // Computed properties
 const isSmallCard = computed(() => props.compact || props.variant === 'month')
 
-const isOverdue = computed(() => isTaskOverdue(props.task))
+const isPastEvent = computed(() => isTaskPastEvent(props.task))
 const isDueSoon = computed(() => isTaskDueSoon(props.task))
 
 const priorityConfig = computed(() => 
@@ -279,19 +248,11 @@ const taskPriorityColors = computed(() => getTaskPriorityColors(props.task.prior
 // Style methods
 const getCardClasses = () => {
   const baseClasses = 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-  
-  if (props.task.completed) {
-    return `${baseClasses} bg-gray-50 dark:bg-gray-800/50`
-  }
-  
-  if (isOverdue.value) {
-    return 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20'
-  }
-  
+
   if (isDueSoon.value) {
     return 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-900/20'
   }
-  
+
   return baseClasses
 }
 
@@ -314,48 +275,21 @@ const getPriorityBadgeClasses = () => {
 }
 
 const getTitleClasses = () => {
-  if (props.task.completed) {
-    return 'text-gray-500 dark:text-gray-400'
-  }
-  
-  if (isOverdue.value) {
-    return 'text-red-700 dark:text-red-300'
-  }
-  
   return textClass.value
 }
 
 const getDescriptionColor = () => {
-  if (props.task.completed) {
-    return 'text-gray-400 dark:text-gray-500'
-  }
-  
   return 'text-gray-600 dark:text-gray-300'
 }
 
 const getTimeColor = () => {
-  if (props.task.completed) {
-    return 'text-gray-400 dark:text-gray-500'
-  }
-  
-  if (isOverdue.value) {
-    return 'text-red-600 dark:text-red-400'
-  }
-  
   if (isDueSoon.value) {
     return 'text-yellow-600 dark:text-yellow-400'
   }
-  
+
   return 'text-blue-600 dark:text-blue-400'
 }
 
-const getCompletionCheckboxClasses = () => {
-  if (props.task.completed) {
-    return 'bg-green-500 border-green-500'
-  }
-  
-  return 'border-gray-300 dark:border-gray-600 hover:border-green-400'
-}
 
 // Methods
 const getPriorityLabel = () => {
@@ -416,12 +350,6 @@ const handleClick = () => {
   }
 }
 
-const toggleCompletion = async () => {
-  if (!props.disabled) {
-    emit('toggle-completion', props.task.id)
-    await toggleTaskCompletion(props.task.id)
-  }
-}
 
 const handleDragStart = (event: DragEvent) => {
   if (props.draggable && !props.disabled) {
@@ -470,8 +398,4 @@ const handleDragEnd = () => {
   @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
 }
 
-/* Animation for task completion */
-.task-card.completed {
-  transition: all 0.3s ease;
-}
 </style>

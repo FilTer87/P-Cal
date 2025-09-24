@@ -96,18 +96,6 @@ export function useTheme() {
     getThemeClass('bg-blue-100 border-blue-300', 'bg-blue-800/30 border-blue-500')
   )
 
-  // Task-specific theme classes
-  const taskCompletedClass = computed(() => 
-    getThemeClass('text-green-600 bg-green-50', 'text-green-400 bg-green-900/20')
-  )
-
-  const taskOverdueClass = computed(() => 
-    getThemeClass('text-red-600 bg-red-50', 'text-red-400 bg-red-900/20')
-  )
-
-  const taskPendingClass = computed(() => 
-    getThemeClass('text-blue-600 bg-blue-50', 'text-blue-400 bg-blue-900/20')
-  )
 
   // Animation and transition utilities
   const getTransitionClasses = () => {
@@ -144,24 +132,6 @@ export function useTheme() {
     return colors[priority as keyof typeof colors] || colors.MEDIUM
   }
 
-  const getStatusColors = (status: 'completed' | 'pending' | 'overdue') => {
-    const colors = {
-      completed: getThemeValue(
-        { text: 'text-green-600', bg: 'bg-green-100', ring: 'ring-green-500' },
-        { text: 'text-green-400', bg: 'bg-green-900/20', ring: 'ring-green-400' }
-      ),
-      pending: getThemeValue(
-        { text: 'text-blue-600', bg: 'bg-blue-100', ring: 'ring-blue-500' },
-        { text: 'text-blue-400', bg: 'bg-blue-900/20', ring: 'ring-blue-400' }
-      ),
-      overdue: getThemeValue(
-        { text: 'text-red-600', bg: 'bg-red-100', ring: 'ring-red-500' },
-        { text: 'text-red-400', bg: 'bg-red-900/20', ring: 'ring-red-400' }
-      )
-    }
-
-    return colors[status]
-  }
 
   // Theme-aware icon colors
   const getIconColor = (variant: 'primary' | 'secondary' | 'success' | 'warning' | 'error' = 'primary') => {
@@ -207,15 +177,11 @@ export function useTheme() {
     calendarHeaderClass,
     calendarTodayClass,
     calendarSelectedClass,
-    taskCompletedClass,
-    taskOverdueClass,
-    taskPendingClass,
 
     // Dynamic utilities
     getTransitionClasses,
     getThemeTransitionStyle,
     getTaskPriorityColors,
-    getStatusColors,
     getIconColor
   }
 }

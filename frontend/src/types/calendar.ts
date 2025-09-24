@@ -19,11 +19,9 @@ export interface CalendarTask {
   id: number
   title: string
   description?: string
-  completed: boolean
   priority: string
   dueDate: string
   hasReminders: boolean
-  isOverdue: boolean
 }
 
 export interface CalendarWeek {

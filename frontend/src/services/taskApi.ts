@@ -54,27 +54,6 @@ export class TaskApi {
   }
 
   /**
-   * Toggle task completion status
-   */
-  async toggleTaskCompletion(id: number): Promise<Task> {
-    return apiClient.patch<Task>(`${API_ENDPOINTS.TASKS.BY_ID(id)}/toggle`)
-  }
-
-  /**
-   * Mark task as completed
-   */
-  async markCompleted(id: number): Promise<Task> {
-    return apiClient.patch<Task>(`${API_ENDPOINTS.TASKS.BY_ID(id)}/complete`)
-  }
-
-  /**
-   * Mark task as pending
-   */
-  async markPending(id: number): Promise<Task> {
-    return apiClient.patch<Task>(`${API_ENDPOINTS.TASKS.BY_ID(id)}/pending`)
-  }
-
-  /**
    * Get tasks by date range
    */
   async getTasksByDateRange(startDate: string, endDate: string): Promise<Task[]> {
@@ -104,13 +83,6 @@ export class TaskApi {
    */
   async getTaskStats(): Promise<TaskStats> {
     return apiClient.get<TaskStats>(API_ENDPOINTS.TASKS.STATS)
-  }
-
-  /**
-   * Get overdue tasks
-   */
-  async getOverdueTasks(): Promise<Task[]> {
-    return apiClient.get<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/overdue`)
   }
 
   /**
@@ -144,20 +116,6 @@ export class TaskApi {
   }
 
   /**
-   * Get completed tasks
-   */
-  async getCompletedTasks(params?: PaginationParams): Promise<Task[]> {
-    return apiClient.get<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/completed`, { params })
-  }
-
-  /**
-   * Get pending tasks
-   */
-  async getPendingTasks(params?: PaginationParams): Promise<Task[]> {
-    return apiClient.get<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/upcoming`, { params })
-  }
-
-  /**
    * Bulk update tasks
    */
   async bulkUpdateTasks(taskIds: number[], updates: UpdateTaskRequest): Promise<Task[]> {
@@ -173,24 +131,6 @@ export class TaskApi {
   async bulkDeleteTasks(taskIds: number[]): Promise<void> {
     return apiClient.delete<void>(`${API_ENDPOINTS.TASKS.BASE}/bulk`, {
       data: { taskIds }
-    })
-  }
-
-  /**
-   * Bulk mark tasks as completed
-   */
-  async bulkMarkCompleted(taskIds: number[]): Promise<Task[]> {
-    return apiClient.patch<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/bulk/complete`, {
-      taskIds
-    })
-  }
-
-  /**
-   * Bulk mark tasks as pending
-   */
-  async bulkMarkPending(taskIds: number[]): Promise<Task[]> {
-    return apiClient.patch<Task[]>(`${API_ENDPOINTS.TASKS.BASE}/bulk/pending`, {
-      taskIds
     })
   }
 

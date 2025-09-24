@@ -81,14 +81,12 @@
 
       <!-- Sidebar -->
       <CalendarSidebar
-      <CalendarSidebar
         :show-mobile="showMobileSidebar"
         :user="user"
         :task-stats="taskStats"
         :today-tasks="todayTasks"
         :upcoming-reminders="upcomingReminders"
         @task-click="openTaskModal"
-        @task-toggle="toggleTaskCompletion"
         @new-task="openCreateTaskModalWithDate()"
       />
 
@@ -157,7 +155,7 @@
                   @click.stop="openTaskModalForEdit(getTaskById(task.id)!)"
                   class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
                   :class="getTaskDisplayClasses(task)">
-                  {{ task.completed ? '✓' : '' }} {{ task.title }}
+                  {{ task.title }}
                 </div>
                 <div v-if="day.tasks && day.tasks.length > 3" class="text-xs text-gray-500 dark:text-gray-400 p-1">
                   +{{ day.tasks.length - 3 }} altro/i
@@ -190,8 +188,6 @@
                 <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModalForEdit(task)"
                   class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)">
                   <div class="flex items-center space-x-3">
-                    <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
-                      class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                     <div class="flex-1">
                       <h4 class="font-medium text-gray-900 dark:text-white">
                         {{ task.title }}
@@ -234,8 +230,6 @@
                 <div v-for="task in dayTasks" :key="task.id" @click="openTaskModalForEdit(task)"
                   class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)">
                   <div class="flex items-center space-x-3">
-                    <input type="checkbox" :checked="task.completed" @click.stop="toggleTaskCompletion(task.id)"
-                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                     <div class="flex-1">
                       <p class="font-medium text-gray-900 dark:text-white">
                         {{ task.title }}
@@ -272,7 +266,6 @@
           <p><strong>Orario:</strong> {{ formatTime(selectedTask.startDatetime) }} - {{ formatTime(selectedTask.endDatetime) }}</p>
           <p v-if="selectedTask.location"><strong>Luogo:</strong> {{ selectedTask.location }}</p>
           <p v-if="selectedTask.dueDate"><strong>Scadenza:</strong> {{ formatDateTime(selectedTask.dueDate) }}</p>
-          <p><strong>Stato:</strong> {{ selectedTask.completed ? 'Completata' : 'In corso' }}</p>
         </div>
         <div class="mt-6 flex justify-end space-x-2">
           <button @click="closeTaskModal" class="btn btn-secondary">
@@ -416,8 +409,7 @@ const {
 
 const {
   taskStats,
-  getTaskById,
-  toggleTaskCompletion
+  getTaskById
 } = tasks
 
 const {
@@ -491,19 +483,13 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
     ? 'border-l-4'
     : ''
 
-  if (task.completed) {
-    return `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/30`
-  }
-
-  if (task.isOverdue) {
-    return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30`
-  }
+  const isPast = new Date(task.endDatetime) < new Date()
 
   // Use task color for styling
   const color = task.color || '#3788d8'
   const colorMap: Record<string, string> = {
     '#3b82f6': 'blue',
-    '#10b981': 'emerald', 
+    '#10b981': 'emerald',
     '#ef4444': 'red',
     '#f59e0b': 'amber',
     '#8b5cf6': 'violet',
@@ -513,9 +499,10 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
     '#f97316': 'orange',
     '#6b7280': 'gray'
   }
-  
+
   const colorName = colorMap[color] || 'blue'
-  return `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
+  const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
+  return isPast ? `${classes} opacity-50` : classes
 }
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
@@ -696,7 +683,9 @@ const getTaskTimePosition = (task: any) => {
 
 const getTaskTimeDisplayClasses = (task: Task) => {
   const baseClasses = ['border-l-4']
-  
+
+  const isPast = new Date(task.endDatetime) < new Date()
+
   // Color based on task color or default
   if (task.color) {
     const style = document.createElement('div')
@@ -708,11 +697,11 @@ const getTaskTimeDisplayClasses = (task: Task) => {
     // Default blue theme
     baseClasses.push('bg-blue-500 text-white border-blue-700')
   }
-  
-  if (task.completed) {
-    baseClasses.push('opacity-60 line-through')
+
+  if (isPast) {
+    baseClasses.push('opacity-50')
   }
-  
+
   return baseClasses.join(' ')
 }
 

@@ -114,16 +114,6 @@ export function useTasks() {
     }
   }
 
-  const toggleTaskCompletion = async (taskId: number): Promise<boolean> => {
-    const task = tasksStore.getTaskById(taskId)
-    if (!task) return false
-
-    const success = await tasksStore.toggleTaskCompletion(taskId)
-    if (success && !task.completed) {
-      showTaskCompleted(task.title)
-    }
-    return success
-  }
 
 
 
@@ -282,29 +272,23 @@ export function useTasks() {
 
   // Utility functions
   const isDueSoon = (task: Task, hours = 24): boolean => {
-    if (task.completed) return false
-    
     const startDate = new Date(task.startDatetime)
     const now = new Date()
     const diffHours = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60)
-    
+
     return diffHours > 0 && diffHours <= hours
   }
 
-  const isOverdue = (task: Task): boolean => {
-    if (task.completed) return false
-    
+  const isPastEvent = (task: Task): boolean => {
     const endDate = new Date(task.endDatetime)
     const now = new Date()
-    
+
     return endDate < now
   }
 
   const getTaskStatusColor = (task: Task): string => {
-    if (task.completed) return 'green'
-    if (isOverdue(task)) return 'red'
     if (isDueSoon(task)) return 'yellow'
-    return 'blue'
+    return task.color || 'blue'
   }
 
 
@@ -322,7 +306,6 @@ export function useTasks() {
     createTask,
     updateTask,
     deleteTask,
-    toggleTaskCompletion,
 
     // Form helpers
     createEmptyTaskForm,
@@ -340,7 +323,7 @@ export function useTasks() {
 
     // Utilities (only used ones)
     isDueSoon,
-    isOverdue,
+    isPastEvent,
     getTaskStatusColor,
 
     // Getters (used by CalendarView)

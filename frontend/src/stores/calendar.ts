@@ -109,11 +109,9 @@ export const useCalendarStore = defineStore('calendar', () => {
             id: task.id,
             title: task.title,
             description: task.description,
-            completed: task.completed,
             priority: task.priority,
             dueDate: taskDate || '',
-            hasReminders: task.reminders?.length > 0 || false,
-            isOverdue: taskDate ? new Date(taskDate) < new Date() && !task.completed : false
+            hasReminders: task.reminders?.length > 0 || false
           }
         })
       }

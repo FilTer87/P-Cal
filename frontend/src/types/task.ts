@@ -2,7 +2,6 @@ export interface Task {
   id: number
   title: string
   description?: string
-  completed: boolean
   startDatetime: string
   endDatetime: string
   location?: string
@@ -28,7 +27,6 @@ export interface CreateTaskRequest {
 export interface UpdateTaskRequest {
   title?: string
   description?: string
-  completed?: boolean
   startDatetime?: string
   endDatetime?: string
   location?: string
@@ -75,7 +73,6 @@ export enum NotificationType {
 }
 
 export interface TaskFilters {
-  completed?: boolean
   startDateFrom?: string
   startDateTo?: string
   search?: string
@@ -103,9 +100,6 @@ export interface ReminderFormData {
 
 export interface TaskStats {
   total: number
-  completed: number
-  pending: number
-  overdue: number
   today: number
   thisWeek: number
 }
@@ -179,8 +173,7 @@ export const TASK_SORT_OPTIONS: TaskSortOption[] = [
   { key: 'startDatetime', label: 'Data di inizio', value: 'startDatetime' },
   { key: 'endDatetime', label: 'Data di fine', value: 'endDatetime' },
   { key: 'title', label: 'Titolo', value: 'title' },
-  { key: 'createdAt', label: 'Data di creazione', value: 'createdAt' },
-  { key: 'completed', label: 'Stato', value: 'completed' }
+  { key: 'createdAt', label: 'Data di creazione', value: 'createdAt' }
 ]
 
 // Validation messages in Italian
