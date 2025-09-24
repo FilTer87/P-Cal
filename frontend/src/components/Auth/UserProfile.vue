@@ -68,8 +68,8 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="border-b border-gray-200 dark:border-gray-700">
+      <!-- Navigation Tabs (Desktop only) -->
+      <div class="hidden md:block border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex justify-center">
           <div class="flex space-x-1">
             <button
@@ -90,8 +90,226 @@
         </nav>
       </div>
 
-      <!-- Tab Content -->
-      <div class="p-6">
+      <!-- Accordion Navigation (Mobile only) -->
+      <div class="md:hidden">
+        <div v-for="tab in tabs" :key="`mobile-${tab.id}`" class="border-b border-gray-200 dark:border-gray-700">
+          <button
+            @click="toggleMobileSection(tab.id)"
+            class="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeTab === tab.id }"
+          >
+            <div class="flex items-center space-x-3">
+              <component :is="tab.icon" class="w-5 h-5 flex-shrink-0" :class="activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'" />
+              <span class="font-medium text-sm" :class="activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
+                {{ tab.name }}
+              </span>
+            </div>
+            <svg
+              class="w-5 h-5 transition-transform duration-200"
+              :class="[
+                activeTab === tab.id ? 'rotate-180 text-blue-600 dark:text-blue-400' : 'text-gray-400',
+              ]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Mobile Tab Content -->
+          <div v-show="activeTab === tab.id" class="py-2">
+            <!-- Mobile: Personal Information -->
+            <div v-if="tab.id === 'personal'" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  Informazioni Personali
+                </h3>
+                <button
+                  @click="toggleEditMode('personal')"
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <svg v-if="!editModes.personal" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <svg v-else class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  {{ editModes.personal ? 'Annulla' : 'Modifica' }}
+                </button>
+              </div>
+
+              <form @submit.prevent="handlePersonalInfoSave" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome Utente</label>
+                  <input v-model="profileForm.username" type="text" :disabled="!editModes.personal || isLoading"
+                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
+                  <p v-if="errors.username" class="mt-1 text-xs text-red-600">{{ errors.username }}</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                  <input v-model="profileForm.email" type="email" :disabled="!editModes.personal || isLoading"
+                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
+                  <p v-if="errors.email" class="mt-1 text-xs text-red-600">{{ errors.email }}</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
+                  <input :value="editModes.personal ? profileForm.firstName : (user?.firstName || '')"
+                    @input="editModes.personal && (profileForm.firstName = ($event.target as HTMLInputElement).value)"
+                    type="text" :disabled="!editModes.personal || isLoading"
+                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cognome</label>
+                  <input :value="editModes.personal ? profileForm.lastName : (user?.lastName || '')"
+                    @input="editModes.personal && (profileForm.lastName = ($event.target as HTMLInputElement).value)"
+                    type="text" :disabled="!editModes.personal || isLoading"
+                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
+                </div>
+
+                <button v-if="editModes.personal" type="submit" :disabled="isLoading"
+                  class="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50">
+                  <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
+                  {{ isLoading ? 'Salvando...' : 'Salva Modifiche' }}
+                </button>
+              </form>
+            </div>
+
+            <!-- Mobile: Security -->
+            <div v-else-if="tab.id === 'security'" class="space-y-6">
+              <!-- 2FA Status - same as desktop -->
+              <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">Autenticazione a Due Fattori (2FA)</h4>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">
+                      {{ user?.twoFactorEnabled ? 'Abilitata' : 'Disabilitata' }}
+                    </p>
+                  </div>
+                  <button v-if="!user?.twoFactorEnabled" @click="showTwoFactorSetupModal = true"
+                    class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-xs">
+                    Abilita 2FA
+                  </button>
+                  <button v-else @click="showTwoFactorDisableModal = true"
+                    class="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 text-xs">
+                    Disabilita 2FA
+                  </button>
+                </div>
+              </div>
+
+              <!-- Password Change - Compact form for mobile -->
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-white">Cambia Password</h4>
+                  <button @click="toggleEditMode('password')"
+                    class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-700 dark:text-gray-300">
+                    {{ editModes.password ? 'Annulla' : 'Modifica' }}
+                  </button>
+                </div>
+
+                <form v-if="editModes.password" @submit.prevent="handleSecuritySave" class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password Attuale</label>
+                    <input v-model="securityForm.currentPassword" :type="showPasswords.current ? 'text' : 'password'"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nuova Password</label>
+                    <input v-model="securityForm.newPassword" :type="showPasswords.new ? 'text' : 'password'"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Conferma Password</label>
+                    <input v-model="securityForm.confirmPassword" :type="showPasswords.confirm ? 'text' : 'password'"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
+                  </div>
+
+                  <button type="submit" :disabled="isLoading"
+                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50">
+                    {{ isLoading ? 'Salvando...' : 'Aggiorna Password' }}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Mobile: Preferences -->
+            <div v-else-if="tab.id === 'preferences'" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Preferenze</h3>
+                <button @click="toggleEditMode('preferences')"
+                  class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-700 dark:text-gray-300">
+                  {{ editModes.preferences ? 'Annulla' : 'Modifica' }}
+                </button>
+              </div>
+
+              <form @submit.prevent="handlePreferencesSave" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema</label>
+                  <select v-model="preferencesForm.theme" :disabled="!editModes.preferences"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800">
+                    <option v-for="option in themeOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuso Orario</label>
+                  <input v-model="preferencesForm.timezone" type="text" :disabled="!editModes.preferences"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Inizio Settimana</label>
+                  <select v-model.number="preferencesForm.weekStartDay" :disabled="!editModes.preferences"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800">
+                    <option :value="1">Lunedì</option>
+                    <option :value="0">Domenica</option>
+                  </select>
+                </div>
+
+                <button v-if="editModes.preferences" type="submit" :disabled="isLoading"
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50">
+                  {{ isLoading ? 'Salvando...' : 'Salva Preferenze' }}
+                </button>
+              </form>
+
+              <NotificationSettings />
+            </div>
+
+            <!-- Mobile: Danger Zone -->
+            <div v-else-if="tab.id === 'danger'" class="space-y-4">
+              <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-red-900 dark:text-red-200 mb-2">Esporta i Tuoi Dati</h4>
+                <p class="text-xs text-red-700 dark:text-red-300 mb-3">
+                  Scarica una copia completa dei tuoi dati in formato JSON.
+                </p>
+                <button @click="handleExportData" :disabled="isLoading"
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50">
+                  Esporta Dati
+                </button>
+              </div>
+
+              <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-red-900 dark:text-red-200 mb-2">Elimina Account</h4>
+                <p class="text-xs text-red-700 dark:text-red-300 mb-3">
+                  Una volta eliminato, non potrai recuperare il tuo account.
+                </p>
+                <button @click="showDeleteAccountModal = true" :disabled="isLoading"
+                  class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm disabled:opacity-50">
+                  Elimina Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content (Desktop only) -->
+      <div class="hidden md:block p-6">
         <!-- Personal Information Tab -->
         <div v-if="activeTab === 'personal'" class="space-y-6">
           <div class="flex items-center justify-between">
@@ -839,6 +1057,15 @@ const themeOptions = [
 
 // Component state
 const activeTab = ref('personal')
+
+// Mobile accordion toggle
+const toggleMobileSection = (tabId: string) => {
+  if (activeTab.value === tabId) {
+    activeTab.value = null
+  } else {
+    activeTab.value = tabId
+  }
+}
 // const avatarInput = ref<HTMLInputElement>() // TODO: Uncomment when avatar upload is implemented
 const showDeleteAccountModal = ref(false)
 const deleteAccountPassword = ref('')
