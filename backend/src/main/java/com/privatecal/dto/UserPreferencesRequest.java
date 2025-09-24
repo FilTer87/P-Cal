@@ -2,6 +2,8 @@ package com.privatecal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 /**
  * Data Transfer Object for User Preferences Request
@@ -27,12 +29,17 @@ public class UserPreferencesRequest {
 
     private Boolean reminderNotifications;
 
+    @Min(value = 0, message = "Week start day must be 0 (Sunday) or 1 (Monday)")
+    @Max(value = 1, message = "Week start day must be 0 (Sunday) or 1 (Monday)")
+    private Integer weekStartDay;
+
     // Default constructor
     public UserPreferencesRequest() {}
 
     // Full constructor
     public UserPreferencesRequest(String theme, String language, String timezone, String timeFormat,
-                                 String calendarView, Boolean emailNotifications, Boolean reminderNotifications) {
+                                 String calendarView, Boolean emailNotifications, Boolean reminderNotifications,
+                                 Integer weekStartDay) {
         this.theme = theme;
         this.language = language;
         this.timezone = timezone;
@@ -40,6 +47,7 @@ public class UserPreferencesRequest {
         this.calendarView = calendarView;
         this.emailNotifications = emailNotifications;
         this.reminderNotifications = reminderNotifications;
+        this.weekStartDay = weekStartDay;
     }
 
     // Getters and Setters
@@ -99,6 +107,14 @@ public class UserPreferencesRequest {
         this.reminderNotifications = reminderNotifications;
     }
 
+    public Integer getWeekStartDay() {
+        return weekStartDay;
+    }
+
+    public void setWeekStartDay(Integer weekStartDay) {
+        this.weekStartDay = weekStartDay;
+    }
+
     @Override
     public String toString() {
         return "UserPreferencesRequest{" +
@@ -109,6 +125,7 @@ public class UserPreferencesRequest {
                 ", calendarView='" + calendarView + '\'' +
                 ", emailNotifications=" + emailNotifications +
                 ", reminderNotifications=" + reminderNotifications +
+                ", weekStartDay=" + weekStartDay +
                 '}';
     }
 }

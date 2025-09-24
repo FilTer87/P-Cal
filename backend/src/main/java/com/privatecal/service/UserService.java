@@ -399,6 +399,11 @@ public class UserService {
             user.setReminderNotifications(preferencesRequest.getReminderNotifications());
         }
 
+        if (preferencesRequest.getWeekStartDay() != null) {
+            validateWeekStartDay(preferencesRequest.getWeekStartDay());
+            user.setWeekStartDay(preferencesRequest.getWeekStartDay());
+        }
+
         User updatedUser = userRepository.save(user);
 
         logger.info("Preferences updated successfully for user: {}", updatedUser.getUsername());
@@ -438,6 +443,15 @@ public class UserService {
     private void validateCalendarView(String calendarView) {
         if (calendarView != null && !calendarView.matches("^(month|week|day|agenda)$")) {
             throw new IllegalArgumentException("Calendar view must be 'month', 'week', 'day', or 'agenda'");
+        }
+    }
+
+    /**
+     * Validate week start day value
+     */
+    private void validateWeekStartDay(Integer weekStartDay) {
+        if (weekStartDay != null && weekStartDay != 0 && weekStartDay != 1) {
+            throw new IllegalArgumentException("Week start day must be 0 (Sunday) or 1 (Monday)");
         }
     }
 }

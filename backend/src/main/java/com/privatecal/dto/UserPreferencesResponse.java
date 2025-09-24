@@ -17,6 +17,7 @@ public class UserPreferencesResponse {
     private String calendarView;
     private Boolean emailNotifications;
     private Boolean reminderNotifications;
+    private Integer weekStartDay;
 
     // Default constructor
     public UserPreferencesResponse() {}
@@ -30,11 +31,13 @@ public class UserPreferencesResponse {
         this.calendarView = user.getCalendarView();
         this.emailNotifications = user.getEmailNotifications();
         this.reminderNotifications = user.getReminderNotifications();
+        this.weekStartDay = user.getWeekStartDay();
     }
 
     // Full constructor
     public UserPreferencesResponse(String theme, String language, String timezone, String timeFormat,
-                                  String calendarView, Boolean emailNotifications, Boolean reminderNotifications) {
+                                  String calendarView, Boolean emailNotifications, Boolean reminderNotifications,
+                                  Integer weekStartDay) {
         this.theme = theme;
         this.language = language;
         this.timezone = timezone;
@@ -42,6 +45,7 @@ public class UserPreferencesResponse {
         this.calendarView = calendarView;
         this.emailNotifications = emailNotifications;
         this.reminderNotifications = reminderNotifications;
+        this.weekStartDay = weekStartDay;
     }
 
     // Factory method
@@ -106,6 +110,14 @@ public class UserPreferencesResponse {
         this.reminderNotifications = reminderNotifications;
     }
 
+    public Integer getWeekStartDay() {
+        return weekStartDay;
+    }
+
+    public void setWeekStartDay(Integer weekStartDay) {
+        this.weekStartDay = weekStartDay;
+    }
+
     @Override
     public String toString() {
         return "UserPreferencesResponse{" +
@@ -116,6 +128,7 @@ public class UserPreferencesResponse {
                 ", calendarView='" + calendarView + '\'' +
                 ", emailNotifications=" + emailNotifications +
                 ", reminderNotifications=" + reminderNotifications +
+                ", weekStartDay=" + weekStartDay +
                 '}';
     }
 }

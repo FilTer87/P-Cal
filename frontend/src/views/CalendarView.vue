@@ -80,18 +80,12 @@
         class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden"></div>
 
       <!-- Sidebar -->
-      <CalendarSidebar 
+      <CalendarSidebar
         :show-mobile="showMobileSidebar"
         :user="user"
         :task-stats="taskStats"
         :today-tasks="todayTasks"
         :upcoming-reminders="upcomingReminders"
-        :is-dark-mode="isDarkMode"
-        :theme-name="themeName"
-        @theme-toggle="toggleTheme"
-        @show-profile="showProfile"
-        @show-settings="showSettings"
-        @logout="handleLogout"
         @task-click="openTaskModal"
         @task-toggle="toggleTaskCompletion"
         @new-task="openCreateTaskModalWithDate()"
@@ -521,17 +515,6 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
   
   const colorName = colorMap[color] || 'blue'
   return `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
-}
-
-const showProfile = () => {
-  showError('Funzionalità profilo non ancora implementata')
-  showMobileSidebar.value = false
-}
-
-const showSettings = () => {
-  showMobileSidebar.value = false
-  // Navigate to settings page
-  $router.push('/settings')
 }
 
 const handleLogout = () => {

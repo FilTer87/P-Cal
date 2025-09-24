@@ -44,15 +44,6 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('../views/SettingsView.vue'),
-    meta: { 
-      requiresAuth: true,
-      title: 'Impostazioni - P-Cal'
-    }
-  },
-  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }

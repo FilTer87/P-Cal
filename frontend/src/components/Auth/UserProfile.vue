@@ -33,8 +33,8 @@
               </span>
             </div>
 
-            <!-- Avatar Upload Overlay -->
-            <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <!-- Avatar Upload Overlay - TODO: Implement backend avatar upload -->
+            <!-- <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
               <input
                 ref="avatarInput"
                 type="file"
@@ -52,7 +52,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
-            </div>
+            </div> -->
           </div>
 
           <!-- User Info -->
@@ -574,6 +574,22 @@
                     </optgroup>
                   </select>
                 </div>
+
+                <!-- Week Start Day -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Inizio Settimana
+                  </label>
+                  <select
+                    v-model="preferencesForm.weekStartDay"
+                    @change="updateWeekStartDay"
+                    :disabled="isLoading"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                  >
+                    <option :value="1">Lunedì</option>
+                    <option :value="0">Domenica</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -823,7 +839,7 @@ const themeOptions = [
 
 // Component state
 const activeTab = ref('personal')
-const avatarInput = ref<HTMLInputElement>()
+// const avatarInput = ref<HTMLInputElement>() // TODO: Uncomment when avatar upload is implemented
 const showDeleteAccountModal = ref(false)
 const deleteAccountPassword = ref('')
 const deleteAccountError = ref('')
@@ -863,7 +879,8 @@ const preferencesForm = reactive({
   timeFormat: '24h' as '12h' | '24h',
   calendarView: 'week' as 'month' | 'week' | 'day' | 'agenda',
   emailNotifications: true,
-  reminderNotifications: true
+  reminderNotifications: true,
+  weekStartDay: 1 as 0 | 1
 })
 
 // Error states
@@ -1002,40 +1019,40 @@ const validateConfirmPassword = () => {
   }
 }
 
-// Avatar handling
-const triggerAvatarUpload = () => {
-  avatarInput.value?.click()
-}
+// Avatar handling - TODO: Implement backend avatar upload
+// const triggerAvatarUpload = () => {
+//   avatarInput.value?.click()
+// }
 
-const handleAvatarChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  
-  if (!file) return
+// const handleAvatarChange = async (event: Event) => {
+//   const target = event.target as HTMLInputElement
+//   const file = target.files?.[0]
+//
+//   if (!file) return
 
-  // Validate file
-  if (!file.type.startsWith('image/')) {
-    showError('Seleziona un file immagine valido')
-    return
-  }
-  
-  if (file.size > 5 * 1024 * 1024) { // 5MB limit
-    showError('Il file è troppo grande. Massimo 5MB consentito')
-    return
-  }
+//   // Validate file
+//   if (!file.type.startsWith('image/')) {
+//     showError('Seleziona un file immagine valido')
+//     return
+//   }
+//
+//   if (file.size > 5 * 1024 * 1024) { // 5MB limit
+//     showError('Il file è troppo grande. Massimo 5MB consentito')
+//     return
+//   }
 
-  try {
-    // Create form data for upload
-    const formData = new FormData()
-    formData.append('avatar', file)
-    
-    // TODO: Implement avatar upload API call
-    showSuccess('Avatar aggiornato con successo!')
-  } catch (error) {
-    console.error('Avatar upload failed:', error)
-    showError('Errore durante l\'aggiornamento dell\'avatar')
-  }
-}
+//   try {
+//     // Create form data for upload
+//     const formData = new FormData()
+//     formData.append('avatar', file)
+//
+//     // TODO: Implement avatar upload API call
+//     showSuccess('Avatar aggiornato con successo!')
+//   } catch (error) {
+//     console.error('Avatar upload failed:', error)
+//     showError('Errore durante l\'aggiornamento dell\'avatar')
+//   }
+// }
 
 // Form submission handlers
 const handlePersonalInfoSave = async () => {
@@ -1133,6 +1150,11 @@ const updateEmailNotifications = () => {
 
 const updateReminderNotifications = () => {
   savePreference({ reminderNotifications: preferencesForm.reminderNotifications })
+}
+
+const updateWeekStartDay = () => {
+  savePreference({ weekStartDay: preferencesForm.weekStartDay })
+  settingsStore.updateWeekStartDay(preferencesForm.weekStartDay)
 }
 
 // Cancel handlers
@@ -1244,11 +1266,13 @@ const loadPreferences = async () => {
     preferencesForm.calendarView = preferences.calendarView || 'week'
     preferencesForm.emailNotifications = preferences.emailNotifications ?? true
     preferencesForm.reminderNotifications = preferences.reminderNotifications ?? true
+    preferencesForm.weekStartDay = preferences.weekStartDay ?? 1
 
     // Sync with settings store
     settingsStore.updateTheme(preferencesForm.theme)
     settingsStore.updateTimeFormat(preferencesForm.timeFormat)
     settingsStore.updateCalendarView(preferencesForm.calendarView)
+    settingsStore.updateWeekStartDay(preferencesForm.weekStartDay)
   } catch (error) {
     console.error('Failed to load preferences:', error)
     // Load defaults from settings store

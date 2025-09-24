@@ -67,6 +67,9 @@ public class User {
     @Column(name = "reminder_notifications")
     private Boolean reminderNotifications = true;
 
+    @Column(name = "week_start_day")
+    private Integer weekStartDay = 1;
+
     @Column(name = "two_factor_enabled")
     private Boolean twoFactorEnabled = false;
 
@@ -229,6 +232,14 @@ public class User {
 
     public void setReminderNotifications(Boolean reminderNotifications) {
         this.reminderNotifications = reminderNotifications;
+    }
+
+    public Integer getWeekStartDay() {
+        return weekStartDay;
+    }
+
+    public void setWeekStartDay(Integer weekStartDay) {
+        this.weekStartDay = weekStartDay;
     }
 
     public Boolean getTwoFactorEnabled() {

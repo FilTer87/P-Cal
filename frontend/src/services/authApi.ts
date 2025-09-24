@@ -177,6 +177,7 @@ export class AuthApi {
     calendarView?: 'month' | 'week' | 'day' | 'agenda'
     emailNotifications?: boolean
     reminderNotifications?: boolean
+    weekStartDay?: 0 | 1
   }): Promise<{
     theme: 'light' | 'dark' | 'system'
     language: string
@@ -185,6 +186,7 @@ export class AuthApi {
     calendarView: 'month' | 'week' | 'day' | 'agenda'
     emailNotifications: boolean
     reminderNotifications: boolean
+    weekStartDay: 0 | 1
   }> {
     return apiClient.put('/auth/preferences', preferences)
   }
@@ -200,6 +202,7 @@ export class AuthApi {
     calendarView: 'month' | 'week' | 'day' | 'agenda'
     emailNotifications: boolean
     reminderNotifications: boolean
+    weekStartDay: 0 | 1
   }> {
     return apiClient.get('/auth/preferences')
   }
