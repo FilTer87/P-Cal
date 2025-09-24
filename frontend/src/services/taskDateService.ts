@@ -24,13 +24,8 @@ export function transformTaskFromBackend(task: Task): Task {
  * Transform task form data from frontend (local) to backend (UTC) format for creation
  */
 export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequest {
-  const startDatetime = formData.isAllDay 
-    ? localDateToUTC(formData.startDate)
-    : localDateTimeToUTC(formData.startDate, formData.startTime)
-    
-  const endDatetime = formData.isAllDay
-    ? localDateToUTC(formData.endDate) 
-    : localDateTimeToUTC(formData.endDate, formData.endTime)
+  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
+  const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
 
   return {
     title: formData.title.trim(),
@@ -39,7 +34,6 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
-    isAllDay: formData.isAllDay,
     reminders: formData.reminders?.map(reminder => ({
       reminderOffsetMinutes: reminder.offsetMinutes || reminder.reminderOffsetMinutes,
       notificationType: reminder.notificationType
@@ -51,13 +45,8 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
  * Transform task form data from frontend (local) to backend (UTC) format for update
  */
 export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskRequest {
-  const startDatetime = formData.isAllDay 
-    ? localDateToUTC(formData.startDate)
-    : localDateTimeToUTC(formData.startDate, formData.startTime)
-    
-  const endDatetime = formData.isAllDay
-    ? localDateToUTC(formData.endDate) 
-    : localDateTimeToUTC(formData.endDate, formData.endTime)
+  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
+  const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
 
   return {
     title: formData.title.trim(),
@@ -66,7 +55,6 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
-    isAllDay: formData.isAllDay,
     reminders: formData.reminders?.map(reminder => ({
       reminderOffsetMinutes: reminder.offsetMinutes || reminder.reminderOffsetMinutes,
       notificationType: reminder.notificationType
@@ -87,7 +75,6 @@ export function transformTaskToFormData(task: Task): TaskFormData {
     endTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : '',
     location: task.location || '',
     color: task.color || '#3788d8',
-    isAllDay: task.isAllDay || false,
     reminders: task.reminders?.map(reminder => ({
       offsetMinutes: reminder.reminderOffsetMinutes || 15,
       reminderOffsetMinutes: reminder.reminderOffsetMinutes || 15,
@@ -103,28 +90,22 @@ export function transformQuickTaskData(data: {
   title: string
   date: string
   time: string
-  isAllDay: boolean
   color: string
 }): CreateTaskRequest {
-  const startDatetime = data.isAllDay 
-    ? localDateToUTC(data.date)
-    : localDateTimeToUTC(data.date, data.time)
-    
+  const startDatetime = localDateTimeToUTC(data.date, data.time)
+
   // For quick add, end time is 1 hour after start
   const [hour, minute] = data.time.split(':').map(n => parseInt(n))
   const endHour = hour + 1
   const endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-  
-  const endDatetime = data.isAllDay
-    ? localDateToUTC(data.date) 
-    : localDateTimeToUTC(data.date, endTime)
+
+  const endDatetime = localDateTimeToUTC(data.date, endTime)
 
   return {
     title: data.title.trim(),
     startDatetime,
     endDatetime,
     color: data.color,
-    isAllDay: data.isAllDay,
     reminders: []
   }
 }

@@ -27,9 +27,7 @@ public class TaskRequest {
     
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color (e.g., #3788d8)")
     private String color = "#3788d8";
-    
-    private Boolean isAllDay = false;
-    
+
     @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
     
@@ -47,13 +45,12 @@ public class TaskRequest {
     
     // Full constructor
     public TaskRequest(String title, String description, Instant startDatetime, Instant endDatetime,
-                      String color, Boolean isAllDay, String location) {
+                      String color, String location) {
         this.title = title;
         this.description = description;
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
         this.color = color;
-        this.isAllDay = isAllDay;
         this.location = location;
     }
     
@@ -64,16 +61,6 @@ public class TaskRequest {
             return true; // Let @NotNull handle null validation
         }
         return endDatetime.isAfter(startDatetime);
-    }
-    
-    @AssertTrue(message = "All-day tasks must start and end on the same date")
-    public boolean isValidAllDayTask() {
-        if (!Boolean.TRUE.equals(isAllDay) || startDatetime == null || endDatetime == null) {
-            return true;
-        }
-        java.time.LocalDate startDate = startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
-        java.time.LocalDate endDate = endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
-        return startDate.equals(endDate);
     }
     
     // Getters and Setters
@@ -116,15 +103,7 @@ public class TaskRequest {
     public void setColor(String color) {
         this.color = color;
     }
-    
-    public Boolean getIsAllDay() {
-        return isAllDay;
-    }
-    
-    public void setIsAllDay(Boolean allDay) {
-        isAllDay = allDay;
-    }
-    
+
     public String getLocation() {
         return location;
     }
@@ -219,9 +198,6 @@ public class TaskRequest {
         if (color != null) {
             color = color.trim().toLowerCase();
         }
-        if (isAllDay == null) {
-            isAllDay = false;
-        }
     }
     
     @Override
@@ -233,7 +209,6 @@ public class TaskRequest {
                 ", startDatetime=" + startDatetime +
                 ", endDatetime=" + endDatetime +
                 ", color='" + color + '\'' +
-                ", isAllDay=" + isAllDay +
                 ", location='" + location + '\'' +
                 ", reminderCount=" + (reminders != null ? reminders.size() : 0) +
                 '}';

@@ -68,12 +68,11 @@ public class TaskService {
         task.setStartDatetime(taskRequest.getStartDatetime());
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
-        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
-        
+
         // Save task
         Task savedTask = taskRepository.save(task);
-        
+
         // Create reminders if provided
         if (taskRequest.getReminders() != null && !taskRequest.getReminders().isEmpty()) {
             for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
@@ -240,12 +239,11 @@ public class TaskService {
         task.setStartDatetime(taskRequest.getStartDatetime());
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
-        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
-        
+
         // Save task
         Task savedTask = taskRepository.save(task);
-        
+
         // Update reminders if provided
         if (taskRequest.getReminders() != null) {
             // Remove existing reminders
@@ -351,16 +349,7 @@ public class TaskService {
         if (!taskRequest.getEndDatetime().isAfter(taskRequest.getStartDatetime())) {
             throw new RuntimeException("End datetime must be after start datetime");
         }
-        
-        if (Boolean.TRUE.equals(taskRequest.getIsAllDay())) {
-            // Convert to UTC date for comparison
-            java.time.LocalDate startDate = taskRequest.getStartDatetime().atZone(java.time.ZoneOffset.UTC).toLocalDate();
-            java.time.LocalDate endDate = taskRequest.getEndDatetime().atZone(java.time.ZoneOffset.UTC).toLocalDate();
-            if (!startDate.equals(endDate)) {
-                throw new RuntimeException("All-day tasks must start and end on the same date");
-            }
-        }
-        
+
         if (taskRequest.getColor() != null && !taskRequest.getColor().matches("^#[0-9A-Fa-f]{6}$")) {
             throw new RuntimeException("Color must be a valid hex color (e.g., #3788d8)");
         }
@@ -449,7 +438,6 @@ public class TaskService {
         cloneRequest.setStartDatetime(newStartTime);
         cloneRequest.setEndDatetime(newEndTime);
         cloneRequest.setColor(originalTask.getColor());
-        cloneRequest.setIsAllDay(originalTask.getIsAllDay());
         cloneRequest.setLocation(originalTask.getLocation());
         
         // Copy reminders

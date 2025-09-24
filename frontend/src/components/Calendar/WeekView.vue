@@ -289,11 +289,7 @@ const formatTaskTime = (task: Task) => {
   
   const start = new Date(startTimeStr)
   const end = new Date(endTimeStr)
-  
-  if (task.isAllDay) {
-    return 'Tutto il giorno'
-  }
-  
+
   return `${settings.formatTime(start)} - ${settings.formatTime(end)}`
 }
 

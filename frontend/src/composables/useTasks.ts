@@ -58,7 +58,6 @@ export function useTasks() {
         endTime: taskData.endDatetime ? format(new Date(taskData.endDatetime), 'HH:mm') : '',
         location: taskData.location || '',
         color: taskData.color || '#3788d8',
-        isAllDay: false,
         reminders: []
       } as TaskFormData
       const validation = validateTaskForm(formData)
@@ -131,7 +130,6 @@ export function useTasks() {
       endTime: format(oneHourLater, 'HH:mm'),
       location: '',
       color: '#3788d8',
-      isAllDay: false,
       reminders: []
     }
   }
@@ -175,7 +173,7 @@ export function useTasks() {
       }
     }
     
-    if (!formData.isAllDay && formData.startTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.startTime)) {
+    if (formData.startTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.startTime)) {
       errors.startTime = 'Ora di inizio non valida (formato HH:MM)'
     }
     
@@ -189,14 +187,14 @@ export function useTasks() {
       }
     }
     
-    if (!formData.isAllDay && formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
+    if (formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
       errors.endTime = 'Ora di fine non valida (formato HH:MM)'
     }
     
     // Validate that end is after start
     if (formData.startDate && formData.endDate) {
-      const startTimeStr = !formData.isAllDay ? (formData.startTime || '00:00') : '00:00'
-      const endTimeStr = !formData.isAllDay ? (formData.endTime || '23:59') : '23:59'
+      const startTimeStr = formData.startTime || '00:00'
+      const endTimeStr = formData.endTime || '23:59'
       
       // Create dates more safely
       const start = new Date(formData.startDate + 'T' + startTimeStr + ':00.000Z')
@@ -209,8 +207,7 @@ export function useTasks() {
         endTime: endTimeStr,
         startDateTime: start.toISOString(),
         endDateTime: end.toISOString(),
-        endIsAfterStart: end > start,
-        isAllDay: formData.isAllDay
+        endIsAfterStart: end > start
       })
       
       // Check if dates are valid

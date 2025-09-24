@@ -176,7 +176,7 @@ export const useTasksStore = defineStore('tasks', () => {
       
       tasks.value = [...tasks.value, ...newTasks]
       
-      console.log(`📅 Added ${newTasks.length} new tasks to store. Total tasks: ${tasks.value.length}`)
+      console.debug(`📅 Added ${newTasks.length} new tasks to store. Total tasks: ${tasks.value.length}`)
     } catch (err: any) {
       console.error('📅 Error fetching tasks by date range:', err)
       error.value = err.message || 'Errore nel caricamento delle attività'

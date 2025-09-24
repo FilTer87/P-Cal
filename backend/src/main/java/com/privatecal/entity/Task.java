@@ -46,10 +46,7 @@ public class Task {
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color")
     @Column(length = 7)
     private String color = "#3788d8";
-    
-    @Column(name = "is_all_day")
-    private Boolean isAllDay = false;
-    
+
     @Size(max = 200)
     @Column(length = 200)
     private String location;
@@ -146,15 +143,7 @@ public class Task {
     public void setColor(String color) {
         this.color = color;
     }
-    
-    public Boolean getIsAllDay() {
-        return isAllDay;
-    }
-    
-    public void setIsAllDay(Boolean allDay) {
-        isAllDay = allDay;
-    }
-    
+
     public String getLocation() {
         return location;
     }
@@ -217,7 +206,6 @@ public class Task {
                 ", startDatetime=" + startDatetime +
                 ", endDatetime=" + endDatetime +
                 ", color='" + color + '\'' +
-                ", isAllDay=" + isAllDay +
                 ", createdAt=" + createdAt +
                 '}';
     }

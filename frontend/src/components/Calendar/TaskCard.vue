@@ -43,7 +43,7 @@
     <div :class="['p-2', { 'pr-6': showPriority && variant !== 'agenda', 'ml-2': task.color }]">
       <!-- Header: Time -->
       <div
-        v-if="showTime || task.isAllDay"
+        v-if="showTime"
         class="flex items-center mb-1"
       >
         <!-- Time display -->
@@ -54,8 +54,7 @@
             getTimeColor()
           ]"
         >
-          <ClockIcon v-if="!task.isAllDay" class="w-3 h-3" />
-          <CalendarDaysIcon v-if="task.isAllDay" class="w-3 h-3" />
+          <ClockIcon class="w-3 h-3" />
           <span>{{ formatTaskTime() }}</span>
         </div>
       </div>
@@ -298,20 +297,15 @@ const getPriorityLabel = () => {
 
 const formatTaskTime = () => {
   const task = props.task
-  
-  // Handle all-day tasks
-  if (task.isAllDay) {
-    return 'Tutto il giorno'
-  }
-  
+
   // Use startDate if available, otherwise dueDate
   const dateToFormat = task.startDate || task.dueDate
   if (!dateToFormat) return ''
-  
+
   if (props.variant === 'agenda') {
     return formatDate(dateToFormat, 'dd/MM/yyyy HH:mm')
   }
-  
+
   return formatTime(dateToFormat)
 }
 
@@ -325,10 +319,8 @@ const getTaskTooltip = () => {
   if (props.task.location) {
     tooltip += `\nLuogo: ${props.task.location}`
   }
-  
-  if (props.task.isAllDay) {
-    tooltip += '\nTutto il giorno'
-  } else if (props.task.startDate && props.task.endDate) {
+
+  if (props.task.startDate && props.task.endDate) {
     tooltip += `\nInizio: ${formatDate(props.task.startDate, 'dd/MM/yyyy HH:mm')}`
     tooltip += `\nFine: ${formatDate(props.task.endDate, 'dd/MM/yyyy HH:mm')}`
   } else if (props.task.dueDate) {

@@ -30,7 +30,7 @@ class ApiClient {
         const tokenExpiresAt = localStorage.getItem('tokenExpiresAt')
         const isExpired = tokenExpiresAt ? Date.now() > parseInt(tokenExpiresAt) : false
         
-        console.log('📤 Request interceptor:', {
+        console.debug('📤 Request interceptor:', {
           url: config.url,
           hasToken: !!token,
           tokenPreview: token ? token.slice(0, 20) + '...' : 'null',

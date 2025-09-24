@@ -6,7 +6,6 @@ export interface Task {
   endDatetime: string
   location?: string
   color: string
-  isAllDay: boolean
   createdAt: string
   updatedAt: string
   userId: number
@@ -20,7 +19,6 @@ export interface CreateTaskRequest {
   endDatetime: string
   location?: string
   color?: string
-  isAllDay?: boolean
   reminders?: CreateReminderRequest[]
 }
 
@@ -31,7 +29,6 @@ export interface UpdateTaskRequest {
   endDatetime?: string
   location?: string
   color?: string
-  isAllDay?: boolean
   reminders?: CreateReminderRequest[]
 }
 
@@ -87,7 +84,6 @@ export interface TaskFormData {
   endTime: string
   location: string
   color: string
-  isAllDay: boolean
   reminders: ReminderFormData[]
 }
 

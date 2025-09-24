@@ -50,21 +50,6 @@
           <p v-if="formErrors.description" class="mt-1 text-sm text-red-500">{{ formErrors.description }}</p>
         </div>
 
-        <!-- All Day Toggle -->
-        <div>
-          <label class="flex items-center space-x-2 mb-1">
-            <input
-              v-model="formData.isAllDay"
-              type="checkbox"
-              :disabled="isFormLoading"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Evento per tutta la giornata
-            </span>
-          </label>
-        </div>
-
         <!-- Start Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -82,9 +67,9 @@
             <p v-if="formErrors.startDate" class="mt-1 text-sm text-red-500">{{ formErrors.startDate }}</p>
           </div>
           
-          <div v-if="!formData.isAllDay">
+          <div>
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di inizio 
+              Ora di inizio
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
                 ({{ settings.timeFormat === '24h' ? '24h: 15:30' : '12h: 3:30 PM' }})
               </span>
@@ -118,9 +103,9 @@
             <p v-if="formErrors.endDate" class="mt-1 text-sm text-red-500">{{ formErrors.endDate }}</p>
           </div>
           
-          <div v-if="!formData.isAllDay">
+          <div>
             <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di fine 
+              Ora di fine
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
                 ({{ settings.timeFormat === '24h' ? '24h: 16:00' : '12h: 4:00 PM' }})
               </span>

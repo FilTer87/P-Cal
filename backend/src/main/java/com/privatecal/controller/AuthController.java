@@ -679,7 +679,6 @@ public class AuthController {
                 taskData.put("startDatetime", task.getStartDatetime().toString());
                 taskData.put("endDatetime", task.getEndDatetime().toString());
                 taskData.put("color", task.getColor());
-                taskData.put("isAllDay", task.getIsAllDay());
                 taskData.put("location", task.getLocation());
                 taskData.put("createdAt", task.getCreatedAt().toString());
                 taskData.put("updatedAt", task.getUpdatedAt() != null ? task.getUpdatedAt().toString() : null);

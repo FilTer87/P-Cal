@@ -22,9 +22,8 @@ public class TaskResponse {
     private Instant startDatetime;
     
     private Instant endDatetime;
-    
+
     private String color;
-    private Boolean isAllDay;
     private String location;
     
     private List<ReminderResponse> reminders = new ArrayList<>();
@@ -55,7 +54,6 @@ public class TaskResponse {
         this.startDatetime = task.getStartDatetime();
         this.endDatetime = task.getEndDatetime();
         this.color = task.getColor();
-        this.isAllDay = task.getIsAllDay();
         this.location = task.getLocation();
         this.createdAt = task.getCreatedAt();
         this.updatedAt = task.getUpdatedAt();
@@ -111,7 +109,6 @@ public class TaskResponse {
         response.setStartDatetime(task.getStartDatetime());
         response.setEndDatetime(task.getEndDatetime());
         response.setColor(task.getColor());
-        response.setIsAllDay(task.getIsAllDay());
         response.calculateComputedFields();
         return response;
     }
@@ -186,15 +183,7 @@ public class TaskResponse {
     public void setColor(String color) {
         this.color = color;
     }
-    
-    public Boolean getIsAllDay() {
-        return isAllDay;
-    }
-    
-    public void setIsAllDay(Boolean allDay) {
-        isAllDay = allDay;
-    }
-    
+
     public String getLocation() {
         return location;
     }
@@ -338,7 +327,6 @@ public class TaskResponse {
                 ", startDatetime=" + startDatetime +
                 ", endDatetime=" + endDatetime +
                 ", color='" + color + '\'' +
-                ", isAllDay=" + isAllDay +
                 ", durationMinutes=" + durationMinutes +
                 ", reminderCount=" + reminderCount +
                 ", status='" + getStatus() + '\'' +
