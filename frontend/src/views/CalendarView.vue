@@ -817,18 +817,28 @@ onMounted(async () => {
 // Multi-day task splitting logic - collect all tasks from the week first
 const allWeekTasks = computed(() => {
   const weekDays = calendar.getWeekDays(currentDate.value)
+  const weekStart = formatDate(weekDays[0], 'yyyy-MM-dd')
+  const weekEnd = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
   const allTasks: any[] = []
-  
-  // Collect all unique tasks from the week
-  weekDays.forEach(day => {
-    const dayTasks = calendar.getTasksForDate(day)
-    dayTasks.forEach(task => {
-      if (!allTasks.find(t => t.id === task.id)) {
-        allTasks.push(task)
-      }
-    })
+
+  // Get ALL tasks from the composable
+  const allStoreTasks = tasks.allTasks.value || []
+
+  // Filter tasks that overlap with the current week
+  allStoreTasks.forEach(task => {
+    if (!task.startDatetime || !task.endDatetime) return
+
+    const taskStart = formatDate(new Date(task.startDatetime), 'yyyy-MM-dd')
+    const taskEnd = formatDate(new Date(task.endDatetime), 'yyyy-MM-dd')
+
+    // Include task if it overlaps with the week:
+    // - Task starts before/during week AND ends during/after week
+    // - This covers: tasks starting before week, tasks within week, tasks ending after week
+    if (taskStart <= weekEnd && taskEnd >= weekStart) {
+      allTasks.push(task)
+    }
   })
-  
+
   return allTasks
 })
 

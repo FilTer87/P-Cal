@@ -149,7 +149,7 @@ export class AuthApi {
    * Delete user account
    */
   async deleteAccount(password: string): Promise<void> {
-    return apiClient.delete<void>('/auth/account', {
+    return apiClient.delete<void>('/auth/me', {
       data: { password }
     })
   }
@@ -256,11 +256,22 @@ export class AuthApi {
   /**
    * Export user data (GDPR compliance)
    */
-  async exportData(): Promise<Blob> {
+  async exportData(): Promise<{ blob: Blob; filename: string }> {
     const response = await apiClient.getRaw('/auth/export', {
       responseType: 'blob'
     })
-    return response.data
+
+    const contentDisposition = response.headers['content-disposition']
+    let filename = `privatecal-data-${new Date().toISOString().split('T')[0]}.json`
+
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/"/g, '')
+      }
+    }
+
+    return { blob: response.data, filename }
   }
 }
 

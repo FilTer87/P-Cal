@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -447,29 +448,37 @@ public class AuthController {
      * DELETE /api/auth/me
      */
     @DeleteMapping("/me")
-    public ResponseEntity<Map<String, Object>> deleteAccount(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> deleteAccount(@RequestBody Map<String, Object> request) {
         try {
-            String password = request.get("password");
-            
+            String password = null;
+
+            if (request.containsKey("data") && request.get("data") instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, String> data = (Map<String, String>) request.get("data");
+                password = data.get("password");
+            } else if (request.containsKey("password")) {
+                password = (String) request.get("password");
+            }
+
             if (password == null || password.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("success", false, "message", "Password is required to delete account"));
             }
-            
+
             // Verify password before deletion
             Long currentUserId = userService.getCurrentUserId();
             userService.changePassword(currentUserId, password, password); // This will throw if password is wrong
-            
+
             // Delete account
             userService.deleteCurrentUserAccount();
-            
+
             logger.warn("User account deleted successfully");
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Account deleted successfully"
             ));
-            
+
         } catch (Exception e) {
             logger.error("Error deleting account", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -619,6 +628,108 @@ public class AuthController {
     }
 
     /**
+     * Export user data (GDPR compliance)
+     * GET /api/auth/export
+     */
+    @GetMapping("/export")
+    @Transactional(readOnly = true)
+    public ResponseEntity<org.springframework.core.io.Resource> exportUserData() {
+        try {
+            User currentUser = userService.getCurrentUser();
+
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String timestamp = java.time.LocalDateTime.now().format(formatter);
+            String filename = String.format("p-cal_%s_%s.json", currentUser.getUsername(), timestamp);
+
+            java.util.Map<String, Object> exportData = new java.util.LinkedHashMap<>();
+
+            exportData.put("exportDate", java.time.Instant.now().toString());
+            exportData.put("userId", currentUser.getId());
+
+            java.util.Map<String, Object> userData = new java.util.LinkedHashMap<>();
+            userData.put("username", currentUser.getUsername());
+            userData.put("email", currentUser.getEmail());
+            userData.put("firstName", currentUser.getFirstName());
+            userData.put("lastName", currentUser.getLastName());
+            userData.put("accountCreatedAt", currentUser.getCreatedAt());
+            userData.put("accountUpdatedAt", currentUser.getUpdatedAt());
+            exportData.put("user", userData);
+
+            java.util.Map<String, Object> preferences = new java.util.LinkedHashMap<>();
+            preferences.put("theme", currentUser.getTheme());
+            preferences.put("timezone", currentUser.getTimezone());
+            preferences.put("timeFormat", currentUser.getTimeFormat());
+            preferences.put("calendarView", currentUser.getCalendarView());
+            preferences.put("emailNotifications", currentUser.getEmailNotifications());
+            preferences.put("reminderNotifications", currentUser.getReminderNotifications());
+            exportData.put("preferences", preferences);
+
+            java.util.Map<String, Object> security = new java.util.LinkedHashMap<>();
+            security.put("twoFactorEnabled", currentUser.getTwoFactorEnabled());
+            exportData.put("security", security);
+
+            java.util.List<com.privatecal.entity.Task> userTasks = currentUser.getTasks();
+            java.util.List<java.util.Map<String, Object>> tasksData = new java.util.ArrayList<>();
+
+            for (com.privatecal.entity.Task task : userTasks) {
+                java.util.Map<String, Object> taskData = new java.util.LinkedHashMap<>();
+                taskData.put("id", task.getId());
+                taskData.put("title", task.getTitle());
+                taskData.put("description", task.getDescription());
+                taskData.put("startDatetime", task.getStartDatetime().toString());
+                taskData.put("endDatetime", task.getEndDatetime().toString());
+                taskData.put("color", task.getColor());
+                taskData.put("isAllDay", task.getIsAllDay());
+                taskData.put("location", task.getLocation());
+                taskData.put("createdAt", task.getCreatedAt().toString());
+                taskData.put("updatedAt", task.getUpdatedAt() != null ? task.getUpdatedAt().toString() : null);
+
+                java.util.List<java.util.Map<String, Object>> remindersData = new java.util.ArrayList<>();
+                for (com.privatecal.entity.Reminder reminder : task.getReminders()) {
+                    java.util.Map<String, Object> reminderData = new java.util.LinkedHashMap<>();
+                    reminderData.put("id", reminder.getId());
+                    reminderData.put("reminderTime", reminder.getReminderTime().toString());
+                    reminderData.put("reminderOffsetMinutes", reminder.getReminderOffsetMinutes());
+                    reminderData.put("notificationType", reminder.getNotificationType().toString());
+                    reminderData.put("isSent", reminder.getIsSent());
+                    reminderData.put("createdAt", reminder.getCreatedAt().toString());
+                    remindersData.add(reminderData);
+                }
+                taskData.put("reminders", remindersData);
+
+                tasksData.add(taskData);
+            }
+
+            exportData.put("tasks", tasksData);
+            exportData.put("statistics", Map.of(
+                "totalTasks", tasksData.size(),
+                "totalReminders", tasksData.stream()
+                    .mapToInt(task -> ((java.util.List<?>) task.get("reminders")).size())
+                    .sum()
+            ));
+
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            objectMapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+            String jsonContent = objectMapper.writeValueAsString(exportData);
+
+            byte[] bytes = jsonContent.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(bytes);
+
+            return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                       "attachment; filename=\"" + filename + "\"")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .contentLength(bytes.length)
+                .body(resource);
+
+        } catch (Exception e) {
+            logger.error("Error exporting user data", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Get client IP address from request
      */
     private String getClientIpAddress(HttpServletRequest request) {
@@ -626,12 +737,12 @@ public class AuthController {
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
         }
-        
+
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty()) {
             return xRealIp;
         }
-        
+
         return request.getRemoteAddr();
     }
 }

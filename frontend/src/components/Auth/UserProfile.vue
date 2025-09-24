@@ -1185,18 +1185,18 @@ const handle2FADisableSuccess = async () => {
 // Data export
 const exportData = async () => {
   try {
-    const blob = await authApi.exportData()
-    
+    const { blob, filename } = await authApi.exportData()
+
     // Create download link
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `privatecal-data-${new Date().toISOString().split('T')[0]}.json`
+    link.download = filename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    
+
     showSuccess('Dati esportati con successo!')
   } catch (error) {
     console.error('Data export failed:', error)
