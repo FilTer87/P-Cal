@@ -116,11 +116,12 @@
               id="ntfy-server"
               v-model="settings.ntfyServer"
               type="url"
-              placeholder="https://ntfy.sh"
-              class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Server configurato dal sistema"
+              readonly
+              class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              URL del server NTFY (predefinito: ntfy.sh)
+              Server NTFY configurato dal sistema (sola lettura)
             </p>
           </div>
 
@@ -133,16 +134,18 @@
                 id="ntfy-topic"
                 v-model="settings.ntfyTopic"
                 type="text"
-                :placeholder="defaultTopic"
-                class="flex-1 block rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Topic generato automaticamente"
+                class="flex-1 block rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
                 readonly
               />
               <button
                 @click="generateNewTopic"
-                class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                :disabled="isUpdatingTopic || !notificationConfig"
+                class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Genera nuovo topic"
               >
-                <ArrowPathIcon class="h-4 w-4" />
+                <LoadingSpinner v-if="isUpdatingTopic" size="small" class="h-4 w-4" />
+                <ArrowPathIcon v-else class="h-4 w-4" />
               </button>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -204,7 +207,7 @@
           </button>
           <button
             @click="testNTFYNotification"
-            :disabled="!settings.enabled || !settings.ntfyEnabled || !settings.ntfyServer || isTesting"
+            :disabled="!canTestNTFY || isTesting"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <LoadingSpinner v-if="isTesting === 'ntfy'" size="small" class="mr-2" />
@@ -238,7 +241,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useCustomToast } from '../../composables/useCustomToast'
-import { useNTFY } from '../../composables/useNTFY'
 import { useNotificationPermissions } from '../../composables/useNotificationPermissions'
 import LoadingSpinner from '../Common/LoadingSpinner.vue'
 import {
@@ -255,47 +257,136 @@ interface NotificationSettings {
   browserEnabled: boolean
 }
 
+interface NotificationConfig {
+  ntfyServerUrl: string
+  ntfyTopicPrefix: string
+  enabledProviders: string[]
+  supportsPush: boolean
+  supportsEmail: boolean
+}
+
 const { user } = useAuth()
 const { showSuccess, showError } = useCustomToast()
-const { testConnection, sendNotification } = useNTFY()
-const { 
-  permission: browserPermission, 
-  requestPermission, 
-  sendBrowserNotification 
+const {
+  permission: browserPermission,
+  requestPermission,
+  sendBrowserNotification
 } = useNotificationPermissions()
 
 // Local state
 const settings = ref<NotificationSettings>({
   enabled: true,
   ntfyEnabled: false,
-  ntfyServer: 'https://ntfy.sh',
+  ntfyServer: '',
   ntfyTopic: '',
   browserEnabled: true
 })
 
+const notificationConfig = ref<NotificationConfig | null>(null)
+const subscriptionUrl = ref<string>('')
 const showQRCode = ref(false)
 const copied = ref(false)
 const isSaving = ref(false)
 const isTesting = ref<'browser' | 'ntfy' | null>(null)
 const isRequestingPermissions = ref(false)
+const isLoadingConfig = ref(false)
+const isUpdatingTopic = ref(false)
 
 // Computed properties
-const defaultTopic = computed(() => {
-  return user.value ? `calendar-user-${user.value.id}-${generateRandomId()}` : 'calendar-user'
-})
-
 const ntfySubscriptionUrl = computed(() => {
-  const topic = settings.value.ntfyTopic || defaultTopic.value
-  return `${settings.value.ntfyServer}/${topic}`
+  return subscriptionUrl.value || 'Non disponibile'
 })
 
-// Methods
-const generateRandomId = (): string => {
-  return Math.random().toString(36).substr(2, 9)
+const canTestNTFY = computed(() => {
+  return settings.value.enabled &&
+         settings.value.ntfyEnabled &&
+         notificationConfig.value?.supportsPush &&
+         settings.value.ntfyTopic
+})
+
+// API Methods
+const fetchNotificationConfig = async () => {
+  isLoadingConfig.value = true
+  try {
+    const response = await fetch('/api/notifications/config', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
+
+    if (response.ok) {
+      notificationConfig.value = await response.json()
+      settings.value.ntfyServer = notificationConfig.value?.ntfyServerUrl || ''
+      settings.value.ntfyEnabled = notificationConfig.value?.supportsPush || false
+    }
+  } catch (error) {
+    console.error('Error fetching notification config:', error)
+    showError('Errore nel caricamento della configurazione notifiche')
+  } finally {
+    isLoadingConfig.value = false
+  }
 }
 
-const generateNewTopic = () => {
-  settings.value.ntfyTopic = defaultTopic.value
+const fetchSubscriptionUrl = async () => {
+  try {
+    const response = await fetch('/api/notifications/ntfy/subscription-url', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
+
+    const data = await response.json()
+    if (data.success) {
+      subscriptionUrl.value = data.subscriptionUrl
+      settings.value.ntfyTopic = data.topic
+    }
+  } catch (error) {
+    console.error('Error fetching subscription URL:', error)
+  }
+}
+
+const updateNtfyTopic = async (newTopic: string) => {
+  isUpdatingTopic.value = true
+  try {
+    const response = await fetch('/api/notifications/ntfy/topic', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({ topic: newTopic })
+    })
+
+    const data = await response.json()
+    if (data.success) {
+      settings.value.ntfyTopic = data.topic
+      await fetchSubscriptionUrl() // Refresh subscription URL
+      showSuccess('Topic NTFY aggiornato con successo!')
+      return true
+    } else {
+      showError(data.error || 'Errore nell\'aggiornamento del topic')
+      return false
+    }
+  } catch (error) {
+    console.error('Error updating NTFY topic:', error)
+    showError('Errore nell\'aggiornamento del topic')
+    return false
+  } finally {
+    isUpdatingTopic.value = false
+  }
+}
+
+// Methods
+const generateNewTopic = async () => {
+  if (!notificationConfig.value) return
+
+  const userId = user.value?.id
+  if (!userId) return
+
+  const randomSuffix = Math.random().toString(36).substr(2, 10)
+  const newTopic = `${notificationConfig.value.ntfyTopicPrefix}-${userId}-${randomSuffix}`
+
+  await updateNtfyTopic(newTopic)
 }
 
 const getBrowserPermissionLabel = (permission: NotificationPermission): string => {
@@ -352,33 +443,34 @@ const testBrowserNotification = async () => {
 }
 
 const testNTFYNotification = async () => {
-  if (!settings.value.ntfyServer || !settings.value.ntfyTopic) {
-    showError('Configurazione NTFY incompleta')
+  if (!canTestNTFY.value) {
+    showError('Configurazione NTFY non disponibile')
     return
   }
 
   isTesting.value = 'ntfy'
   try {
-    // Test connection first
-    const isConnected = await testConnection(settings.value.ntfyServer)
-    if (!isConnected) {
-      throw new Error('Connessione al server NTFY fallita')
-    }
-
-    // Send test notification
-    await sendNotification({
-      server: settings.value.ntfyServer,
-      topic: settings.value.ntfyTopic,
-      title: 'Test Notifica NTFY',
-      message: 'Questo è un test delle notifiche NTFY per P-Cal',
-      tags: ['test', '🧪'],
-      priority: 3
+    const response = await fetch('/api/notifications/test', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({
+        type: 'PUSH',
+        message: 'Questo è un test delle notifiche NTFY per P-Cal! 🧪'
+      })
     })
 
-    showSuccess('Notifica NTFY inviata con successo!')
+    const data = await response.json()
+    if (data.success) {
+      showSuccess('Notifica NTFY inviata con successo!')
+    } else {
+      showError(data.error || 'Errore nell\'invio della notifica NTFY')
+    }
   } catch (error) {
     console.error('NTFY test error:', error)
-    showError('Errore nell\'invio della notifica NTFY: ' + (error as Error).message)
+    showError('Errore nell\'invio della notifica NTFY')
   } finally {
     isTesting.value = null
   }
@@ -400,8 +492,12 @@ const copyTopicUrl = async () => {
 const saveSettings = async () => {
   isSaving.value = true
   try {
-    // Save to localStorage for now
-    localStorage.setItem('notificationSettings', JSON.stringify(settings.value))
+    // Save browser notification preferences to localStorage
+    const browserSettings = {
+      enabled: settings.value.enabled,
+      browserEnabled: settings.value.browserEnabled
+    }
+    localStorage.setItem('notificationSettings', JSON.stringify(browserSettings))
     showSuccess('Impostazioni salvate con successo!')
   } catch (error) {
     showError('Errore nel salvataggio delle impostazioni')
@@ -410,37 +506,41 @@ const saveSettings = async () => {
   }
 }
 
-const loadSettings = () => {
+const loadSettings = async () => {
   try {
+    // Load browser settings from localStorage
     const saved = localStorage.getItem('notificationSettings')
     if (saved) {
       const parsedSettings = JSON.parse(saved)
-      settings.value = { ...settings.value, ...parsedSettings }
+      settings.value.enabled = parsedSettings.enabled ?? true
+      settings.value.browserEnabled = parsedSettings.browserEnabled ?? true
     }
-    
-    // Generate topic if not present
-    if (!settings.value.ntfyTopic) {
-      settings.value.ntfyTopic = defaultTopic.value
-    }
+
+    // Load notification configuration and user's NTFY topic from backend
+    await fetchNotificationConfig()
+    await fetchSubscriptionUrl()
   } catch (error) {
     console.error('Error loading notification settings:', error)
   }
 }
 
-const resetSettings = () => {
+const resetSettings = async () => {
   settings.value = {
     enabled: true,
     ntfyEnabled: false,
-    ntfyServer: 'https://ntfy.sh',
-    ntfyTopic: defaultTopic.value,
+    ntfyServer: '',
+    ntfyTopic: '',
     browserEnabled: true
   }
+
+  localStorage.removeItem('notificationSettings')
+  await loadSettings()
   showSuccess('Impostazioni ripristinate')
 }
 
 // Lifecycle
-onMounted(() => {
-  loadSettings()
+onMounted(async () => {
+  await loadSettings()
 })
 </script>
 

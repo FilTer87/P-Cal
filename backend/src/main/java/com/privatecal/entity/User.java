@@ -76,6 +76,10 @@ public class User {
     @Column(name = "two_factor_secret")
     private String twoFactorSecret;
 
+    @Size(max = 100)
+    @Column(name = "ntfy_topic", unique = true, length = 100)
+    private String ntfyTopic;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
     
@@ -256,6 +260,14 @@ public class User {
 
     public void setTwoFactorSecret(String twoFactorSecret) {
         this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public String getNtfyTopic() {
+        return ntfyTopic;
+    }
+
+    public void setNtfyTopic(String ntfyTopic) {
+        this.ntfyTopic = ntfyTopic;
     }
 
     @Override

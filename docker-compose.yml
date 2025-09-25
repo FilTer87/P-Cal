@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   database:
     build:
@@ -31,11 +29,13 @@ services:
     container_name: privatecal-backend
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=jdbc:postgresql://database:5432/calendar_db
-      - DATABASE_USERNAME=calendar_user
-      - DATABASE_PASSWORD=calendar_pass
-      - JWT_SECRET=privatecal-jwt-secret-key-2024-very-secure
-      - NTFY_SERVER_URL=https://ntfy.sh
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - NTFY_SERVER_URL=${NTFY_SERVER_URL}
+      - NTFY_TOPIC_PREFIX=${NTFY_TOPIC_PREFIX}
+      - NTFY_AUTH_TOKEN=${NTFY_AUTH_TOKEN}
     depends_on:
       database:
         condition: service_healthy

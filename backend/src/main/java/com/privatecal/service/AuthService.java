@@ -52,6 +52,9 @@ public class AuthService {
     @Autowired
     private TwoFactorService twoFactorService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     /**
      * Authenticate user and generate JWT tokens
      */
@@ -179,7 +182,18 @@ public class AuthService {
             
             // Save user
             User savedUser = userRepository.save(newUser);
-            
+
+            // Generate and assign NTFY topic for the new user
+            try {
+                String ntfyTopic = notificationService.generateNtfyTopicForUser(savedUser.getId());
+                savedUser.setNtfyTopic(ntfyTopic);
+                savedUser = userRepository.save(savedUser);
+                logger.info("Generated NTFY topic for new user {}: {}", savedUser.getUsername(), ntfyTopic);
+            } catch (Exception e) {
+                logger.error("Failed to generate NTFY topic for new user {}: {}", savedUser.getUsername(), e.getMessage());
+                // Continue with registration even if NTFY topic generation fails
+            }
+
             // Create UserDetails for token generation
             UserDetailsImpl userDetails = UserDetailsImpl.build(savedUser);
             

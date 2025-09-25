@@ -2,6 +2,7 @@ package com.privatecal.controller;
 
 import com.privatecal.dto.AuthRequest;
 import com.privatecal.dto.AuthResponse;
+import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.UserResponse;
 import com.privatecal.dto.UserPreferencesRequest;
 import com.privatecal.dto.UserPreferencesResponse;
@@ -156,6 +157,7 @@ public class AuthController {
                 try {
                     notificationService.sendTestNotification(
                         response.getUser().getId(),
+                        NotificationType.PUSH,
                         "Welcome to P-Cal! Your account has been created successfully."
                     );
                 } catch (Exception e) {
@@ -320,22 +322,17 @@ public class AuthController {
     /**
      * Get notification settings for current user
      * GET /api/auth/notification-settings
+     * DEPRECATED: Use /api/notifications/config and /api/notifications/ntfy/subscription-url instead
      */
     @GetMapping("/notification-settings")
     public ResponseEntity<Map<String, Object>> getNotificationSettings() {
         try {
-            Long currentUserId = userService.getCurrentUserId();
-            String ntfyTopic = notificationService.getNtfyTopicForUser(currentUserId);
-            String subscriptionUrl = notificationService.getNtfySubscriptionUrl(currentUserId);
-            boolean notificationsEnabled = notificationService.areNotificationsEnabled();
-            
             return ResponseEntity.ok(Map.of(
-                "notificationsEnabled", notificationsEnabled,
-                "ntfyTopic", ntfyTopic,
-                "subscriptionUrl", subscriptionUrl,
-                "instructions", "Subscribe to the NTFY topic to receive push notifications"
+                "message", "This endpoint is deprecated. Use /api/notifications/config for notification configuration.",
+                "configEndpoint", "/api/notifications/config",
+                "subscriptionEndpoint", "/api/notifications/ntfy/subscription-url",
+                "testEndpoint", "/api/notifications/test"
             ));
-            
         } catch (Exception e) {
             logger.error("Error getting notification settings", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -353,7 +350,7 @@ public class AuthController {
             Long currentUserId = userService.getCurrentUserId();
             String message = request.getOrDefault("message", "This is a test notification from PrivateCal");
 
-            notificationService.sendTestNotification(currentUserId, message);
+            notificationService.sendTestNotification(currentUserId, NotificationType.PUSH, message);
 
             return ResponseEntity.ok(Map.of(
                 "success", true,

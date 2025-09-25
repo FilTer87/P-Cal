@@ -1,5 +1,6 @@
 package com.privatecal.entity;
 
+import com.privatecal.dto.NotificationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -41,9 +42,6 @@ public class Reminder {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     
-    public enum NotificationType {
-        PUSH, EMAIL
-    }
     
     // Constructors
     public Reminder() {}

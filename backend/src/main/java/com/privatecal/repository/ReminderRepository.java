@@ -1,5 +1,6 @@
 package com.privatecal.repository;
 
+import com.privatecal.dto.NotificationType;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -154,7 +155,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     @Query("SELECT r FROM Reminder r WHERE r.task.user.id = :userId AND r.notificationType = :notificationType " +
            "ORDER BY r.reminderTime ASC")
     List<Reminder> findRemindersByNotificationTypeForUser(@Param("userId") Long userId, 
-                                                         @Param("notificationType") Reminder.NotificationType notificationType);
+                                                         @Param("notificationType") NotificationType notificationType);
     
     /**
      * Find the next reminder for a specific task

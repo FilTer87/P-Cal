@@ -2,6 +2,7 @@ package com.privatecal.service;
 
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.ReminderResponse;
+import com.privatecal.dto.NotificationType;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -302,12 +303,8 @@ public class ReminderService {
             logger.debug("Processing reminder ID: {} for task: {}", 
                         reminder.getId(), reminder.getTask().getTitle());
             
-            // Send notification based on type
-            if (reminder.getNotificationType() == Reminder.NotificationType.PUSH) {
-                notificationService.sendPushNotification(reminder);
-            } else if (reminder.getNotificationType() == Reminder.NotificationType.EMAIL) {
-                notificationService.sendEmailNotification(reminder);
-            }
+            // Send notification using unified service
+            notificationService.sendReminderNotification(reminder);
             
             // Mark as sent
             markReminderAsSent(reminder.getId());

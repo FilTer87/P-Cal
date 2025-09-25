@@ -13,7 +13,7 @@ public class ReminderRequest {
     @Min(value = 0, message = "Reminder offset minutes must be non-negative")
     private Integer reminderOffsetMinutes;
     
-    private Reminder.NotificationType notificationType = Reminder.NotificationType.PUSH;
+    private NotificationType notificationType = NotificationType.PUSH;
     
     // Default constructor
     public ReminderRequest() {}
@@ -24,7 +24,7 @@ public class ReminderRequest {
     }
     
     // Constructor with offset and notification type
-    public ReminderRequest(Integer reminderOffsetMinutes, Reminder.NotificationType notificationType) {
+    public ReminderRequest(Integer reminderOffsetMinutes, NotificationType notificationType) {
         this.reminderOffsetMinutes = reminderOffsetMinutes;
         this.notificationType = notificationType;
     }
@@ -89,11 +89,11 @@ public class ReminderRequest {
         this.reminderOffsetMinutes = reminderOffsetMinutes;
     }
     
-    public Reminder.NotificationType getNotificationType() {
+    public NotificationType getNotificationType() {
         return notificationType;
     }
     
-    public void setNotificationType(Reminder.NotificationType notificationType) {
+    public void setNotificationType(NotificationType notificationType) {
         this.notificationType = notificationType;
     }
     
@@ -155,14 +155,14 @@ public class ReminderRequest {
      * Check if notification type is push
      */
     public boolean isPushNotification() {
-        return notificationType == Reminder.NotificationType.PUSH;
+        return notificationType == NotificationType.PUSH;
     }
     
     /**
      * Check if notification type is email
      */
     public boolean isEmailNotification() {
-        return notificationType == Reminder.NotificationType.EMAIL;
+        return notificationType == NotificationType.EMAIL;
     }
     
     @Override

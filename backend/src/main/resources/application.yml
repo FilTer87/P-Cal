@@ -74,8 +74,9 @@ app:
   
   ntfy:
     server-url: ${NTFY_SERVER_URL:https://ntfy.sh}
-    topic-prefix: "calendar-user-"
-    enabled: true
+    topic-prefix: ${NTFY_TOPIC_PREFIX:calendar-user-}
+    auth-token: ${NTFY_AUTH_TOKEN:}
+    enabled: ${NTFY_ENABLED:true}
   
   cors:
     allowed-origins: "http://localhost,http://localhost:3000,http://localhost:5173,http://frontend"

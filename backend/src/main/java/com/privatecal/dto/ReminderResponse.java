@@ -20,7 +20,7 @@ public class ReminderResponse {
     
     private Integer reminderOffsetMinutes;
     private Boolean isSent;
-    private Reminder.NotificationType notificationType;
+    private NotificationType notificationType;
     
     private Instant createdAt;
     
@@ -188,11 +188,11 @@ public class ReminderResponse {
         calculateComputedFields();
     }
     
-    public Reminder.NotificationType getNotificationType() {
+    public NotificationType getNotificationType() {
         return notificationType;
     }
     
-    public void setNotificationType(Reminder.NotificationType notificationType) {
+    public void setNotificationType(NotificationType notificationType) {
         this.notificationType = notificationType;
     }
     
@@ -256,14 +256,14 @@ public class ReminderResponse {
      * Check if notification type is push
      */
     public boolean isPushNotification() {
-        return notificationType == Reminder.NotificationType.PUSH;
+        return notificationType == NotificationType.PUSH;
     }
     
     /**
      * Check if notification type is email
      */
     public boolean isEmailNotification() {
-        return notificationType == Reminder.NotificationType.EMAIL;
+        return notificationType == NotificationType.EMAIL;
     }
     
     /**
