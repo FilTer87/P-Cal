@@ -2,7 +2,12 @@ package com.privatecal.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -10,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.concurrent.Executor;
+import java.util.Optional;
 
 /**
  * Main application configuration class
@@ -50,5 +56,23 @@ public class AppConfig implements WebMvcConfigurer {
         executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;
+    }
+
+    /**
+     * Auditor provider for JPA auditing
+     */
+    @Bean
+    public AuditorAware<String> auditorAware() {
+        return () -> {
+            SecurityContext context = SecurityContextHolder.getContext();
+            if (context != null) {
+                Authentication authentication = context.getAuthentication();
+                if (authentication != null && authentication.isAuthenticated()
+                    && !"anonymousUser".equals(authentication.getPrincipal())) {
+                    return Optional.of(authentication.getName());
+                }
+            }
+            return Optional.of("system");
+        };
     }
 }

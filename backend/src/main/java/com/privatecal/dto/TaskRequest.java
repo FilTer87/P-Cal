@@ -1,6 +1,7 @@
 package com.privatecal.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 
 import java.time.Instant;
@@ -56,6 +57,7 @@ public class TaskRequest {
     
     // Validation method
     @AssertTrue(message = "End datetime must be after start datetime")
+    @JsonIgnore
     public boolean isEndDatetimeAfterStartDatetime() {
         if (startDatetime == null || endDatetime == null) {
             return true; // Let @NotNull handle null validation
@@ -135,6 +137,7 @@ public class TaskRequest {
     /**
      * Get task duration in minutes
      */
+    @JsonIgnore
     public long getDurationInMinutes() {
         if (startDatetime != null && endDatetime != null) {
             return java.time.Duration.between(startDatetime, endDatetime).toMinutes();
@@ -145,6 +148,7 @@ public class TaskRequest {
     /**
      * Check if task spans multiple days (in UTC)
      */
+    @JsonIgnore
     public boolean isMultiDay() {
         if (startDatetime != null && endDatetime != null) {
             return !startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate()
@@ -156,6 +160,7 @@ public class TaskRequest {
     /**
      * Get task date (start date in UTC)
      */
+    @JsonIgnore
     public java.time.LocalDate getTaskDate() {
         return startDatetime != null ? startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate() : null;
     }
@@ -163,6 +168,7 @@ public class TaskRequest {
     /**
      * Check if task has reminders
      */
+    @JsonIgnore
     public boolean hasReminders() {
         return reminders != null && !reminders.isEmpty();
     }
@@ -170,6 +176,7 @@ public class TaskRequest {
     /**
      * Check if this is a valid task request
      */
+    @JsonIgnore
     public boolean isValid() {
         return title != null && !title.trim().isEmpty() &&
                startDatetime != null && endDatetime != null &&
