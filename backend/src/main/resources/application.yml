@@ -36,6 +36,32 @@ spring:
     deserialization:
       adjust-dates-to-context-time-zone: false
 
+  # Email Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          # socketFactory:
+            # port: ${MAIL_PORT:587}
+            # class: javax.net.ssl.SSLSocketFactory
+            # fallback: false
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: "*"
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+    default-encoding: UTF-8
+    test-connection: false
+
 management:
   endpoints:
     web:
@@ -71,13 +97,22 @@ app:
     access-token-expiration: 900000    # 15 minutes
     # refresh-token-expiration: 240000 # 4 minutes (test)
     refresh-token-expiration: 604800000 # 7 days
-  
+
+  # Email Configuration
+  email:
+    enabled: ${EMAIL_ENABLED:true}
+    from-address: ${EMAIL_FROM_ADDRESS:noreply@privatecal.com}
+    from-name: ${EMAIL_FROM_NAME:P-Cal}
+    base-url: ${APP_BASE_URL:http://localhost}
+    templates:
+      path: classpath:/templates/email/
+
   ntfy:
     server-url: ${NTFY_SERVER_URL:https://ntfy.sh}
     topic-prefix: ${NTFY_TOPIC_PREFIX:calendar-user-}
     auth-token: ${NTFY_AUTH_TOKEN:}
     enabled: ${NTFY_ENABLED:true}
-  
+
   cors:
     allowed-origins: "http://localhost,http://localhost:3000,http://localhost:5173,http://frontend"
     allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"

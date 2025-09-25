@@ -36,6 +36,14 @@ services:
       - NTFY_SERVER_URL=${NTFY_SERVER_URL}
       - NTFY_TOPIC_PREFIX=${NTFY_TOPIC_PREFIX}
       - NTFY_AUTH_TOKEN=${NTFY_AUTH_TOKEN}
+      - EMAIL_ENABLED=${EMAIL_ENABLED}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME}
+      - APP_BASE_URL=${APP_BASE_URL}
     depends_on:
       database:
         condition: service_healthy

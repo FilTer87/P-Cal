@@ -14,6 +14,7 @@ import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
 import com.privatecal.service.TwoFactorService;
+import com.privatecal.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -55,6 +56,9 @@ public class AuthController {
 
     @Autowired
     private TwoFactorService twoFactorService;
+
+    @Autowired
+    private EmailService emailService;
 
     /**
      * User login endpoint
@@ -361,6 +365,110 @@ public class AuthController {
             logger.error("Error sending test notification", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "message", "Failed to send test notification"));
+        }
+    }
+
+    /**
+     * Test email configuration
+     * POST /api/auth/test-email
+     */
+    @Operation(
+        summary = "Test Email Configuration",
+        description = "Send a test email to verify email configuration is working correctly."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Test email sent successfully"),
+        @ApiResponse(responseCode = "400", description = "Email service not available or invalid request"),
+        @ApiResponse(responseCode = "401", description = "Authentication required"),
+        @ApiResponse(responseCode = "500", description = "Server error")
+    })
+    @PostMapping("/test-email")
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<Map<String, Object>> sendTestEmail(@RequestBody Map<String, String> request) {
+        try {
+            // Check if email service is available
+            if (!emailService.isEmailServiceAvailable()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                            "success", false,
+                            "message", "Email service is not available or not properly configured",
+                            "config", emailService.getEmailConfigInfo()
+                        ));
+            }
+
+            // Get current user
+            User currentUser = userService.getCurrentUser();
+            if (currentUser.getEmail() == null || currentUser.getEmail().trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                            "success", false,
+                            "message", "Current user has no email address configured"
+                        ));
+            }
+
+            // Get custom message or use default
+            String message = request.getOrDefault("message", "This is a test email to verify P-Cal email configuration is working correctly!");
+
+            // Send test email
+            boolean success = emailService.sendTestEmail(currentUser.getEmail(), message);
+
+            if (success) {
+                logger.info("Test email sent successfully to: {}", currentUser.getEmail());
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Test email sent successfully to " + currentUser.getEmail(),
+                    "recipient", currentUser.getEmail()
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of(
+                            "success", false,
+                            "message", "Failed to send test email"
+                        ));
+            }
+
+        } catch (Exception e) {
+            logger.error("Error sending test email", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                        "success", false,
+                        "message", "Failed to send test email: " + e.getMessage()
+                    ));
+        }
+    }
+
+    /**
+     * Get email service status
+     * GET /api/auth/email-status
+     */
+    @Operation(
+        summary = "Get Email Service Status",
+        description = "Check if email service is properly configured and available."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Email service status retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Authentication required")
+    })
+    @GetMapping("/email-status")
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<Map<String, Object>> getEmailServiceStatus() {
+        try {
+            boolean isAvailable = emailService.isEmailServiceAvailable();
+            String configInfo = emailService.getEmailConfigInfo();
+
+            return ResponseEntity.ok(Map.of(
+                "available", isAvailable,
+                "configuration", configInfo,
+                "message", isAvailable ? "Email service is available" : "Email service is not properly configured"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error checking email service status", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                        "available", false,
+                        "message", "Error checking email service status: " + e.getMessage()
+                    ));
         }
     }
 

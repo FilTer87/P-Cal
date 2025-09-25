@@ -33,3 +33,12 @@ app:
 
   ntfy:
     enabled: false  # Disable notifications during tests
+
+  # Email Configuration for Tests
+  email:
+    enabled: false  # Disable email during tests
+
+management:
+  health:
+    mail:
+      enabled: false  # Disable mail health check in tests only
