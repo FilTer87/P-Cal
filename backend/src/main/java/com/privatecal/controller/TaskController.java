@@ -1,5 +1,6 @@
 package com.privatecal.controller;
 
+import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
 import com.privatecal.service.TaskService;
@@ -62,7 +63,7 @@ public class TaskController {
             logger.debug("Creating new task: {}", taskRequest.getTitle());
             
             TaskResponse response = taskService.createTask(taskRequest);
-            
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
         } catch (Exception e) {

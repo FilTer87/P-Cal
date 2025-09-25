@@ -82,6 +82,7 @@ public class TaskService {
         
         // Reload task with reminders
         savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
+        // savedTask = taskRepository.findById(savedTask.getId()).orElseThrow( () -> new NullPointerException("Task not found after creation") );
         
         logger.info("Task created successfully: {} for user: {}", savedTask.getTitle(), currentUser.getUsername());
         
