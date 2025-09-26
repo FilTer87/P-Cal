@@ -7,6 +7,31 @@ import { localDateTimeToUTC, localDateToUTC, utcToLocalDate, utcToLocalTime } fr
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
 
 /**
+ * Convert offset value and unit to minutes
+ */
+function convertToMinutes(offsetValue: number, offsetUnit: string): number {
+  const multipliers = {
+    minutes: 1,
+    hours: 60,
+    days: 24 * 60
+  }
+  return offsetValue * (multipliers[offsetUnit] || 1)
+}
+
+/**
+ * Convert minutes to offset value and unit for form display
+ */
+function convertFromMinutes(offsetMinutes: number): { offsetValue: number, offsetUnit: string } {
+  if (offsetMinutes >= 24 * 60 && offsetMinutes % (24 * 60) === 0) {
+    return { offsetValue: offsetMinutes / (24 * 60), offsetUnit: 'days' }
+  } else if (offsetMinutes >= 60 && offsetMinutes % 60 === 0) {
+    return { offsetValue: offsetMinutes / 60, offsetUnit: 'hours' }
+  } else {
+    return { offsetValue: offsetMinutes, offsetUnit: 'minutes' }
+  }
+}
+
+/**
  * Transform task data from backend (UTC) to frontend (local) format
  */
 export function transformTaskFromBackend(task: Task): Task {
@@ -35,7 +60,10 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     location: formData.location?.trim() || undefined,
     color: formData.color,
     reminders: formData.reminders?.map(reminder => ({
-      reminderOffsetMinutes: reminder.offsetMinutes || reminder.reminderOffsetMinutes,
+      reminderOffsetMinutes: reminder.offsetMinutes ||
+                           (reminder.offsetValue && reminder.offsetUnit ?
+                            convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
+                            reminder.reminderOffsetMinutes),
       notificationType: reminder.notificationType
     })) || []
   }
@@ -56,7 +84,10 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     location: formData.location?.trim() || undefined,
     color: formData.color,
     reminders: formData.reminders?.map(reminder => ({
-      reminderOffsetMinutes: reminder.offsetMinutes || reminder.reminderOffsetMinutes,
+      reminderOffsetMinutes: reminder.offsetMinutes ||
+                           (reminder.offsetValue && reminder.offsetUnit ?
+                            convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
+                            reminder.reminderOffsetMinutes),
       notificationType: reminder.notificationType
     })) || []
   }
@@ -75,11 +106,17 @@ export function transformTaskToFormData(task: Task): TaskFormData {
     endTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : '',
     location: task.location || '',
     color: task.color || '#3788d8',
-    reminders: task.reminders?.map(reminder => ({
-      offsetMinutes: reminder.reminderOffsetMinutes || 15,
-      reminderOffsetMinutes: reminder.reminderOffsetMinutes || 15,
-      notificationType: reminder.notificationType || 'PUSH'
-    })) || []
+    reminders: task.reminders?.map(reminder => {
+      const offsetMinutes = reminder.reminderOffsetMinutes || 15
+      const { offsetValue, offsetUnit } = convertFromMinutes(offsetMinutes)
+      return {
+        offsetMinutes,
+        reminderOffsetMinutes: offsetMinutes,
+        offsetValue,
+        offsetUnit,
+        notificationType: reminder.notificationType || 'PUSH'
+      }
+    }) || []
   }
 }
 

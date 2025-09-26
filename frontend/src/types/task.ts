@@ -90,6 +90,9 @@ export interface TaskFormData {
 export interface ReminderFormData {
   id?: number
   offsetMinutes: number
+  offsetValue?: number
+  offsetUnit?: string
+  reminderOffsetMinutes?: number
   notificationType: NotificationType
   label?: string
 }

@@ -186,48 +186,66 @@
           </div>
 
           <div v-if="formData.reminders.length > 0" class="space-y-3">
-            <div v-for="(reminder, index) in formData.reminders" :key="index" 
-              class="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
-              <div class="flex-1">
-                <div class="flex items-center space-x-2">
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ formatReminderLabel(reminder.offsetMinutes) }}
-                  </span>
+            <div v-for="(reminder, index) in formData.reminders" :key="index"
+              class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                <!-- Notification Type -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tipologia
+                  </label>
                   <select
                     v-model="reminder.notificationType"
                     :disabled="isFormLoading"
-                    class="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option v-for="(config, type) in notificationTypes" :key="type" :value="type">
-                      {{ config.icon }} {{ config.label }}
-                    </option>
+                    <option value="PUSH">Notifica</option>
+                    <option value="EMAIL">Email</option>
                   </select>
                 </div>
-              </div>
-              <button
-                type="button"
-                @click="removeReminder(index)"
-                :disabled="isFormLoading"
-                class="p-1 text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
 
-            <!-- Quick Reminder Presets -->
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="preset in reminderPresets"
-                :key="preset.label"
-                type="button"
-                @click="addReminderPreset(preset.minutes)"
-                :disabled="isFormLoading"
-                class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/40 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {{ preset.label }}
-              </button>
+                <!-- Offset Value -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Valore
+                  </label>
+                  <input
+                    v-model.number="reminder.offsetValue"
+                    type="number"
+                    min="1"
+                    :disabled="isFormLoading"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  />
+                </div>
+
+                <!-- Time Unit -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Unità
+                  </label>
+                  <select
+                    v-model="reminder.offsetUnit"
+                    :disabled="isFormLoading"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="minutes">Minuti</option>
+                    <option value="hours">Ore</option>
+                    <option value="days">Giorni</option>
+                  </select>
+                </div>
+
+                <!-- Delete Button -->
+                <div>
+                  <button
+                    type="button"
+                    @click="removeReminder(index)"
+                    :disabled="isFormLoading"
+                    class="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Rimuovi
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -288,7 +306,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
 import { useSettingsStore } from '../stores/settings'
-import { NotificationType, NOTIFICATION_TYPE_CONFIG, REMINDER_PRESETS, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
+import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
 
 interface Props {
@@ -346,7 +364,6 @@ const notificationTypes = computed(() => NOTIFICATION_TYPE_CONFIG)
 
 const calendarColors = computed(() => CALENDAR_COLORS)
 
-const reminderPresets = computed(() => REMINDER_PRESETS)
 
 
 // Methods
@@ -381,8 +398,14 @@ const closeModal = () => {
 
 const addReminder = () => {
   const newReminder = {
-    offsetMinutes: 15,
-    notificationType: NotificationType.PUSH
+    offsetValue: 10,
+    offsetUnit: 'minutes',
+    notificationType: NotificationType.PUSH,
+    // Computed property for backward compatibility
+    get offsetMinutes() {
+      const multipliers = { minutes: 1, hours: 60, days: 24 * 60 }
+      return this.offsetValue * multipliers[this.offsetUnit]
+    }
   }
   formData.value.reminders.push(newReminder)
 }
@@ -391,13 +414,6 @@ const removeReminder = (index: number) => {
   formData.value.reminders.splice(index, 1)
 }
 
-const addReminderPreset = (offsetMinutes: number) => {
-  const reminder = {
-    offsetMinutes,
-    notificationType: NotificationType.PUSH
-  }
-  formData.value.reminders.push(reminder)
-}
 
 const formatReminderLabel = (offsetMinutes: number): string => {
   if (offsetMinutes === 0) return 'Al momento dell\'evento'

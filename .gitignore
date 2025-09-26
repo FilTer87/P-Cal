@@ -138,6 +138,9 @@ frontend/.yarn-integrity
 frontend/.cache
 frontend/.parcel-cache
 
+# build info
+frontend/tsconfig.tsbuildinfo
+
 # ==============================================
 # DATABASE
 # ==============================================
