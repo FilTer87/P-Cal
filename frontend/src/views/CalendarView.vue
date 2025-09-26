@@ -186,33 +186,20 @@
 
           <!-- Day View -->
           <div v-else-if="isDayView" class="h-full">
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
-              <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <h3 class="font-medium text-gray-900 dark:text-white mb-3">
                 {{ formatDate(currentDate) }}
               </h3>
 
-              <div class="space-y-3">
-                <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModalForEdit(task)"
-                  class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)"
-                  :style="getTaskDisplayStyle(task)">
-                  <div class="flex items-center space-x-3">
-                    <div class="flex-1">
-                      <h4 class="font-medium text-gray-900 dark:text-white">
-                        {{ task.title }}
-                      </h4>
-                      <p v-if="task.description" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {{ task.description }}
-                      </p>
-                      <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span>{{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}</span>
-                        <span>{{ formatTime(task.startDatetime) }}</span>
-                        <span v-if="task.reminders && task.reminders.length > 0">
-                          {{ task.reminders.length }} promemoria
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div class="space-y-2">
+                <TaskCard
+                  v-for="task in getTasksForDate(currentDate)"
+                  :key="task.id"
+                  :task="task"
+                  :task-display-classes="getTaskDisplayClasses(task)"
+                  :task-display-style="getTaskDisplayStyle(task)"
+                  @click="openTaskModalForEdit"
+                />
 
                 <div v-if="getTasksForDate(currentDate).length === 0" class="text-center py-8">
                   <p class="text-gray-500 dark:text-gray-400">
@@ -235,21 +222,14 @@
                 {{ getDateDescription(new Date(date)) }}
               </h3>
               <div class="space-y-2">
-                <div v-for="task in dayTasks" :key="task.id" @click="openTaskModalForEdit(task)"
-                  class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)"
-                  :style="getTaskDisplayStyle(task)">
-                  <div class="flex items-center space-x-3">
-                    <div class="flex-1">
-                      <p class="font-medium text-gray-900 dark:text-white">
-                        {{ task.title }}
-                      </p>
-                      <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}</span>
-                        <span>{{ formatTime(task.startDatetime) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <TaskCard
+                  v-for="task in dayTasks"
+                  :key="task.id"
+                  :task="task"
+                  :task-display-classes="getTaskDisplayClasses(task)"
+                  :task-display-style="getTaskDisplayStyle(task)"
+                  @click="openTaskModalForEdit"
+                />
               </div>
             </div>
 
@@ -296,6 +276,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import TaskModal from '../components/TaskModal.vue'
 import TaskDetailModal from '../components/TaskDetailModal.vue'
+import TaskCard from '../components/TaskCard.vue'
 import WeekView from '../components/Calendar/WeekView.vue'
 import CalendarSidebar from '../components/Calendar/CalendarSidebar.vue'
 import type { Task } from '../types/task'
@@ -508,11 +489,11 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
   if (colorName) {
     // For Tailwind colors, use background classes but no border color classes (we'll use inline styles)
     const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30 task-custom-color`
-    return isPast ? `${classes} opacity-50` : classes
+    return isPast ? `${classes} opacity-25` : classes
   } else {
     // For custom hex colors, use neutral background and inline styles
     const classes = `${baseClasses} task-custom-color bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600`
-    return isPast ? `${classes} opacity-50` : classes
+    return isPast ? `${classes} opacity-25` : classes
   }
 }
 
@@ -751,7 +732,7 @@ const getTaskTimeDisplayClasses = (task: Task) => {
   }
 
   if (isPast) {
-    baseClasses.push('opacity-50')
+    baseClasses.push('opacity-25')
   }
 
   return baseClasses.join(' ')
