@@ -188,20 +188,55 @@
           <div v-else-if="isDayView" class="h-full">
             <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
               <h3 class="font-medium text-gray-900 dark:text-white mb-3">
-                {{ formatDate(currentDate) }}
+                {{ getDayName(currentDate) }}, {{ formatDate(currentDate) }}
               </h3>
 
               <div class="space-y-2">
-                <TaskCard
-                  v-for="task in getTasksForDate(currentDate)"
-                  :key="task.id"
-                  :task="task"
-                  :task-display-classes="getTaskDisplayClasses(task)"
-                  :task-display-style="getTaskDisplayStyle(task)"
-                  @click="openTaskModalForEdit"
-                />
+                <!-- Current/Future Tasks -->
+                <div v-if="currentDayTasks.length > 0" class="space-y-2">
+                  <TaskCard
+                    v-for="task in currentDayTasks"
+                    :key="task.id"
+                    :task="task"
+                    :task-display-classes="getTaskDisplayClasses(task)"
+                    :task-display-style="getTaskDisplayStyle(task)"
+                    @click="openTaskModalForEdit"
+                  />
+                </div>
 
-                <div v-if="getTasksForDate(currentDate).length === 0" class="text-center py-8">
+                <!-- Separator and Past Tasks -->
+                <div v-if="pastDayTasks.length > 0">
+                  <!-- Clickable Separator line -->
+                  <div
+                    class="flex items-center my-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md py-2 transition-colors"
+                    @click="togglePastTasks"
+                  >
+                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+                    <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
+                      Attività completate ({{ pastDayTasks.length }})
+                      <ChevronDownIcon
+                        class="h-4 w-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': showPastTasks }"
+                      />
+                    </span>
+                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+                  </div>
+
+                  <!-- Collapsible Past Tasks -->
+                  <div v-show="showPastTasks" class="space-y-2">
+                    <TaskCard
+                      v-for="task in pastDayTasks"
+                      :key="task.id"
+                      :task="task"
+                      :task-display-classes="getTaskDisplayClasses(task)"
+                      :task-display-style="getTaskDisplayStyle(task)"
+                      @click="openTaskModalForEdit"
+                    />
+                  </div>
+                </div>
+
+                <!-- Empty state -->
+                <div v-if="currentDayTasks.length === 0 && pastDayTasks.length === 0" class="text-center py-8">
                   <p class="text-gray-500 dark:text-gray-400">
                     Nessuna attività programmata per oggi
                   </p>
@@ -221,7 +256,54 @@
               <h3 class="font-medium text-gray-900 dark:text-white mb-3">
                 {{ getDateDescription(new Date(date)) }}
               </h3>
-              <div class="space-y-2">
+              <!-- Special handling for today's tasks with separator -->
+              <div v-if="isDateToday(date)" class="space-y-2">
+                <!-- Current/Future Tasks for today -->
+                <div v-if="splitTasksByTime(dayTasks).current.length > 0" class="space-y-2">
+                  <TaskCard
+                    v-for="task in splitTasksByTime(dayTasks).current"
+                    :key="task.id"
+                    :task="task"
+                    :task-display-classes="getTaskDisplayClasses(task)"
+                    :task-display-style="getTaskDisplayStyle(task)"
+                    @click="openTaskModalForEdit"
+                  />
+                </div>
+
+                <!-- Separator and Past Tasks for today -->
+                <div v-if="splitTasksByTime(dayTasks).past.length > 0">
+                  <!-- Clickable Separator line -->
+                  <div
+                    class="flex items-center my-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md py-2 transition-colors"
+                    @click="togglePastTasks"
+                  >
+                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+                    <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
+                      Attività completate ({{ splitTasksByTime(dayTasks).past.length }})
+                      <ChevronDownIcon
+                        class="h-4 w-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': showPastTasks }"
+                      />
+                    </span>
+                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+                  </div>
+
+                  <!-- Collapsible Past Tasks for today -->
+                  <div v-show="showPastTasks" class="space-y-2">
+                    <TaskCard
+                      v-for="task in splitTasksByTime(dayTasks).past"
+                      :key="task.id"
+                      :task="task"
+                      :task-display-classes="getTaskDisplayClasses(task)"
+                      :task-display-style="getTaskDisplayStyle(task)"
+                      @click="openTaskModalForEdit"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Normal display for other dates -->
+              <div v-else class="space-y-2">
                 <TaskCard
                   v-for="task in dayTasks"
                   :key="task.id"
@@ -318,6 +400,7 @@ const settings = useSettingsStore()
 
 // Reactive state
 const showMobileSidebar = ref(false)
+const showPastTasks = ref(false)
 const selectedTaskForEdit = ref<Task | null>(null)
 const createTaskDate = ref<Date | undefined>(undefined)
 
@@ -401,6 +484,11 @@ const {
   toggleTheme
 } = theme
 
+// Reset past tasks visibility when view mode or date changes
+watch([viewMode, currentDate], () => {
+  showPastTasks.value = false
+})
+
 // Additional computed properties
 const tasksByDateInRange = computed(() => {
   const range = calendar.viewDateRange.value
@@ -451,6 +539,40 @@ const sortedTasksByDateInRange = computed(() => {
   return sortedResult
 })
 
+// Tasks for day view - split into current and past
+const currentDayTasks = computed(() => {
+  const now = new Date()
+  return getTasksForDate(currentDate.value)
+    .filter(task => new Date(task.endDatetime) >= now)
+    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+})
+
+const pastDayTasks = computed(() => {
+  const now = new Date()
+  return getTasksForDate(currentDate.value)
+    .filter(task => new Date(task.endDatetime) < now)
+    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+})
+
+// Helper function to split tasks for a specific date (used in agenda view)
+const splitTasksByTime = (tasks: any[]) => {
+  const now = new Date()
+  const current = tasks
+    .filter(task => new Date(task.endDatetime) >= now)
+    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+  const past = tasks
+    .filter(task => new Date(task.endDatetime) < now)
+    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+
+  return { current, past }
+}
+
+// Check if a date is today
+const isDateToday = (date: string) => {
+  const today = formatDate(new Date(), 'yyyy-MM-dd')
+  return date === today
+}
+
 // Methods
 const isToday = (date: Date) => isDateToday(date)
 
@@ -489,11 +611,11 @@ const getTaskDisplayClasses = (task: any, detailed = false) => {
   if (colorName) {
     // For Tailwind colors, use background classes but no border color classes (we'll use inline styles)
     const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30 task-custom-color`
-    return isPast ? `${classes} opacity-25` : classes
+    return isPast ? `${classes} opacity-25 hover:opacity-75` : classes
   } else {
     // For custom hex colors, use neutral background and inline styles
     const classes = `${baseClasses} task-custom-color bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600`
-    return isPast ? `${classes} opacity-25` : classes
+    return isPast ? `${classes} opacity-25 hover:opacity-75` : classes
   }
 }
 
@@ -543,6 +665,10 @@ const handleClickOutside = (event: Event) => {
 
 const closeMobileSidebar = () => {
   showMobileSidebar.value = false
+}
+
+const togglePastTasks = () => {
+  showPastTasks.value = !showPastTasks.value
 }
 
 // Task Modal Methods
@@ -732,7 +858,7 @@ const getTaskTimeDisplayClasses = (task: Task) => {
   }
 
   if (isPast) {
-    baseClasses.push('opacity-25')
+    baseClasses.push('opacity-25', 'hover:opacity-75')
   }
 
   return baseClasses.join(' ')
