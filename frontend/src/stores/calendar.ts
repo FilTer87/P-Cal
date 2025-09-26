@@ -111,7 +111,8 @@ export const useCalendarStore = defineStore('calendar', () => {
             description: task.description,
             priority: task.priority,
             dueDate: taskDate || '',
-            hasReminders: task.reminders?.length > 0 || false
+            hasReminders: task.reminders?.length > 0 || false,
+            color: task.color
           }
         })
       }

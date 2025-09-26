@@ -157,7 +157,8 @@
                 <div v-for="task in (day.tasks || []).slice(0, 3)" :key="task.id"
                   @click.stop="openTaskModalForEdit(getTaskById(task.id)!)"
                   class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
-                  :class="getTaskDisplayClasses(task)">
+                  :class="getTaskDisplayClasses(task)"
+                  :style="getTaskDisplayStyle(task)">
                   {{ task.title }}
                 </div>
                 <button
@@ -192,7 +193,8 @@
 
               <div class="space-y-3">
                 <div v-for="task in getTasksForDate(currentDate)" :key="task.id" @click="openTaskModalForEdit(task)"
-                  class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)">
+                  class="p-4 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task, true)"
+                  :style="getTaskDisplayStyle(task)">
                   <div class="flex items-center space-x-3">
                     <div class="flex-1">
                       <h4 class="font-medium text-gray-900 dark:text-white">
@@ -234,7 +236,8 @@
               </h3>
               <div class="space-y-2">
                 <div v-for="task in dayTasks" :key="task.id" @click="openTaskModalForEdit(task)"
-                  class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)">
+                  class="p-3 rounded-lg cursor-pointer transition-colors" :class="getTaskDisplayClasses(task)"
+                  :style="getTaskDisplayStyle(task)">
                   <div class="flex items-center space-x-3">
                     <div class="flex-1">
                       <p class="font-medium text-gray-900 dark:text-white">
@@ -260,26 +263,13 @@
       </main>
     </div>
 
-    <!-- Task Modal (placeholder) -->
-    <div v-if="showTaskModal" class="modal-overlay" @click="closeTaskModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Dettagli Attività
-        </h3>
-        <div v-if="selectedTask">
-          <p><strong>Titolo:</strong> {{ selectedTask.title }}</p>
-          <p v-if="selectedTask.description"><strong>Descrizione:</strong> {{ selectedTask.description }}</p>
-          <p><strong>Orario:</strong> {{ formatTime(selectedTask.startDatetime) }} - {{ formatTime(selectedTask.endDatetime) }}</p>
-          <p v-if="selectedTask.location"><strong>Luogo:</strong> {{ selectedTask.location }}</p>
-          <p v-if="selectedTask.dueDate"><strong>Scadenza:</strong> {{ formatDateTime(selectedTask.dueDate) }}</p>
-        </div>
-        <div class="mt-6 flex justify-end space-x-2">
-          <button @click="closeTaskModal" class="btn btn-secondary">
-            Chiudi
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Task Detail Modal -->
+    <TaskDetailModal
+      :show="showTaskModal"
+      :task="selectedTask"
+      @close="closeTaskModal"
+      @edit="handleTaskDetailEdit"
+    />
 
     <!-- Task Modal -->
     <TaskModal
@@ -305,6 +295,7 @@ import {
   MoonIcon
 } from '@heroicons/vue/24/outline'
 import TaskModal from '../components/TaskModal.vue'
+import TaskDetailModal from '../components/TaskDetailModal.vue'
 import WeekView from '../components/Calendar/WeekView.vue'
 import CalendarSidebar from '../components/Calendar/CalendarSidebar.vue'
 import type { Task } from '../types/task'
@@ -484,31 +475,75 @@ const isToday = (date: Date) => isDateToday(date)
 
 // getPriorityColor removed as priority no longer exists in Task model
 
+// Centralized color mapping
+const TASK_COLOR_MAP: Record<string, string> = {
+  '#3b82f6': 'blue',
+  '#3788d8': 'blue', // Default blue
+  '#10b981': 'emerald',
+  '#ef4444': 'red',
+  '#f59e0b': 'amber',
+  '#8b5cf6': 'violet',
+  '#ec4899': 'pink',
+  '#6366f1': 'indigo',
+  '#14b8a6': 'teal',
+  '#f97316': 'orange',
+  '#6b7280': 'gray',
+  '#22c55e': 'green',
+  '#a855f7': 'purple',
+  '#06b6d4': 'cyan',
+  '#84cc16': 'lime',
+  '#eab308': 'yellow',
+  '#f43f5e': 'rose'
+}
+
 const getTaskDisplayClasses = (task: any, detailed = false) => {
   const baseClasses = detailed
     ? 'border-l-4'
-    : ''
+    : 'border-l-2' // Add colored border for monthly view as well
 
   const isPast = new Date(task.endDatetime) < new Date()
-
-  // Use task color for styling
   const color = task.color || '#3788d8'
-  const colorMap: Record<string, string> = {
-    '#3b82f6': 'blue',
-    '#10b981': 'emerald',
-    '#ef4444': 'red',
-    '#f59e0b': 'amber',
-    '#8b5cf6': 'violet',
-    '#ec4899': 'pink',
-    '#6366f1': 'indigo',
-    '#14b8a6': 'teal',
-    '#f97316': 'orange',
-    '#6b7280': 'gray'
+  const colorName = TASK_COLOR_MAP[color]
+
+  if (colorName) {
+    // For Tailwind colors, use background classes but no border color classes (we'll use inline styles)
+    const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30 task-custom-color`
+    return isPast ? `${classes} opacity-50` : classes
+  } else {
+    // For custom hex colors, use neutral background and inline styles
+    const classes = `${baseClasses} task-custom-color bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600`
+    return isPast ? `${classes} opacity-50` : classes
+  }
+}
+
+const getTaskDisplayStyle = (task: any) => {
+  const color = task.color || '#3788d8'
+  const colorName = TASK_COLOR_MAP[color]
+
+
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
-  const colorName = colorMap[color] || 'blue'
-  const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 border-${colorName}-500 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30`
-  return isPast ? `${classes} opacity-50` : classes
+  // For ALL colors, use CSS custom properties and inline styles
+  const style: any = {
+    '--task-color': color,
+    borderLeftColor: color,
+    borderLeftWidth: '2px',
+    borderLeftStyle: 'solid'
+  }
+
+  // For custom colors (not in Tailwind map), also set background
+  if (!colorName) {
+    style['--task-bg-color'] = hexToRgba(color, 0.1)
+    style.backgroundColor = hexToRgba(color, 0.1)
+  }
+
+
+  return style
 }
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
@@ -571,6 +606,17 @@ const openTaskModalForEdit = (task: Task) => {
   selectedTaskForEdit.value = task
   createTaskDate.value = undefined
   calendar.closeTaskModal()
+  calendar.openCreateTaskModal()
+}
+
+// Handle editing from task detail modal
+const handleTaskDetailEdit = (task: Task) => {
+  // Close the detail modal first
+  calendar.closeTaskModal()
+
+  // Then open the edit modal
+  selectedTaskForEdit.value = task
+  createTaskDate.value = undefined
   calendar.openCreateTaskModal()
 }
 
@@ -966,5 +1012,25 @@ onUnmounted(() => {
   .mobile-full {
     @apply w-full;
   }
+}
+
+/* Custom task color styles for hover effects */
+.task-custom-color {
+  @apply transition-all duration-200;
+}
+
+.task-custom-color:hover {
+  @apply shadow-sm;
+  filter: brightness(0.95);
+}
+
+/* Force border colors to use inline styles over Tailwind classes */
+.task-custom-color {
+  border-left-color: var(--task-color) !important;
+}
+
+/* For custom colors, also apply background */
+.task-custom-color[style*="--task-bg-color"] {
+  background-color: var(--task-bg-color) !important;
 }
 </style>

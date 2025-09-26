@@ -138,11 +138,11 @@
               <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>
             </div>
           </div>
-        </div>
-        <div v-if="todayTasks && todayTasks.length > 5" class="mt-2 text-center">
-          <button @click="showTodayView" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-            Mostra altre {{ todayTasks.length - 5 }} attività
-          </button>
+          <div v-if="todayTasks && todayTasks.length > 5" class="mt-2 text-center">
+            <button @click="showTodayView" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+              Mostra altre {{ todayTasks.length - 5 }} attività
+            </button>
+          </div>
         </div>
       </div>
 
