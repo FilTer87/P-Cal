@@ -47,11 +47,11 @@
               <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
                 :style="getTaskTimeStyle(task)"
                 @click="handleTaskClick(task)"
-                class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md"
+                class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden"
                 :class="getTaskTimeDisplayClasses(task)">
-                <div class="truncate font-semibold">{{ task.title }}</div>
-                <div v-if="task.location" class="truncate text-xs opacity-90">{{ task.location }}</div>
-                <div class="text-xs opacity-75">{{ formatTaskTime(task) }}</div>
+                <div class="truncate font-semibold leading-tight">{{ task.title }}</div>
+                <div v-if="task.location && shouldShowLocation(task)" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
+                <div v-if="shouldShowTime(task)" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
               </div>
             </div>
           </div>
@@ -240,7 +240,9 @@ const getTaskTimePosition = (task: any) => {
   }
   
   const topPosition = startHour * 64 // 64px per hour (h-16 = 4rem = 64px)
-  const height = Math.max((endHour - startHour) * 64, 32) // Minimum 32px height
+  const actualDuration = (endHour - startHour) * 64
+  // Use actual duration but with a minimum of 20px for very short tasks
+  const height = Math.max(actualDuration, 20)
   
   return {
     top: `${topPosition}px`,
@@ -320,6 +322,22 @@ const getTasksOverflowIndicators = (dayTasks: Task[]) => {
   })
 
   return indicators
+}
+
+// Helper functions for content display based on task height
+const getTaskHeight = (task: any) => {
+  const position = getTaskTimePosition(task)
+  return parseInt(position.height)
+}
+
+const shouldShowLocation = (task: any) => {
+  // Show location only if task is at least 48px tall (enough for title + location)
+  return getTaskHeight(task) >= 48
+}
+
+const shouldShowTime = (task: any) => {
+  // Show time only if task is at least 64px tall (enough for title + location + time)
+  return getTaskHeight(task) >= 64
 }
 
 // Computed properties
