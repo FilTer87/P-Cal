@@ -155,7 +155,7 @@
               <!-- Tasks -->
               <div class="space-y-1">
                 <div v-for="task in (day.tasks || []).slice(0, 3)" :key="task.id"
-                  @click.stop="openTaskModalForEdit(getTaskById(task.id)!)"
+                  @click.stop="openTaskModal(getTaskById(task.id)!)"
                   class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
                   :class="getTaskDisplayClasses(task)"
                   :style="getTaskDisplayStyle(task)">
@@ -179,7 +179,7 @@
             :scroll-top="scrollTop"
             :scroll-height="scrollHeight"
             :client-height="clientHeight"
-            @task-click="openTaskModalForEdit"
+            @task-click="openTaskModal"
             @scroll="handleWeeklyScroll"
             ref="weekViewRef"
           />
@@ -200,7 +200,7 @@
                     :task="task"
                     :task-display-classes="getTaskDisplayClasses(task)"
                     :task-display-style="getTaskDisplayStyle(task)"
-                    @click="openTaskModalForEdit"
+                    @click="openTaskModal"
                   />
                 </div>
 
@@ -230,7 +230,7 @@
                       :task="task"
                       :task-display-classes="getTaskDisplayClasses(task)"
                       :task-display-style="getTaskDisplayStyle(task)"
-                      @click="openTaskModalForEdit"
+                      @click="openTaskModal"
                     />
                   </div>
                 </div>
@@ -266,7 +266,7 @@
                     :task="task"
                     :task-display-classes="getTaskDisplayClasses(task)"
                     :task-display-style="getTaskDisplayStyle(task)"
-                    @click="openTaskModalForEdit"
+                    @click="openTaskModal"
                   />
                 </div>
 
@@ -296,7 +296,7 @@
                       :task="task"
                       :task-display-classes="getTaskDisplayClasses(task)"
                       :task-display-style="getTaskDisplayStyle(task)"
-                      @click="openTaskModalForEdit"
+                      @click="openTaskModal"
                     />
                   </div>
                 </div>
@@ -310,7 +310,7 @@
                   :task="task"
                   :task-display-classes="getTaskDisplayClasses(task)"
                   :task-display-style="getTaskDisplayStyle(task)"
-                  @click="openTaskModalForEdit"
+                  @click="openTaskModal"
                 />
               </div>
             </div>
@@ -331,6 +331,7 @@
       :task="selectedTask"
       @close="closeTaskModal"
       @edit="handleTaskDetailEdit"
+      @delete="handleTaskDeleted"
     />
 
     <!-- Task Modal -->
@@ -695,6 +696,8 @@ const handleTaskUpdated = async (task: Task) => {
 }
 
 const handleTaskDeleted = async (taskId: number) => {
+  // Close the detail modal
+  closeTaskModal()
   // Refresh tasks data
   await tasks.fetchTasks()
   await tasks.refreshStatistics()
@@ -707,13 +710,6 @@ const openCreateTaskModalWithDate = (date?: Date) => {
   selectedTaskForEdit.value = null
   createTaskDate.value = date
   calendar.openCreateTaskModal(date)
-}
-
-const openTaskModalForEdit = (task: Task) => {
-  selectedTaskForEdit.value = task
-  createTaskDate.value = undefined
-  calendar.closeTaskModal()
-  calendar.openCreateTaskModal()
 }
 
 // Handle editing from task detail modal
