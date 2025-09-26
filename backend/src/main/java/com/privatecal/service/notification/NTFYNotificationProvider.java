@@ -4,6 +4,7 @@ import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.repository.UserRepository;
+import com.privatecal.util.TimezoneUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +13,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +34,9 @@ public class NTFYNotificationProvider implements NotificationProvider {
 
     @Value("${app.ntfy.auth-token:}")
     private String ntfyAuthToken;
+
+    @Value("${app.email.base-url:http://localhost:3000}")
+    private String appBaseURl;
 
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
@@ -226,8 +227,11 @@ public class NTFYNotificationProvider implements NotificationProvider {
         message.append("Reminder: ").append(data.getTaskTitle());
 
         if (data.getTaskStartTime() != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
-            String startTime = data.getTaskStartTime().atZone(ZoneOffset.UTC).format(formatter);
+            // Format time in user's timezone
+            String startTime = TimezoneUtils.formatInstantInTimezone(
+                data.getTaskStartTime(),
+                data.getUserTimezone()
+            );
             message.append("\n\n📅 Scheduled for: ").append(startTime);
         }
 
@@ -280,15 +284,6 @@ public class NTFYNotificationProvider implements NotificationProvider {
     private String createActionButtons(NotificationData data) {
         // Format: action=view, label=View Task, url=https://example.com/tasks/123
         return String.format("action=view, label=View Task, url=%s/tasks/%d",
-                getBaseUrl(), data.getTaskId());
-    }
-
-    /**
-     * Get base URL for action buttons
-     * TODO: This should come from configuration
-     */
-    private String getBaseUrl() {
-        // For now, return a placeholder. This should be configurable via application.properties
-        return "https://localhost:3000"; // Frontend URL
+                appBaseURl, data.getTaskId());
     }
 }

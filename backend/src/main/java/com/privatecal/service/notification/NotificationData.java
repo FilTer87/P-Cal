@@ -16,6 +16,7 @@ public class NotificationData {
     private final String userEmail;
     private final String userFullName;
     private final String userNtfyTopic;
+    private final String userTimezone;
 
     private final Long taskId;
     private final String taskTitle;
@@ -33,6 +34,7 @@ public class NotificationData {
         this.userEmail = builder.userEmail;
         this.userFullName = builder.userFullName;
         this.userNtfyTopic = builder.userNtfyTopic;
+        this.userTimezone = builder.userTimezone;
         this.taskId = builder.taskId;
         this.taskTitle = builder.taskTitle;
         this.taskDescription = builder.taskDescription;
@@ -57,6 +59,7 @@ public class NotificationData {
                 .userEmail(user.getEmail())
                 .userFullName(user.getFullName())
                 .userNtfyTopic(user.getNtfyTopic())
+                .userTimezone(user.getTimezone())
                 .taskId(task.getId())
                 .taskTitle(task.getTitle())
                 .taskDescription(task.getDescription())
@@ -74,6 +77,7 @@ public class NotificationData {
     public String getUserEmail() { return userEmail; }
     public String getUserFullName() { return userFullName; }
     public String getUserNtfyTopic() { return userNtfyTopic; }
+    public String getUserTimezone() { return userTimezone; }
     public Long getTaskId() { return taskId; }
     public String getTaskTitle() { return taskTitle; }
     public String getTaskDescription() { return taskDescription; }
@@ -117,6 +121,7 @@ public class NotificationData {
         private String userEmail;
         private String userFullName;
         private String userNtfyTopic;
+        private String userTimezone;
         private Long taskId;
         private String taskTitle;
         private String taskDescription;
@@ -131,6 +136,7 @@ public class NotificationData {
         public Builder userEmail(String userEmail) { this.userEmail = userEmail; return this; }
         public Builder userFullName(String userFullName) { this.userFullName = userFullName; return this; }
         public Builder userNtfyTopic(String userNtfyTopic) { this.userNtfyTopic = userNtfyTopic; return this; }
+        public Builder userTimezone(String userTimezone) { this.userTimezone = userTimezone; return this; }
         public Builder taskId(Long taskId) { this.taskId = taskId; return this; }
         public Builder taskTitle(String taskTitle) { this.taskTitle = taskTitle; return this; }
         public Builder taskDescription(String taskDescription) { this.taskDescription = taskDescription; return this; }

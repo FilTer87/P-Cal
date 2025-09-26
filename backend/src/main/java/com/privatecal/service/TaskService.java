@@ -247,13 +247,22 @@ public class TaskService {
 
         // Update reminders if provided
         if (taskRequest.getReminders() != null) {
-            // Remove existing reminders
-            reminderRepository.deleteByTask_Id(taskId);
-            
+            // Get existing reminders for comparison and explicit deletion
+            List<Reminder> existingReminders = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+
+            // Delete existing reminders explicitly
+            if (!existingReminders.isEmpty()) {
+                reminderRepository.deleteAll(existingReminders);
+                reminderRepository.flush(); // Force immediate execution of delete in PostgreSQL
+            }
+
             // Add new reminders
             for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
                 reminderService.createReminderForTask(taskId, reminderRequest);
             }
+
+            // Force flush of inserts as well to ensure consistency
+            reminderRepository.flush();
         }
         
         // Reload task with reminders

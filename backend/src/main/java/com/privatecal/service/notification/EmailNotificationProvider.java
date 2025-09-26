@@ -3,13 +3,11 @@ package com.privatecal.service.notification;
 import com.privatecal.entity.Reminder;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.service.EmailService;
+import com.privatecal.util.TimezoneUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Email notification provider implementation
@@ -38,11 +36,13 @@ public class EmailNotificationProvider implements NotificationProvider {
                 return false;
             }
 
-            // Format task start time for email
+            // Format task start time for email using user's timezone
             String formattedStartTime = null;
             if (data.getTaskStartTime() != null) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm");
-                formattedStartTime = data.getTaskStartTime().atZone(ZoneOffset.UTC).format(formatter);
+                formattedStartTime = TimezoneUtils.formatInstantInTimezone(
+                    data.getTaskStartTime(),
+                    data.getUserTimezone()
+                );
             }
 
             // Send email using EmailService
