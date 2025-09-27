@@ -45,13 +45,25 @@
             <!-- Tasks for this day (including split multi-day tasks) -->
             <div class="absolute inset-0 pointer-events-none">
               <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
-                :style="getTaskTimeStyle(task)"
+                :style="getTaskTimeStyleIntelligent(task, getTasksWithSplitsForDate(dayInfo.day))"
                 @click="handleTaskClick(task)"
-                class="absolute left-1 right-1 p-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden"
-                :class="getTaskTimeDisplayClasses(task)">
-                <div class="truncate font-semibold leading-tight">{{ task.title }}</div>
-                <div v-if="task.location && shouldShowLocation(task)" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
-                <div v-if="shouldShowTime(task)" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
+                class="absolute left-1 right-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden group"
+                :class="getTaskTimeDisplayClasses(task)"
+                :title="getTaskTooltipContent(task)">
+
+                <!-- Content for larger tasks -->
+                <template v-if="shouldShowTitle(task, getTasksWithSplitsForDate(dayInfo.day))">
+                  <div class="truncate font-semibold leading-tight text-xs">{{ task.title }}</div>
+                  <div v-if="task.location && shouldShowLocation(task, getTasksWithSplitsForDate(dayInfo.day))" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
+                  <div v-if="shouldShowTime(task, getTasksWithSplitsForDate(dayInfo.day))" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
+                </template>
+
+                <!-- Minimal indicator for very small tasks -->
+                <template v-else>
+                  <div class="w-full h-full flex items-center justify-center">
+                    <div class="w-1 h-1 bg-white rounded-full opacity-80"></div>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -241,8 +253,8 @@ const getTaskTimePosition = (task: any) => {
   
   const topPosition = startHour * 64 // 64px per hour (h-16 = 4rem = 64px)
   const actualDuration = (endHour - startHour) * 64
-  // Use actual duration but with a minimum of 20px for very short tasks
-  const height = Math.max(actualDuration, 20)
+  // Use actual duration with minimum 3px for visibility
+  const height = Math.max(actualDuration, 3)
   
   return {
     top: `${topPosition}px`,
@@ -273,7 +285,19 @@ const getTaskTimeDisplayClasses = (task: Task) => {
 const getTaskTimeStyle = (task: Task) => {
   const position = getTaskTimePosition(task)
   const color = task.color || '#3788d8'
-  
+
+  return {
+    ...position,
+    backgroundColor: `${color}CC`,
+    borderLeftColor: color,
+    zIndex: 10
+  }
+}
+
+const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[]) => {
+  const position = getTaskTimePositionIntelligent(task, dayTasks)
+  const color = task.color || '#3788d8'
+
   return {
     ...position,
     backgroundColor: `${color}CC`,
@@ -330,14 +354,130 @@ const getTaskHeight = (task: any) => {
   return parseInt(position.height)
 }
 
-const shouldShowLocation = (task: any) => {
-  // Show location only if task is at least 48px tall (enough for title + location)
-  return getTaskHeight(task) >= 48
+const getTaskHeightIntelligent = (task: any, dayTasks: Task[]) => {
+  const position = getTaskTimePositionIntelligent(task, dayTasks)
+  return parseInt(position.height)
 }
 
-const shouldShowTime = (task: any) => {
-  // Show time only if task is at least 64px tall (enough for title + location + time)
-  return getTaskHeight(task) >= 64
+const shouldShowTitle = (task: any, dayTasks?: Task[]) => {
+  // Show title only if task is at least 16px tall
+  if (dayTasks) {
+    return getTaskHeightIntelligent(task, dayTasks) >= 16
+  }
+  return getTaskHeight(task) >= 16
+}
+
+const shouldShowLocation = (task: any, dayTasks?: Task[]) => {
+  // Show location only if task is at least 36px tall (enough for title + location)
+  if (dayTasks) {
+    return getTaskHeightIntelligent(task, dayTasks) >= 36
+  }
+  return getTaskHeight(task) >= 36
+}
+
+const shouldShowTime = (task: any, dayTasks?: Task[]) => {
+  // Show time only if task is at least 56px tall (enough for title + location + time)
+  if (dayTasks) {
+    return getTaskHeightIntelligent(task, dayTasks) >= 56
+  }
+  return getTaskHeight(task) >= 56
+}
+
+const getTaskTooltipContent = (task: any) => {
+  const parts = []
+
+  // Always show title
+  parts.push(task.title)
+
+  // Add time info
+  const timeStr = formatTaskTime(task)
+  if (timeStr) {
+    parts.push(`Orario: ${timeStr}`)
+  }
+
+  // Add location if present
+  if (task.location) {
+    parts.push(`Luogo: ${task.location}`)
+  }
+
+  // Add description if present and not too long
+  if (task.description && task.description.length <= 100) {
+    parts.push(`${task.description}`)
+  } else if (task.description) {
+    parts.push(`${task.description.substring(0, 97)}...`)
+  }
+
+  return parts.join(' • ')
+}
+
+// Check if task overlaps with next task (for intelligent height calculation)
+const hasOverlapWithNext = (currentTask: any, dayTasks: Task[]) => {
+  const currentEndStr = currentTask._visualEndTime || currentTask.endDatetime
+  if (!currentEndStr) return false
+
+  const currentEnd = new Date(currentEndStr)
+
+  // Find tasks that start within 2 minutes of this task's end
+  const overlapping = dayTasks.some(otherTask => {
+    if (otherTask.id === currentTask.id) return false
+
+    const otherStartStr = otherTask._visualStartTime || otherTask.startDatetime
+    if (!otherStartStr) return false
+
+    const otherStart = new Date(otherStartStr)
+    const timeDifference = Math.abs(otherStart.getTime() - currentEnd.getTime())
+
+    // Consider overlap if next task starts within 2 minutes (120000ms)
+    return timeDifference <= 120000 && otherStart >= currentEnd
+  })
+
+  return overlapping
+}
+
+// Intelligent task positioning with overlap detection
+const getTaskTimePositionIntelligent = (task: any, dayTasks: Task[]) => {
+  // Use visual times for positioning if available (for split multi-day tasks)
+  const startTimeStr = task._visualStartTime || task.startDatetime
+  const endTimeStr = task._visualEndTime || task.endDatetime
+
+  if (!startTimeStr) return { top: '0px', height: '18px' }
+
+  const start = new Date(startTimeStr)
+  const end = endTimeStr ? new Date(endTimeStr) : new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour
+
+  // Calculate position based on hours (each hour = 64px height)
+  const startHour = start.getHours() + start.getMinutes() / 60
+  let endHour = end.getHours() + end.getMinutes() / 60
+
+  // For VISUAL positioning: limit to current day (max 24:00)
+  if (endHour < startHour) {
+    endHour = 24
+  }
+
+  const topPosition = startHour * 64 // 64px per hour (h-16 = 4rem = 64px)
+  const actualDuration = (endHour - startHour) * 64
+
+  // Intelligent height calculation
+  let height
+  if (actualDuration >= 18) {
+    // Task is naturally large enough, use actual duration
+    height = actualDuration
+  } else {
+    // Task is very short, check for overlaps
+    const hasOverlap = hasOverlapWithNext(task, dayTasks)
+    if (hasOverlap) {
+      // Use minimal height to avoid overlaps
+      height = Math.max(actualDuration, 3)
+    } else {
+      // No overlap, use comfortable minimum for readability
+      height = 18
+    }
+  }
+
+  return {
+    top: `${topPosition}px`,
+    height: `${height}px`
+  }
 }
 
 // Computed properties
