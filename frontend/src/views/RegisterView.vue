@@ -143,9 +143,9 @@
               <p v-if="errors.password" class="error-message">
                 {{ errors.password }}
               </p>
-              <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                La password deve contenere almeno 8 caratteri, una lettera minuscola, una maiuscola e un numero.
-              </div>
+
+              <!-- Password Strength Indicator -->
+              <PasswordStrengthIndicator :password="form.password" />
             </div>
 
             <!-- Confirm Password Field -->
@@ -309,6 +309,7 @@ import { useAuth } from '../composables/useAuth'
 import { useTheme } from '../composables/useTheme'
 import { useCustomToast } from '../composables/useCustomToast'
 import { validateRegistrationForm } from '../utils/validators'
+import PasswordStrengthIndicator from '../components/Common/PasswordStrengthIndicator.vue'
 import type { RegisterFormData } from '../types/auth'
 
 // Composables
