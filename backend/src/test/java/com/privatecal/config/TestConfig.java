@@ -7,8 +7,12 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.privatecal.service.EmailService;
+import org.mockito.Mockito;
 
 import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.*;
 
 /**
  * Test configuration to provide beans needed for testing
@@ -33,5 +37,18 @@ public class TestConfig {
             }
             return Optional.of("test-user");
         };
+    }
+
+    /**
+     * Provide a mock EmailService for testing
+     */
+    @Bean
+    @Primary
+    public EmailService testEmailService() {
+        EmailService mockEmailService = Mockito.mock(EmailService.class);
+        // Mock successful email sending by default
+        Mockito.when(mockEmailService.sendEmail(anyString(), anyString(), anyString()))
+               .thenReturn(true);
+        return mockEmailService;
     }
 }

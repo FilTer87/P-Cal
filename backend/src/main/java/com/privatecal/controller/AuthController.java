@@ -9,6 +9,9 @@ import com.privatecal.dto.UserPreferencesResponse;
 import com.privatecal.dto.TwoFactorSetupResponse;
 import com.privatecal.dto.TwoFactorVerifyRequest;
 import com.privatecal.dto.TwoFactorDisableRequest;
+import com.privatecal.dto.ForgotPasswordRequest;
+import com.privatecal.dto.ResetPasswordRequest;
+import com.privatecal.dto.PasswordResetResponse;
 import com.privatecal.entity.User;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
@@ -848,5 +851,72 @@ public class AuthController {
         }
 
         return request.getRemoteAddr();
+    }
+
+    /**
+     * Initiate password reset process
+     */
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Initiate password reset", description = "Send password reset email to user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password reset email sent (or would be sent if email exists)"),
+        @ApiResponse(responseCode = "400", description = "Invalid email format"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        logger.info("Password reset request from IP: {} for email: {}",
+                   getClientIpAddress(httpRequest), request.getEmail());
+
+        try {
+            PasswordResetResponse response = authService.forgotPassword(request);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error processing forgot password request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
+    }
+
+    /**
+     * Reset password using token
+     */
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset user password using reset token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password reset successful"),
+        @ApiResponse(responseCode = "400", description = "Invalid token or password"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        logger.info("Password reset attempt from IP: {} with token: {}",
+                   getClientIpAddress(httpRequest), request.getToken());
+
+        try {
+            PasswordResetResponse response = authService.resetPassword(request);
+
+            if (response.isSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing password reset", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
     }
 }

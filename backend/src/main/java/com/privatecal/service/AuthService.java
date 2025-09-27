@@ -24,6 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
+import com.privatecal.entity.PasswordResetToken;
+import com.privatecal.repository.PasswordResetTokenRepository;
+import com.privatecal.dto.ForgotPasswordRequest;
+import com.privatecal.dto.ResetPasswordRequest;
+import com.privatecal.dto.PasswordResetResponse;
 
 /**
  * Authentication service for user login, registration, and token management
@@ -54,6 +60,12 @@ public class AuthService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     /**
      * Authenticate user and generate JWT tokens
@@ -365,5 +377,249 @@ public class AuthService {
     private User getUserFromUserDetails(UserDetailsImpl userDetails) {
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userDetails.getUsername()));
+    }
+
+    /**
+     * Initiate password reset process
+     */
+    @Transactional
+    public PasswordResetResponse forgotPassword(ForgotPasswordRequest request) {
+        logger.debug("Password reset requested for email: {}", request.getEmail());
+
+        try {
+            // Find user by email
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+
+            if (userOptional.isEmpty()) {
+                // Don't reveal if email exists or not for security
+                logger.warn("Password reset requested for non-existent email: {}", request.getEmail());
+                return new PasswordResetResponse(
+                    "Se l'email esiste nel nostro sistema, riceverai le istruzioni per il reset della password.",
+                    true
+                );
+            }
+
+            User user = userOptional.get();
+
+            // Invalidate any existing tokens for this user
+            passwordResetTokenRepository.markAllUserTokensAsUsed(user);
+            passwordResetTokenRepository.flush(); // Force execution of the update query
+
+            // Generate new reset token
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiryDate = LocalDateTime.now().plusHours(1); // Token expires in 1 hour
+
+            PasswordResetToken resetToken = new PasswordResetToken(token, user, expiryDate);
+            passwordResetTokenRepository.save(resetToken);
+
+            // Send password reset email
+            sendPasswordResetEmail(user, token);
+
+            logger.info("Password reset token generated for user: {}", user.getUsername());
+
+            return new PasswordResetResponse(
+                "Se l'email esiste nel nostro sistema, riceverai le istruzioni per il reset della password.",
+                true
+            );
+
+        } catch (Exception e) {
+            logger.error("Error during password reset request for email: {}", request.getEmail(), e);
+            return new PasswordResetResponse(
+                "Si è verificato un errore durante l'elaborazione della richiesta. Riprova più tardi.",
+                false
+            );
+        }
+    }
+
+    /**
+     * Reset password using token
+     */
+    @Transactional
+    public PasswordResetResponse resetPassword(ResetPasswordRequest request) {
+        logger.debug("Password reset attempt with token: {}", request.getToken());
+
+        try {
+            // Find valid token
+            Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository
+                .findValidTokenByToken(request.getToken(), LocalDateTime.now());
+
+            if (tokenOptional.isEmpty()) {
+                logger.warn("Invalid or expired password reset token: {}", request.getToken());
+                return new PasswordResetResponse(
+                    "Token non valido o scaduto. Richiedi un nuovo reset password.",
+                    false
+                );
+            }
+
+            PasswordResetToken resetToken = tokenOptional.get();
+            User user = resetToken.getUser();
+
+            // Update user password
+            String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+            user.setPasswordHash(hashedPassword);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            // Mark token as used
+            resetToken.setUsed(true);
+            passwordResetTokenRepository.save(resetToken);
+
+            // Send confirmation email
+            sendPasswordResetConfirmationEmail(user);
+
+            logger.info("Password reset successfully for user: {}", user.getUsername());
+
+            return new PasswordResetResponse(
+                "Password reset eseguito con successo. Ora puoi effettuare il login con la nuova password.",
+                true
+            );
+
+        } catch (Exception e) {
+            logger.error("Error during password reset with token: {}", request.getToken(), e);
+            return new PasswordResetResponse(
+                "Si è verificato un errore durante il reset della password. Riprova più tardi.",
+                false
+            );
+        }
+    }
+
+    /**
+     * Send password reset email to user
+     */
+    private void sendPasswordResetEmail(User user, String token) {
+        try {
+            String resetUrl = buildPasswordResetUrl(token);
+            String subject = "P-Cal - Reset Password";
+            String htmlBody = buildPasswordResetEmailTemplate(user, resetUrl);
+
+            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+            if (!emailSent) {
+                throw new RuntimeException("Failed to send password reset email");
+            }
+            logger.info("Password reset email sent to: {}", user.getEmail());
+
+        } catch (Exception e) {
+            logger.error("Failed to send password reset email to: {}", user.getEmail(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    /**
+     * Send password reset confirmation email
+     */
+    private void sendPasswordResetConfirmationEmail(User user) {
+        try {
+            String subject = "P-Cal - Password Reset Confermato";
+            String htmlBody = buildPasswordResetConfirmationTemplate(user);
+
+            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+            if (!emailSent) {
+                logger.warn("Failed to send password reset confirmation email to: {}", user.getEmail());
+                // Don't throw exception for confirmation email as password reset was successful
+            } else {
+                logger.info("Password reset confirmation email sent to: {}", user.getEmail());
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to send password reset confirmation email to: {}", user.getEmail(), e);
+            // Don't throw exception here as password reset was successful
+        }
+    }
+
+    /**
+     * Build password reset URL
+     */
+    private String buildPasswordResetUrl(String token) {
+        // This should be configurable via application properties
+        String frontendUrl = "http://localhost:5173"; // Default for development
+        return frontendUrl + "/reset-password/" + token;
+    }
+
+    /**
+     * Build password reset email template
+     */
+    private String buildPasswordResetEmailTemplate(User user, String resetUrl) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Reset Password - P-Cal</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #2563eb;">P-Cal - Reset Password</h1>
+                    <p>Ciao %s,</p>
+                    <p>Hai richiesto il reset della password per il tuo account P-Cal.</p>
+                    <p>Clicca sul seguente link per reimpostare la password:</p>
+                    <div style="margin: 30px 0;">
+                        <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+                    </div>
+                    <p><strong>Questo link scadrà tra 1 ora.</strong></p>
+                    <p>Se non hai richiesto il reset della password, ignora questa email.</p>
+                    <hr style="margin: 30px 0;">
+                    <p style="font-size: 12px; color: #666;">
+                        Questo è un messaggio automatico, non rispondere a questa email.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """,
+            user.getFirstName() != null ? user.getFirstName() : user.getUsername(),
+            resetUrl
+        );
+    }
+
+    /**
+     * Build password reset confirmation email template
+     */
+    private String buildPasswordResetConfirmationTemplate(User user) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Password Reset Confermato - P-Cal</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #16a34a;">P-Cal - Password Reset Confermato</h1>
+                    <p>Ciao %s,</p>
+                    <p>La tua password è stata reimpostata con successo.</p>
+                    <p>Ora puoi effettuare il login con la nuova password.</p>
+                    <p>Se non hai effettuato tu questa operazione, contatta immediatamente il supporto.</p>
+                    <hr style="margin: 30px 0;">
+                    <p style="font-size: 12px; color: #666;">
+                        Questo è un messaggio automatico, non rispondere a questa email.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """,
+            user.getFirstName() != null ? user.getFirstName() : user.getUsername()
+        );
+    }
+
+    /**
+     * Cleanup expired password reset tokens (scheduled job)
+     */
+    @Transactional
+    public void cleanupExpiredTokens() {
+        logger.debug("Cleaning up expired password reset tokens");
+
+        try {
+            // Delete tokens expired more than 24 hours ago
+            LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
+            passwordResetTokenRepository.deleteExpiredTokens(cutoff);
+
+            // Delete used tokens older than 7 days
+            LocalDateTime usedCutoff = LocalDateTime.now().minusDays(7);
+            passwordResetTokenRepository.deleteUsedTokensOlderThan(usedCutoff);
+
+            logger.info("Password reset tokens cleanup completed");
+
+        } catch (Exception e) {
+            logger.error("Error during password reset tokens cleanup", e);
+        }
     }
 }
