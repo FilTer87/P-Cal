@@ -73,3 +73,47 @@ export interface RegisterFormData {
   lastName: string
   acceptTerms: boolean
 }
+
+// Password Reset interfaces
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  newPassword: string
+}
+
+export interface PasswordResetResponse {
+  message: string
+  success: boolean
+}
+
+// Password Reset form data interfaces
+export interface ForgotPasswordFormData {
+  email: string
+}
+
+export interface ResetPasswordFormData {
+  newPassword: string
+  confirmPassword: string
+}
+
+// Password validation rules (matching backend constraints)
+export interface PasswordValidationRules {
+  minLength: number
+  maxLength: number
+  requireLowercase: boolean
+  requireUppercase: boolean
+  requireDigit: boolean
+  pattern: RegExp
+}
+
+export const PASSWORD_VALIDATION: PasswordValidationRules = {
+  minLength: 8,
+  maxLength: 128,
+  requireLowercase: true,
+  requireUppercase: true,
+  requireDigit: true,
+  pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/
+}

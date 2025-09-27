@@ -1,10 +1,13 @@
 import { apiClient } from './api'
-import type { 
-  LoginCredentials, 
-  RegisterCredentials, 
-  AuthResponse, 
+import type {
+  LoginCredentials,
+  RegisterCredentials,
+  AuthResponse,
   RefreshTokenResponse,
-  User 
+  User,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  PasswordResetResponse
 } from '../types/auth'
 import { API_ENDPOINTS } from '../types/api'
 
@@ -66,22 +69,28 @@ export class AuthApi {
   }
 
   /**
-   * Request password reset
+   * Request password reset - sends reset email to user
    */
-  async requestPasswordReset(email: string): Promise<void> {
-    return apiClient.post<void>('/auth/forgot-password', {
-      email
-    })
+  async forgotPassword(request: ForgotPasswordRequest): Promise<PasswordResetResponse> {
+    return apiClient.post<PasswordResetResponse>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, request)
   }
 
   /**
-   * Reset password with token
+   * Reset password using token from email
    */
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    return apiClient.post<void>('/auth/reset-password', {
-      token,
-      newPassword
-    })
+  async resetPassword(request: ResetPasswordRequest): Promise<PasswordResetResponse> {
+    return apiClient.post<PasswordResetResponse>(API_ENDPOINTS.AUTH.RESET_PASSWORD, request)
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   * @deprecated Use forgotPassword instead
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const response = await this.forgotPassword({ email })
+    if (!response.success) {
+      throw new Error(response.message)
+    }
   }
 
   /**

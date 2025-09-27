@@ -84,7 +84,9 @@ export const API_ENDPOINTS = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     PROFILE: '/auth/profile',
-    PASSWORD: '/auth/change-password'
+    PASSWORD: '/auth/change-password',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password'
   },
   // Task endpoints
   TASKS: {

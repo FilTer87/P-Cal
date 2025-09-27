@@ -30,6 +30,7 @@ import com.privatecal.repository.PasswordResetTokenRepository;
 import com.privatecal.dto.ForgotPasswordRequest;
 import com.privatecal.dto.ResetPasswordRequest;
 import com.privatecal.dto.PasswordResetResponse;
+import com.privatecal.config.EmailConfig;
 
 /**
  * Authentication service for user login, registration, and token management
@@ -66,6 +67,9 @@ public class AuthService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private EmailConfig emailConfig;
 
     /**
      * Authenticate user and generate JWT tokens
@@ -530,9 +534,7 @@ public class AuthService {
      * Build password reset URL
      */
     private String buildPasswordResetUrl(String token) {
-        // This should be configurable via application properties
-        String frontendUrl = "http://localhost:5173"; // Default for development
-        return frontendUrl + "/reset-password/" + token;
+        return emailConfig.getBaseUrl() + "/reset-password?token=" + token;
     }
 
     /**
@@ -587,7 +589,7 @@ public class AuthService {
                     <p>Ciao %s,</p>
                     <p>La tua password è stata reimpostata con successo.</p>
                     <p>Ora puoi effettuare il login con la nuova password.</p>
-                    <p>Se non hai effettuato tu questa operazione, contatta immediatamente il supporto.</p>
+                    <p>Se non hai effettuato tu questa operazione, contatta immediatamente il tuo amministratore di sistema.</p>
                     <hr style="margin: 30px 0;">
                     <p style="font-size: 12px; color: #666;">
                         Questo è un messaggio automatico, non rispondere a questa email.

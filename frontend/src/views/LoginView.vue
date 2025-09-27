@@ -183,6 +183,12 @@
       @cancel="handleTwoFactorCancel"
       ref="twoFactorModalRef"
     />
+
+    <!-- Forgot Password Modal -->
+    <ForgotPasswordModal
+      v-model="showForgotPasswordModal"
+      @success="handleForgotPasswordSuccess"
+    />
   </div>
 </template>
 
@@ -202,13 +208,14 @@ import { useCustomToast } from '../composables/useCustomToast'
 import { validateLoginForm } from '../utils/validators'
 import { authApi } from '../services/authApi'
 import TwoFactorVerifyModal from '../components/Auth/TwoFactorVerifyModal.vue'
+import ForgotPasswordModal from '../components/Auth/ForgotPasswordModal.vue'
 import type { LoginFormData } from '../types/auth'
 
 // Composables
 const router = useRouter()
 const { login, isLoading, requireGuest } = useAuth()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
-const { showError } = useCustomToast()
+const { showError, showSuccess } = useCustomToast()
 
 // Form state
 const form = ref<LoginFormData>({
@@ -221,6 +228,7 @@ const errors = ref<Record<string, string>>({})
 const generalError = ref<string>('')
 const showPassword = ref(false)
 const showTwoFactorModal = ref(false)
+const showForgotPasswordModal = ref(false)
 const twoFactorModalRef = ref()
 const pendingCredentials = ref<LoginFormData | null>(null)
 
@@ -237,7 +245,11 @@ const togglePasswordVisibility = () => {
 }
 
 const showForgotPassword = () => {
-  showError('Funzionalità di recupero password non ancora implementata')
+  showForgotPasswordModal.value = true
+}
+
+const handleForgotPasswordSuccess = () => {
+  showSuccess('Email di reset inviata! Controlla la tua casella di posta.')
 }
 
 const validateForm = () => {

@@ -131,27 +131,27 @@ export const authValidators = {
     if (!password) {
       return { isValid: false, message: 'Password è obbligatoria' }
     }
-    
+
     if (password.length < 8) {
       return { isValid: false, message: 'Password deve avere almeno 8 caratteri' }
     }
-    
-    if (password.length > 100) {
-      return { isValid: false, message: 'Password non può superare i 100 caratteri' }
+
+    if (password.length > 128) {
+      return { isValid: false, message: 'Password non può superare i 128 caratteri' }
     }
-    
+
     if (!/(?=.*[a-z])/.test(password)) {
       return { isValid: false, message: 'Password deve contenere almeno una lettera minuscola' }
     }
-    
+
     if (!/(?=.*[A-Z])/.test(password)) {
       return { isValid: false, message: 'Password deve contenere almeno una lettera maiuscola' }
     }
-    
+
     if (!/(?=.*\d)/.test(password)) {
       return { isValid: false, message: 'Password deve contenere almeno un numero' }
     }
-    
+
     return { isValid: true }
   },
 
@@ -517,5 +517,115 @@ export const patterns = {
   date: /^\d{4}-\d{2}-\d{2}$/,
   strongPassword: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
   username: /^[a-zA-Z0-9_.-]+$/,
-  italianName: /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð\s'-]+$/
+  italianName: /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð\s'-]+$/,
+  passwordReset: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/
+}
+
+/**
+ * Password Reset form validation
+ */
+export const validateForgotPasswordForm = (data: {
+  email: string
+}): FormValidationResult => {
+  return validateForm(data, {
+    email: authValidators.email
+  })
+}
+
+/**
+ * Reset Password form validation
+ */
+export const validateResetPasswordForm = (data: {
+  newPassword: string
+  confirmPassword: string
+}): FormValidationResult => {
+  const errors: Record<string, string> = {}
+
+  // New password validation
+  const passwordResult = authValidators.password(data.newPassword)
+  if (!passwordResult.isValid) {
+    errors.newPassword = passwordResult.message!
+  }
+
+  // Confirm password validation
+  const confirmPasswordResult = authValidators.confirmPassword(data.newPassword, data.confirmPassword)
+  if (!confirmPasswordResult.isValid) {
+    errors.confirmPassword = confirmPasswordResult.message!
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  }
+}
+
+/**
+ * Real-time password strength checker
+ */
+export const checkPasswordStrength = (password: string): {
+  score: number
+  feedback: string[]
+  isStrong: boolean
+} => {
+  const feedback: string[] = []
+  let score = 0
+
+  if (!password) {
+    return { score: 0, feedback: ['Password è obbligatoria'], isStrong: false }
+  }
+
+  // Length check
+  if (password.length >= 8) {
+    score += 1
+  } else {
+    feedback.push('Almeno 8 caratteri')
+  }
+
+  if (password.length >= 12) {
+    score += 1
+  }
+
+  // Character variety checks
+  if (/[a-z]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Almeno una lettera minuscola')
+  }
+
+  if (/[A-Z]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Almeno una lettera maiuscola')
+  }
+
+  if (/\d/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Almeno un numero')
+  }
+
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Caratteri speciali per maggiore sicurezza')
+  }
+
+  // Common patterns to avoid
+  if (/(.)\1{2,}/.test(password)) {
+    score -= 1
+    feedback.push('Evita sequenze di caratteri ripetuti')
+  }
+
+  if (/123|abc|qwe|asd/i.test(password)) {
+    score -= 1
+    feedback.push('Evita sequenze comuni di caratteri')
+  }
+
+  const isStrong = score >= 4 && password.length >= 8
+
+  return {
+    score: Math.max(0, Math.min(5, score)),
+    feedback,
+    isStrong
+  }
 }

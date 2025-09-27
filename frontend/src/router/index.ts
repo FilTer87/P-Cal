@@ -14,11 +14,20 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/register',
-    name: 'Register', 
+    name: 'Register',
     component: () => import('../views/RegisterView.vue'),
-    meta: { 
+    meta: {
       requiresGuest: true,
       title: 'Registrazione - P-Cal'
+    }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/ResetPasswordView.vue'),
+    meta: {
+      requiresGuest: true,
+      title: 'Reimposta Password - P-Cal'
     }
   },
   {
