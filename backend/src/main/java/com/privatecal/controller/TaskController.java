@@ -199,37 +199,6 @@ public class TaskController {
     }
     
     /**
-     * Delete multiple tasks
-     * DELETE /api/tasks
-     */
-    @DeleteMapping
-    public ResponseEntity<Map<String, Object>> deleteTasks(@RequestBody Map<String, List<Long>> request) {
-        try {
-            List<Long> taskIds = request.get("taskIds");
-            
-            if (taskIds == null || taskIds.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Task IDs are required"));
-            }
-            
-            logger.debug("Deleting {} tasks", taskIds.size());
-            
-            taskService.deleteTasks(taskIds);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Tasks deleted successfully",
-                "deletedCount", taskIds.size()
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error deleting multiple tasks", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("success", false, "message", e.getMessage()));
-        }
-    }
-    
-    /**
      * Clone/duplicate a task
      * POST /api/tasks/{taskId}/clone
      */

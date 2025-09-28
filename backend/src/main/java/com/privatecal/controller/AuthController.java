@@ -336,12 +336,10 @@ public class AuthController {
         summary = "Test Email Configuration",
         description = "Send a test email to verify email configuration is working correctly."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Test email sent successfully"),
-        @ApiResponse(responseCode = "400", description = "Email service not available or invalid request"),
-        @ApiResponse(responseCode = "401", description = "Authentication required"),
-        @ApiResponse(responseCode = "500", description = "Server error")
-    })
+    @ApiResponse(responseCode = "200", description = "Test email sent successfully")
+    @ApiResponse(responseCode = "400", description = "Email service not available or invalid request")
+    @ApiResponse(responseCode = "401", description = "Authentication required")
+    @ApiResponse(responseCode = "500", description = "Server error")
     @PostMapping("/test-email")
     @SecurityRequirement(name = "JWT")
     public ResponseEntity<Map<String, Object>> sendTestEmail(@RequestBody Map<String, String> request) {

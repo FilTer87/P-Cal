@@ -163,8 +163,14 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getTodayTasks() {
         Long currentUserId = userService.getCurrentUserId();
-        Instant today = Instant.now();
-        List<Task> tasks = taskRepository.findTodayTasksForUser(currentUserId, today);
+        Instant now = Instant.now();
+
+        // Calculate start and end of day in UTC
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        Instant startOfDay = today.atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        Instant endOfDay = today.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+
+        List<Task> tasks = taskRepository.findTodayTasksForUser(currentUserId, startOfDay, endOfDay);
         
         return tasks.stream()
                 .map(TaskResponse::fromTask)
@@ -292,23 +298,6 @@ public class TaskService {
     }
     
     /**
-     * Delete multiple tasks
-     */
-    public void deleteTasks(List<Long> taskIds) {
-        logger.debug("Deleting {} tasks", taskIds.size());
-        
-        User currentUser = userService.getCurrentUser();
-        
-        for (Long taskId : taskIds) {
-            try {
-                deleteTask(taskId);
-            } catch (Exception e) {
-                logger.warn("Failed to delete task ID {}: {}", taskId, e.getMessage());
-            }
-        }
-    }
-    
-    /**
      * Get task count for user
      */
     @Transactional(readOnly = true)
@@ -377,7 +366,12 @@ public class TaskService {
         long totalTasks = taskRepository.countByUser(currentUser);
         
         // Count today's tasks
-        List<Task> todayTasks = taskRepository.findTodayTasksForUser(currentUser.getId(), now);
+        // Calculate start and end of day in UTC for today's tasks
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        Instant startOfDay = today.atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        Instant endOfDay = today.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+
+        List<Task> todayTasks = taskRepository.findTodayTasksForUser(currentUser.getId(), startOfDay, endOfDay);
         
         // Count upcoming tasks
         List<Task> upcomingTasks = taskRepository.findUpcomingTasksForUser(currentUser, now);

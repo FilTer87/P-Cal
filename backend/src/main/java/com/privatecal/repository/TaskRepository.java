@@ -112,8 +112,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      * Find today's tasks for a user
      */
     @Query("SELECT t FROM Task t WHERE t.user.id = :userId AND " +
-           "DATE(t.startDatetime) = DATE(:today) ORDER BY t.startDatetime ASC")
-    List<Task> findTodayTasksForUser(@Param("userId") Long userId, @Param("today") Instant today);
+           "t.startDatetime >= :startOfDay AND t.startDatetime < :endOfDay " +
+           "ORDER BY t.startDatetime ASC")
+    List<Task> findTodayTasksForUser(@Param("userId") Long userId,
+                                     @Param("startOfDay") Instant startOfDay,
+                                     @Param("endOfDay") Instant endOfDay);
     
     /**
      * Check if user has any tasks in a specific time slot (for conflict detection)

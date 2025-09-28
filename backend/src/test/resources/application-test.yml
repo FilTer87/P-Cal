@@ -22,8 +22,8 @@ logging:
   level:
     com.privatecal: DEBUG
     org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
 
 app:
   jwt:
@@ -32,11 +32,17 @@ app:
     refresh-token-expiration: 3600000  # 1 hour for tests
 
   ntfy:
-    enabled: false  # Disable notifications during tests
+    server-url: https://ntfy.sh
+    topic-prefix: p-cal-test-
+    auth-token: test-token
+    enabled: true  # Enable with mock providers
 
   # Email Configuration for Tests
   email:
-    enabled: false  # Disable email during tests
+    enabled: true  # Enable with mock providers
+    from-address: test@example.com
+    from-name: P-Cal Test
+    base-url: http://localhost:3000
 
 management:
   health:

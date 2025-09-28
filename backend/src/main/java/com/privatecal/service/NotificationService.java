@@ -173,8 +173,8 @@ public class NotificationService {
         newTopic = newTopic.trim();
 
         // Validate topic format: must start with prefix
-        if (!newTopic.startsWith(ntfyTopicPrefix + "-" + userId + "-")) {
-            logger.warn("Invalid topic format for user {}: {}. Must start with {}-{}-",
+        if (!newTopic.startsWith(ntfyTopicPrefix + userId + "-")) {
+            logger.warn("Invalid topic format for user {}: {}. Must start with {}{}-",
                        userId, newTopic, ntfyTopicPrefix, userId);
             return false;
         }

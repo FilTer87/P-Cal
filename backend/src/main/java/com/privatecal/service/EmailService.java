@@ -162,12 +162,16 @@ public class EmailService {
      * Get email configuration info for debugging
      */
     public String getEmailConfigInfo() {
+        if (emailConfig == null) {
+            return "Email configuration not available";
+        }
+
         return String.format(
             "Email Service - Enabled: %s, From: %s <%s>, Base URL: %s",
             emailConfig.isEnabled(),
-            emailConfig.getFromName(),
-            emailConfig.getFromAddress(),
-            emailConfig.getBaseUrl()
+            emailConfig.getFromName() != null ? emailConfig.getFromName() : "N/A",
+            emailConfig.getFromAddress() != null ? emailConfig.getFromAddress() : "N/A",
+            emailConfig.getBaseUrl() != null ? emailConfig.getBaseUrl() : "N/A"
         );
     }
 
