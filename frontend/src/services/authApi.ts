@@ -82,19 +82,10 @@ export class AuthApi {
     return apiClient.post<PasswordResetResponse>(API_ENDPOINTS.AUTH.RESET_PASSWORD, request)
   }
 
-  /**
-   * Legacy method for backward compatibility
-   * @deprecated Use forgotPassword instead
-   */
-  async requestPasswordReset(email: string): Promise<void> {
-    const response = await this.forgotPassword({ email })
-    if (!response.success) {
-      throw new Error(response.message)
-    }
-  }
 
   /**
    * Verify email with token
+   * // TODO - Unused
    */
   async verifyEmail(token: string): Promise<void> {
     return apiClient.post<void>('/auth/verify-email', {
@@ -104,37 +95,16 @@ export class AuthApi {
 
   /**
    * Resend email verification
+   * // TODO - Unused
    */
   async resendEmailVerification(): Promise<void> {
     return apiClient.post<void>('/auth/resend-verification')
   }
 
-  /**
-   * Check if username is available
-   */
-  async checkUsernameAvailability(username: string): Promise<boolean> {
-    try {
-      const response = await apiClient.get<{ available: boolean }>(`/auth/check-username/${username}`)
-      return response.available
-    } catch (error) {
-      return false
-    }
-  }
-
-  /**
-   * Check if email is available
-   */
-  async checkEmailAvailability(email: string): Promise<boolean> {
-    try {
-      const response = await apiClient.get<{ available: boolean }>(`/auth/check-email/${encodeURIComponent(email)}`)
-      return response.available
-    } catch (error) {
-      return false
-    }
-  }
 
   /**
    * Get user sessions (active login sessions)
+   * // TODO - Unused
    */
   async getSessions(): Promise<any[]> {
     return apiClient.get<any[]>('/auth/sessions')
@@ -142,6 +112,7 @@ export class AuthApi {
 
   /**
    * Revoke a specific session
+   * // TODO - Unused
    */
   async revokeSession(sessionId: string): Promise<void> {
     return apiClient.delete<void>(`/auth/sessions/${sessionId}`)
@@ -149,6 +120,7 @@ export class AuthApi {
 
   /**
    * Revoke all sessions except current
+   * // TODO - Unused
    */
   async revokeAllSessions(): Promise<void> {
     return apiClient.delete<void>('/auth/sessions')
@@ -163,17 +135,6 @@ export class AuthApi {
     })
   }
 
-  /**
-   * Get account statistics
-   */
-  async getAccountStats(): Promise<{
-    createdAt: string
-    lastLoginAt: string
-    taskCount: number
-    reminderCount: number
-  }> {
-    return apiClient.get('/auth/stats')
-  }
 
   /**
    * Update user preferences
@@ -241,17 +202,6 @@ export class AuthApi {
     })
   }
 
-  /**
-   * Verify two-factor authentication code
-   */
-  async verifyTwoFactorCode(code: string): Promise<{
-    success: boolean
-    message: string
-  }> {
-    return apiClient.post('/auth/2fa/verify', {
-      code
-    })
-  }
 
   /**
    * Disable two-factor authentication
