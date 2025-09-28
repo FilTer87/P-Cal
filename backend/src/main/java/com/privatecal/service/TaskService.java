@@ -318,16 +318,6 @@ public class TaskService {
     }
     
     /**
-     * Check if user has tasks in date range
-     */
-    @Transactional(readOnly = true)
-    public boolean hasTasksInDateRange(Instant startDate, Instant endDate) {
-        User currentUser = userService.getCurrentUser();
-        List<Task> tasks = taskRepository.findTasksInDateRangeForUser(currentUser, startDate, endDate);
-        return !tasks.isEmpty();
-    }
-    
-    /**
      * Get tasks with due reminders (for notification processing)
      */
     @Transactional(readOnly = true)

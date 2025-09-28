@@ -107,7 +107,7 @@ public class TaskController {
      * GET /api/tasks/range?startDate=...&endDate=...
      * GET /api/tasks/date-range?startDate=...&endDate=...
      */
-    @GetMapping({"/range", "/date-range"})
+    @GetMapping("/date-range")
     public ResponseEntity<List<TaskResponse>> getTasksInRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) String startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) String endDate) {
@@ -139,21 +139,6 @@ public class TaskController {
         }
     }
     
-    /**
-     * Get upcoming tasks
-     * GET /api/tasks/upcoming?limit=10
-     */
-    @GetMapping("/upcoming")
-    public ResponseEntity<List<TaskResponse>> getUpcomingTasks(
-            @RequestParam(defaultValue = "10") int limit) {
-        try {
-            List<TaskResponse> tasks = taskService.getUpcomingTasks(limit);
-            return ResponseEntity.ok(tasks);
-        } catch (Exception e) {
-            logger.error("Error getting upcoming tasks", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
     
     /**
      * Search tasks
@@ -278,7 +263,7 @@ public class TaskController {
      * GET /api/tasks/statistics
      * GET /api/tasks/stats (alias)
      */
-    @GetMapping({"/statistics", "/stats"})
+    @GetMapping("/stats")
     public ResponseEntity<TaskService.TaskStatistics> getTaskStatistics() {
         try {
             TaskService.TaskStatistics statistics = taskService.getTaskStatistics();
@@ -289,69 +274,6 @@ public class TaskController {
         }
     }
     
-    /**
-     * Get overdue tasks
-     * GET /api/tasks/overdue
-     */
-    @GetMapping("/overdue")
-    public ResponseEntity<List<TaskResponse>> getOverdueTasks() {
-        try {
-            List<TaskResponse> tasks = taskService.getOverdueTasks();
-            return ResponseEntity.ok(tasks);
-        } catch (Exception e) {
-            logger.error("Error getting overdue tasks", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
     
-    /**
-     * Get task count
-     * GET /api/tasks/count
-     */
-    @GetMapping("/count")
-    public ResponseEntity<Map<String, Object>> getTaskCount() {
-        try {
-            long count = taskService.getTaskCountForUser();
-            return ResponseEntity.ok(Map.of("count", count));
-        } catch (Exception e) {
-            logger.error("Error getting task count", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Server error"));
-        }
-    }
     
-    /**
-     * Check for time conflicts
-     * POST /api/tasks/check-conflict
-     */
-    @PostMapping("/check-conflict")
-    public ResponseEntity<Map<String, Object>> checkTimeConflict(@RequestBody Map<String, Object> request) {
-        try {
-            String startTimeStr = (String) request.get("startTime");
-            String endTimeStr = (String) request.get("endTime");
-            Long excludeTaskId = request.containsKey("excludeTaskId") ? 
-                    Long.valueOf(request.get("excludeTaskId").toString()) : null;
-            
-            if (startTimeStr == null || endTimeStr == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "Start time and end time are required"));
-            }
-            
-            // Parse as ISO instant (UTC format)
-            Instant startTime = Instant.parse(startTimeStr);
-            Instant endTime = Instant.parse(endTimeStr);
-            
-            boolean hasConflict = taskService.hasTasksInDateRange(startTime, endTime);
-            
-            return ResponseEntity.ok(Map.of(
-                "hasConflict", hasConflict,
-                "message", hasConflict ? "Time conflict detected" : "No conflicts found"
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error checking time conflict", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Server error"));
-        }
-    }
 }

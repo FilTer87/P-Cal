@@ -417,7 +417,15 @@ public class AuthService {
             passwordResetTokenRepository.save(resetToken);
 
             // Send password reset email
-            sendPasswordResetEmail(user, token);
+            boolean emailSent = sendPasswordResetEmail(user, token);
+
+            if (!emailSent) {
+                logger.error("Failed to send password reset email for user: {}", user.getUsername());
+                return new PasswordResetResponse(
+                    "Si è verificato un errore durante l'elaborazione della richiesta. Riprova più tardi.",
+                    false
+                );
+            }
 
             logger.info("Password reset token generated for user: {}", user.getUsername());
 
@@ -490,21 +498,23 @@ public class AuthService {
     /**
      * Send password reset email to user
      */
-    private void sendPasswordResetEmail(User user, String token) {
+    private boolean sendPasswordResetEmail(User user, String token) {
         try {
             String resetUrl = buildPasswordResetUrl(token);
             String subject = "P-Cal - Reset Password";
             String htmlBody = buildPasswordResetEmailTemplate(user, resetUrl);
 
             boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
-            if (!emailSent) {
-                throw new RuntimeException("Failed to send password reset email");
+            if (emailSent) {
+                logger.info("Password reset email sent to: {}", user.getEmail());
+            } else {
+                logger.error("Failed to send password reset email to: {}", user.getEmail());
             }
-            logger.info("Password reset email sent to: {}", user.getEmail());
+            return emailSent;
 
         } catch (Exception e) {
             logger.error("Failed to send password reset email to: {}", user.getEmail(), e);
-            throw new RuntimeException("Failed to send password reset email", e);
+            return false;
         }
     }
 

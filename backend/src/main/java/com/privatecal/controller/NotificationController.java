@@ -206,27 +206,4 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
     }
 
-    /**
-     * Get notification statistics and status
-     */
-    @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> getNotificationStatus() {
-        Map<String, Object> status = new HashMap<>();
-
-        try {
-            status.put("enabledProviders", notificationService.getEnabledProviders());
-            status.put("supportedTypes", Map.of(
-                "PUSH", notificationService.isNotificationTypeSupported(NotificationType.PUSH),
-                "EMAIL", notificationService.isNotificationTypeSupported(NotificationType.EMAIL)
-            ));
-            status.put("ntfyServerUrl", notificationService.getNtfyServerUrl());
-
-            return ResponseEntity.ok(status);
-
-        } catch (Exception e) {
-            logger.error("Error getting notification status", e);
-            status.put("error", "Failed to get notification status");
-            return ResponseEntity.internalServerError().body(status);
-        }
-    }
 }

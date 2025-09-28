@@ -241,19 +241,6 @@ public class ReminderService {
         logger.debug("Marked {} reminders as sent", reminderIds.size());
     }
     
-    /**
-     * Reset reminder status (for testing/retry)
-     */
-    public void resetReminderStatus(Long reminderId) {
-        Long currentUserId = userService.getCurrentUserId();
-        
-        // Validate ownership
-        Reminder reminder = reminderRepository.findByIdAndUserId(reminderId, currentUserId)
-                .orElseThrow(() -> new RuntimeException("Reminder not found"));
-        
-        reminderRepository.resetReminderStatus(reminderId);
-        logger.info("Reminder status reset for reminder ID: {}", reminderId);
-    }
     
     /**
      * Get due reminders (ready to be sent)

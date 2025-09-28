@@ -9,6 +9,7 @@ import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.EmailService;
+import com.privatecal.config.EmailConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for password reset functionality in AuthService
@@ -43,6 +45,9 @@ public class PasswordResetServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private EmailConfig emailConfig;
+
     @InjectMocks
     private AuthService authService;
 
@@ -60,6 +65,9 @@ public class PasswordResetServiceTest {
         testUser.setPasswordHash("hashedPassword");
         testUser.setFirstName("Test");
         testUser.setLastName("User");
+
+        // Configure EmailConfig mock (lenient to avoid unnecessary stubbing warnings)
+        lenient().when(emailConfig.getBaseUrl()).thenReturn("http://localhost:3000");
     }
 
     @Test

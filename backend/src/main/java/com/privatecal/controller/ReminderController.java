@@ -85,20 +85,6 @@ public class ReminderController {
         }
     }
     
-    /**
-     * Get reminder by ID
-     * GET /api/reminders/{reminderId}
-     */
-    @GetMapping("/{reminderId}")
-    public ResponseEntity<ReminderResponse> getReminder(@PathVariable Long reminderId) {
-        try {
-            ReminderResponse response = reminderService.getReminderById(reminderId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Error getting reminder ID: {}", reminderId, e);
-            return ResponseEntity.notFound().build();
-        }
-    }
     
     /**
      * Get all reminders for a task
@@ -150,20 +136,6 @@ public class ReminderController {
         }
     }
     
-    /**
-     * Get due reminders (admin/debug endpoint)
-     * GET /api/reminders/due
-     */
-    @GetMapping("/due")
-    public ResponseEntity<List<ReminderResponse>> getDueReminders() {
-        try {
-            List<ReminderResponse> reminders = reminderService.getDueReminders();
-            return ResponseEntity.ok(reminders);
-        } catch (Exception e) {
-            logger.error("Error getting due reminders", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
     
     /**
      * Update reminder
@@ -231,43 +203,7 @@ public class ReminderController {
         }
     }
     
-    /**
-     * Reset reminder status (mark as not sent)
-     * POST /api/reminders/{reminderId}/reset
-     */
-    @PostMapping("/{reminderId}/reset")
-    public ResponseEntity<Map<String, Object>> resetReminderStatus(@PathVariable Long reminderId) {
-        try {
-            logger.debug("Resetting reminder status for ID: {}", reminderId);
-            
-            reminderService.resetReminderStatus(reminderId);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Reminder status reset successfully"
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error resetting reminder status for ID: {}", reminderId, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("success", false, "message", e.getMessage()));
-        }
-    }
     
-    /**
-     * Get reminder statistics
-     * GET /api/reminders/statistics
-     */
-    @GetMapping("/statistics")
-    public ResponseEntity<ReminderService.ReminderStatistics> getReminderStatistics() {
-        try {
-            ReminderService.ReminderStatistics statistics = reminderService.getReminderStatistics();
-            return ResponseEntity.ok(statistics);
-        } catch (Exception e) {
-            logger.error("Error getting reminder statistics", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
     
     /**
      * Create quick reminder presets

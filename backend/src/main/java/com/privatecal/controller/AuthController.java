@@ -282,49 +282,6 @@ public class AuthController {
         }
     }
     
-    /**
-     * Check username availability
-     * GET /api/auth/check-username/{username}
-     */
-    @GetMapping("/check-username/{username}")
-    public ResponseEntity<Map<String, Object>> checkUsernameAvailability(@PathVariable String username) {
-        try {
-            boolean available = authService.isUsernameAvailable(username);
-            
-            return ResponseEntity.ok(Map.of(
-                "username", username,
-                "available", available,
-                "message", available ? "Username is available" : "Username is already taken"
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error checking username availability", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Server error"));
-        }
-    }
-    
-    /**
-     * Check email availability
-     * GET /api/auth/check-email/{email}
-     */
-    @GetMapping("/check-email")
-    public ResponseEntity<Map<String, Object>> checkEmailAvailability(@RequestParam String email) {
-        try {
-            boolean available = authService.isEmailAvailable(email);
-            
-            return ResponseEntity.ok(Map.of(
-                "email", email,
-                "available", available,
-                "message", available ? "Email is available" : "Email is already registered"
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error checking email availability", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Server error"));
-        }
-    }
     
     /**
      * Get notification settings for current user
