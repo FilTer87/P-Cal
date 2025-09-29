@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @Transactional
 @EnabledIfEnvironmentVariable(named = "DOCKER_AVAILABLE", matches = "true")
-public class TaskReminderPostgresTest {
+class TaskReminderPostgresTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")

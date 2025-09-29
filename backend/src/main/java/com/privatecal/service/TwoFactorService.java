@@ -14,7 +14,6 @@ import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,14 +25,13 @@ public class TwoFactorService {
     private static final Logger logger = LoggerFactory.getLogger(TwoFactorService.class);
     private static final String APP_NAME = "P-Cal";
 
-    @Autowired
-    private UserRepository userRepository;
-
+    private final UserRepository userRepository;
     private final SecretGenerator secretGenerator;
     private final QrGenerator qrGenerator;
     private final CodeVerifier verifier;
 
-    public TwoFactorService() {
+    public TwoFactorService(UserRepository userRepository) {
+        this.userRepository = userRepository;
         this.secretGenerator = new DefaultSecretGenerator();
         this.qrGenerator = new ZxingPngQrGenerator();
         TimeProvider timeProvider = new SystemTimeProvider();

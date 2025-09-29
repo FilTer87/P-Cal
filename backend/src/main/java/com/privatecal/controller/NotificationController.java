@@ -1,19 +1,24 @@
 package com.privatecal.controller;
 
-import com.privatecal.dto.NotificationType;
-import com.privatecal.service.NotificationService;
-import com.privatecal.security.UserPrincipal;
-import com.privatecal.service.UserService;
-import com.privatecal.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.privatecal.dto.NotificationType;
+import com.privatecal.entity.User;
+import com.privatecal.service.NotificationService;
+import com.privatecal.service.UserService;
+import com.privatecal.util.ApiConst;
 
 /**
  * REST controller for notification management
@@ -67,8 +72,8 @@ public class NotificationController {
         try {
             String newTopic = request.get("topic");
             if (newTopic == null || newTopic.trim().isEmpty()) {
-                response.put("success", false);
-                response.put("error", "Topic cannot be empty");
+                response.put(ApiConst.RESP_SUCCESS, false);
+                response.put(ApiConst.RESP_ERROR, "Topic cannot be empty");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -78,21 +83,21 @@ public class NotificationController {
             );
 
             if (success) {
-                response.put("success", true);
+                response.put(ApiConst.RESP_SUCCESS, true);
                 response.put("message", "NTFY topic updated successfully");
                 response.put("topic", newTopic.trim());
                 logger.info("User {} updated NTFY topic to: {}", userId, newTopic);
                 return ResponseEntity.ok(response);
             } else {
-                response.put("success", false);
-                response.put("error", "Invalid topic format or topic already in use. Topic must start with your user prefix.");
+                response.put(ApiConst.RESP_SUCCESS, false);
+                response.put(ApiConst.RESP_ERROR, "Invalid topic format or topic already in use. Topic must start with your user prefix.");
                 return ResponseEntity.badRequest().body(response);
             }
 
         } catch (Exception e) {
             logger.error("Error updating NTFY topic for user {}", userId, e);
-            response.put("success", false);
-            response.put("error", "Internal server error");
+            response.put(ApiConst.RESP_SUCCESS, false);
+            response.put(ApiConst.RESP_ERROR, "Internal server error");
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -115,8 +120,8 @@ public class NotificationController {
             try {
                 type = NotificationType.valueOf(typeStr.toUpperCase());
             } catch (IllegalArgumentException e) {
-                response.put("success", false);
-                response.put("error", "Invalid notification type. Use PUSH or EMAIL");
+                response.put(ApiConst.RESP_SUCCESS, false);
+                response.put(ApiConst.RESP_ERROR, "Invalid notification type. Use PUSH or EMAIL");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -131,20 +136,20 @@ public class NotificationController {
             );
 
             if (success) {
-                response.put("success", true);
+                response.put(ApiConst.RESP_SUCCESS, true);
                 response.put("message", "Test notification sent successfully via " + type);
                 logger.info("Test notification sent to user {} via {}", userId, type);
                 return ResponseEntity.ok(response);
             } else {
-                response.put("success", false);
-                response.put("error", "Failed to send test notification. Check your configuration and try again.");
+                response.put(ApiConst.RESP_SUCCESS, false);
+                response.put(ApiConst.RESP_ERROR, "Failed to send test notification. Check your configuration and try again.");
                 return ResponseEntity.badRequest().body(response);
             }
 
         } catch (Exception e) {
             logger.error("Error sending test notification for user {}", userId, e);
-            response.put("success", false);
-            response.put("error", "Internal server error");
+            response.put(ApiConst.RESP_SUCCESS, false);
+            response.put(ApiConst.RESP_ERROR, "Internal server error");
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -160,18 +165,18 @@ public class NotificationController {
 
         // Get user from database to access their NTFY topic
         User user = userService.getCurrentUser();
-        // User user = userService.getUserById(userPrincipal.getUserId());
+        
         try {
             if (user.getNtfyTopic() == null || user.getNtfyTopic().trim().isEmpty()) {
-                response.put("success", false);
-                response.put("error", "User has no NTFY topic configured. Please contact support.");
+                response.put(ApiConst.RESP_SUCCESS, false);
+                response.put(ApiConst.RESP_ERROR, "User has no NTFY topic configured. Please contact support.");
                 return ResponseEntity.badRequest().body(response);
             }
 
             // Construct subscription URL: ntfyServerUrl + "/" + user.getNtfyTopic()
             String subscriptionUrl = notificationService.getNtfyServerUrl() + "/" + user.getNtfyTopic();
 
-            response.put("success", true);
+            response.put(ApiConst.RESP_SUCCESS, true);
             response.put("subscriptionUrl", subscriptionUrl);
             response.put("topic", user.getNtfyTopic());
             response.put("serverUrl", notificationService.getNtfyServerUrl());
@@ -181,8 +186,8 @@ public class NotificationController {
 
         } catch (Exception e) {
             logger.error("Error getting subscription URL for user {}", user.getId(), e);
-            response.put("success", false);
-            response.put("error", "Internal server error");
+            response.put(ApiConst.RESP_SUCCESS, false);
+            response.put(ApiConst.RESP_ERROR, "Internal server error");
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -195,8 +200,8 @@ public class NotificationController {
     public ResponseEntity<Map<String, Object>> generateNtfyQrCode() {
 
         Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("error", "QR code generation not yet implemented. Will be added in a future update using ZXing library.");
+        response.put(ApiConst.RESP_SUCCESS, false);
+        response.put(ApiConst.RESP_ERROR, "QR code generation not yet implemented. Will be added in a future update using ZXing library.");
 
         // TODO: Implement QR code generation
         // 1. Get user's subscription URL

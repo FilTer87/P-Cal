@@ -31,7 +31,7 @@ import static org.mockito.Mockito.lenient;
  * Unit tests for password reset functionality in AuthService
  */
 @ExtendWith(MockitoExtension.class)
-public class PasswordResetServiceTest {
+class PasswordResetServiceTest {
 
     @Mock
     private UserRepository userRepository;

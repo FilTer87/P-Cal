@@ -7,9 +7,9 @@ import com.privatecal.entity.User;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,18 +26,14 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private TaskRepository taskRepository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
+    private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final PasswordEncoder passwordEncoder;
     
     /**
      * Get current authenticated user

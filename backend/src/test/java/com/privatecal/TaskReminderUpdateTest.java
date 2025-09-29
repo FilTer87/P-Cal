@@ -1,24 +1,6 @@
 package com.privatecal;
 
-import com.privatecal.dto.*;
-import com.privatecal.entity.Task;
-import com.privatecal.entity.User;
-import com.privatecal.entity.Reminder;
-import com.privatecal.repository.TaskRepository;
-import com.privatecal.repository.ReminderRepository;
-import com.privatecal.repository.UserRepository;
-import com.privatecal.security.UserDetailsImpl;
-import com.privatecal.service.TaskService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -26,7 +8,26 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.privatecal.dto.NotificationType;
+import com.privatecal.dto.ReminderRequest;
+import com.privatecal.dto.TaskRequest;
+import com.privatecal.dto.TaskResponse;
+import com.privatecal.entity.Reminder;
+import com.privatecal.entity.User;
+import com.privatecal.repository.ReminderRepository;
+import com.privatecal.repository.UserRepository;
+import com.privatecal.security.UserDetailsImpl;
+import com.privatecal.service.TaskService;
 
 /**
  * Test class to reproduce and verify the reminder duplication bug during task
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class TaskReminderUpdateTest {
+class TaskReminderUpdateTest {
 
     @Autowired
     private TaskService taskService;

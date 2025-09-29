@@ -8,9 +8,9 @@ import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
 import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.TaskRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,21 +25,15 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ReminderService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ReminderService.class);
-    
-    @Autowired
-    private ReminderRepository reminderRepository;
-    
-    @Autowired
-    private TaskRepository taskRepository;
-    
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private NotificationService notificationService;
+
+    private final ReminderRepository reminderRepository;
+    private final TaskRepository taskRepository;
+    private final UserService userService;
+    private final NotificationService notificationService;
     
     /**
      * Create reminder for a task

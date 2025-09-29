@@ -7,9 +7,9 @@ import com.privatecal.entity.User;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.JwtUtils;
 import com.privatecal.security.UserDetailsImpl;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,39 +37,21 @@ import com.privatecal.config.EmailConfig;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class AuthService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-    
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private UserDetailsService userDetailsService;
-    
-    @Autowired
-    private JwtUtils jwtUtils;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private TwoFactorService twoFactorService;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private EmailConfig emailConfig;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
+    private final TwoFactorService twoFactorService;
+    private final NotificationService notificationService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+    private final EmailConfig emailConfig;
 
     /**
      * Authenticate user and generate JWT tokens

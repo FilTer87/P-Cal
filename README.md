@@ -1,38 +1,72 @@
 # P-Cal 📅
 
-Una moderna applicazione web di calendario personale con gestione task, reminder e notifiche push.
+Una moderna applicazione web di calendario personale con gestione avanzata di task, reminder intelligenti e sistema di notifiche multi-canale.
 
-## ✨ Caratteristiche
+## ✨ Funzionalità Principali
 
-- 📊 **Dashboard completa** con statistiche delle attività
-- ~~📅 **Viste multiple**: Mese, Settimana, Giorno, Agenda~~
-- ~~✅ **Gestione task** con priorità e stati di completamento~~
-- ⏰ **Sistema di reminder** con notifiche push via NTFY
-- 🎨 **Tema scuro/chiaro** con preferenze sistema
-- 🔐 **Autenticazione JWT** sicura con refresh token
-- 📱 **Design responsivo** ottimizzato per mobile
-- 🐳 **Deployment Docker** completo
+### 📊 **Gestione Calendario Completa**
+- **Viste multiple**: Mese, Settimana, Giorno e Agenda
+- **Gestione task avanzata** con colori personalizzabili e descrizioni
+- **Visualizzazione temporale intelligente** con distinzione attività passate/future
+- **Griglia oraria precisa** nella vista settimana con indicatori visivi per attività fuori schermo
+- **Tooltips informativi** per task con testo abbreviato
+
+### ⏰ **Sistema di Reminder Avanzato**
+- **Notifiche multi-canale**: Email e NTFY server
+- **Reminder multipli** per ogni attività
+- **Scheduling flessibile** (minuti, ore, giorni prima dell'evento)
+- **Gestione automatica** delle notifiche scadute
+
+### 🔐 **Sicurezza e Autenticazione**
+- **Autenticazione JWT** con refresh token automatico
+- **2FA (Two-Factor Authentication)** tramite app TOTP
+- **Reset password sicuro** via email
+- **Hashing BCrypt** per le password
+- **Isolamento completo** dei dati per utente
+
+### 👤 **Gestione Utente e Preferenze**
+- **Registrazione e login** con validazione completa
+- **Profilo utente** modificabile (nome, email, password)
+- **Preferenze personalizzabili**:
+  - Tema (chiaro/scuro/automatico)
+  - Fuso orario
+  - Formato orario (12h/24h)
+  - Primo giorno della settimana
+  - Abilitazione notifiche
+  - Topic NTFY personalizzato
+- **Export dati completo** (GDPR-friendly)
+- **Eliminazione account** con cancellazione dati
+
+### 🎨 **Esperienza Utente**
+- **Design responsivo** ottimizzato per desktop e mobile
+- **Interfaccia moderna** con Tailwind CSS
+- **Tema adattivo** al sistema operativo
+- **Performance ottimizzate** con lazy loading
+- **Attività passate** nascondibili nelle viste giorno/agenda
 
 ## 🏗️ Architettura
 
 ### Frontend
-- **Vue.js 3**
-- **TypeScript**
-- **Tailwind CSS**
-- **Pinia**
-- **Vite**
+- **Vue.js 3** con Composition API
+- **TypeScript** per type safety
+- **Tailwind CSS** per styling moderno
+- **Pinia** per state management
+- **Vite** per build veloce
+- **Vue Router** per navigazione SPA
 
 ### Backend
-- **Spring Boot 3**
-- **Spring Security**
-- **JPA/Hibernate**
-- **PostgreSQL**
-- **Maven**
+- **Spring Boot 3.2** con Java 17
+- **Spring Security** per autenticazione/autorizzazione
+- **JPA/Hibernate** per ORM
+- **PostgreSQL** come database principale
+- **Lombok** per riduzione boilerplate
+- **Maven** per gestione dipendenze
 
 ### Infrastructure
-- **Docker** / **Docker Compose**
-- **Nginx** come reverse proxy
-- **NTFY** server per push notifications
+- **Docker** e **Docker Compose** per containerizzazione
+- **PostgreSQL** con script di migrazione automatici
+- **Nginx** come reverse proxy (production)
+- **Server NTFY** per notifiche push
 
 ## 🚀 Quick Start
 
@@ -44,8 +78,8 @@ Una moderna applicazione web di calendario personale con gestione task, reminder
 
 1. **Clona il repository**
    ```bash
-   git clone https://your-gitea-instance.com/username/privatecal-v2.git
-   cd privatecal-v2
+   git clone <your-repository-url>
+   cd PrivateCal_v2
    ```
 
 2. **Configura l'ambiente**
@@ -60,36 +94,57 @@ Una moderna applicazione web di calendario personale con gestione task, reminder
    ```
 
 4. **Accedi all'applicazione**
-   - Frontend: http://localhost
-   - Backend API: http://localhost:8080/api
-   - Health Check: http://localhost:8080/actuator/health
-   - API Documentation (Swagger): http://localhost:8080/swagger-ui.html
-   - OpenAPI JSON: http://localhost:8080/v3/api-docs
+   - **Frontend**: http://localhost:3000
+   - **Backend API**: http://localhost:8080/api
+   - **Swagger UI**: http://localhost:8080/swagger-ui.html
+   - **Health Check**: http://localhost:8080/actuator/health
 
 ## ⚙️ Configurazione
 
-### Variabili d'ambiente
-Le principali configurazioni sono gestite tramite variabili d'ambiente. Copia `.env.example` in `.env` e modifica i valori:
-
+### File .env principale
 ```bash
-# Database
-DATABASE_URL=jdbc:postgresql://database:5432/calendar_db
-DATABASE_USERNAME=calendar_user
+# Database PostgreSQL
+DATABASE_URL=jdbc:postgresql://database:5432/privatecal_db
+DATABASE_USERNAME=privatecal_user
 DATABASE_PASSWORD=your_secure_password
 
 # JWT Security
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_SECRET=your-super-secret-jwt-key-change-in-production-min-256-bits
+JWT_ACCESS_TOKEN_EXPIRATION=86400000
+JWT_REFRESH_TOKEN_EXPIRATION=604800000
+
+# Email Configuration (SMTP)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_FROM=noreply@privatecal.com
 
 # NTFY Notifications
 NTFY_SERVER_URL=https://ntfy.sh
-NTFY_TOPIC_PREFIX=calendar-user-
+NTFY_TOPIC_PREFIX=privatecal-user-
+NTFY_AUTH_TOKEN=
+
+# Application
+APP_BASE_URL=http://localhost:3000
 ```
 
-### Personalizzazione tema
-Il tema può essere configurato tramite le variabili frontend:
+### Configurazione NTFY
+P-Cal supporta notifiche tramite [NTFY](https://github.com/binwiederhier/ntfy), un servizio di notifiche push semplice e self-hosted.
+
+**Opzioni di configurazione:**
+- Usa il server pubblico `https://ntfy.sh` (default)
+- Self-host il tuo server NTFY per privacy completa
+- Configura autenticazione per topic privati
+
+**Esempio configurazione:**
 ```bash
-VITE_DEFAULT_THEME=system  # light, dark, system
+NTFY_SERVER_URL=https://your-ntfy-server.com
+NTFY_TOPIC_PREFIX=your-app-prefix-
+NTFY_AUTH_TOKEN=your-auth-token  # Opzionale per server privati
 ```
+
+Per maggiori dettagli: [NTFY Documentation](https://docs.ntfy.sh/)
 
 ## 🛠️ Sviluppo
 
@@ -108,6 +163,9 @@ npm install
 npm run dev
 ```
 
+#### Database
+Assicurati di avere PostgreSQL in esecuzione e configura le variabili d'ambiente.
+
 ### Testing
 ```bash
 # Backend tests
@@ -115,107 +173,196 @@ cd backend && ./mvnw test
 
 # Frontend tests
 cd frontend && npm run test
+
+# Linting
+cd frontend && npm run lint
 ```
 
 ### Build di produzione
 ```bash
-# Frontend
+# Frontend build
 cd frontend && npm run build
 
-# Backend
+# Backend build
 cd backend && ./mvnw clean package
+
+# Docker build completo
+docker-compose -f docker-compose.prod.yml up --build
 ```
 
 ## 📡 API Endpoints
 
 ### Autenticazione
-- `POST /api/auth/login` - Login utente
 - `POST /api/auth/register` - Registrazione utente
-- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/login` - Login con credenziali
+- `POST /api/auth/refresh` - Refresh token JWT
+- `POST /api/auth/logout` - Logout utente
+- `POST /api/auth/forgot-password` - Richiesta reset password
+- `POST /api/auth/reset-password` - Reset password con token
 
-### Task Management
-- `GET /api/tasks` - Lista task
-- `POST /api/tasks` - Crea task
-- `GET /api/tasks/{id}` - Dettagli task
-- `PUT /api/tasks/{id}` - Aggiorna task
-- `DELETE /api/tasks/{id}` - Elimina task
-- `GET /api/tasks/overdue` - Task in ritardo
-- `GET /api/tasks/stats` - Statistiche task
+### Two-Factor Authentication
+- `POST /api/auth/2fa/setup` - Configurazione 2FA
+- `POST /api/auth/2fa/verify` - Verifica codice 2FA
+- `POST /api/auth/2fa/disable` - Disabilitazione 2FA
 
-### Reminder
-- `GET /api/tasks/{taskId}/reminders` - Lista reminder
-- `POST /api/tasks/{taskId}/reminders` - Crea reminder
+### Gestione Task
+- `GET /api/tasks` - Lista task dell'utente
+- `POST /api/tasks` - Creazione nuovo task
+- `GET /api/tasks/{id}` - Dettagli task specifico
+- `PUT /api/tasks/{id}` - Aggiornamento task
+- `DELETE /api/tasks/{id}` - Eliminazione task
+- `GET /api/tasks/today` - Task di oggi
+- `GET /api/tasks/upcoming` - Task futuri
+- `GET /api/tasks/overdue` - Task scaduti
+- `GET /api/tasks/statistics` - Statistiche personali
+- `POST /api/tasks/{id}/clone` - Duplicazione task
 
-## 🎯 Roadmap
+### Gestione Reminder
+- `GET /api/reminders` - Lista reminder utente
+- `POST /api/reminders/task/{taskId}` - Creazione reminder per task
+- `PUT /api/reminders/{id}` - Aggiornamento reminder
+- `DELETE /api/reminders/{id}` - Eliminazione reminder
 
-- [ ] **Recurring tasks** - Task ricorrenti
-- [ ] **Calendar sharing** - Condivisione calendario  
-- [ ] **Import/Export** - ICS support
-- [ ] **Email notifications** - Alternative a NTFY
-- [ ] **Mobile app** - React Native
-- [ ] **Team collaboration** - Multi-user calendars
+### Profilo Utente
+- `GET /api/users/profile` - Dati profilo utente
+- `PUT /api/users/profile` - Aggiornamento profilo
+- `GET /api/users/preferences` - Preferenze utente
+- `PUT /api/users/preferences` - Aggiornamento preferenze
+- `GET /api/users/export` - Export dati utente
+- `DELETE /api/users/account` - Eliminazione account
 
-## 🐛 Bug Report & Feature Request
+## 🎯 Roadmap Future
 
-Per segnalare bug o richiedere nuove funzionalità, apri una issue nel repository.
+### 🔧 Funzionalità in Valutazione
+- **Categorie task** con filtri di visualizzazione
+- **Task ricorrenti** con pattern personalizzabili
+- **Multilingua** (Italiano/Inglese)
+- **Drag & Drop** per spostamento task nelle griglie
+- **Gestione sessioni avanzata**
+- **Notifiche aggiuntive**: Gotify, Slack, Telegram
+- **Import dati** da altri calendar
+- **Verifica email** post-registrazione
+
+### 📱 Espansioni Tecniche
+- **API mobile** per app native
+- **Calendario condiviso** multi-utente
+- **Plugin system** per integrazioni
+- **Dark/Light mode** avanzato per componenti
 
 ## 🔒 Sicurezza
 
-- Le password sono hashate con BCrypt
-- JWT token con scadenza configurabile
-- Validazione input lato server
-- Protezione CORS configurabile
-- Isolamento dati per utente
+### Implementazioni Correnti
+- **Password hashing** con BCrypt (strength 12)
+- **JWT tokens** con scadenza configurabile
+- **Input validation** completa lato server
+- **CORS protection** configurabile
+- **Rate limiting** su endpoint sensibili
+- **Two-Factor Authentication** TOTP
+- **Secure password reset** via email temporizzato
+- **Data isolation** completo per utente
 
-### Note di sicurezza importanti
-- Cambia `JWT_SECRET` in produzione
-- Usa password robuste per il database
-- Abilita HTTPS in produzione
-- Limita CORS agli domini necessari
+### Best Practices di Produzione
+```bash
+# Cambia assolutamente in produzione
+JWT_SECRET=your-production-secret-min-256-bits
+
+# Usa password robuste
+DATABASE_PASSWORD=complex-database-password
+
+# Configura CORS appropriatamente
+CORS_ALLOWED_ORIGINS=https://your-domain.com
+
+# Abilita HTTPS
+USE_HTTPS=true
+
+# Configura email sicura
+MAIL_PASSWORD=app-specific-password
+```
+
+## 🐳 Deploy in Produzione
+
+### Con Docker Compose
+```bash
+# Production build
+docker-compose -f docker-compose.prod.yml up -d
+
+# Con SSL/HTTPS
+docker-compose -f docker-compose.prod.yml -f docker-compose.ssl.yml up -d
+```
+
+### Struttura Container
+- **Frontend**: Nginx con build ottimizzato
+- **Backend**: Spring Boot con JVM tuning
+- **Database**: PostgreSQL con persistenza
+- **Reverse Proxy**: Nginx con SSL termination
+
+## ⚡ Performance
+
+### Ottimizzazioni Frontend
+- **Lazy loading** componenti e route
+- **Code splitting** automatico con Vite
+- **Tree shaking** per bundle ridotti
+- **Progressive loading** per viste calendario
+- **Caching intelligente** delle API calls
+
+### Ottimizzazioni Backend
+- **JPA optimizations** con lazy/eager appropriati
+- **Database indexing** su query frequenti
+- **Connection pooling** configurato
+- **Query pagination** per liste grandi
+- **Caching L2** per entità statiche
 
 ## 📄 Licenza
 
-Questo progetto è rilasciato sotto la [MIT License](LICENSE).
+Questo progetto è rilasciato sotto **MIT License**.
 
 ```
-MIT License - vedere il file LICENSE per i dettagli completi
+MIT License - Uso libero per progetti personali e commerciali
+Vedi LICENSE file per dettagli completi
 ```
 
 ## 👥 Contributi
 
 I contributi sono benvenuti! Per contribuire:
 
-1. Fork del progetto
-2. Crea un branch per la feature (`git checkout -b feature/AmazingFeature`)
-3. Commit delle modifiche (`git commit -m 'Add some AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Apri una Pull Request
+1. **Fork** del progetto
+2. **Crea feature branch** (`git checkout -b feature/AmazingFeature`)
+3. **Commit** modifiche (`git commit -m 'Add AmazingFeature'`)
+4. **Push** al branch (`git push origin feature/AmazingFeature`)
+5. **Apri Pull Request**
 
-### Standard di sviluppo
-- Usa TypeScript per il frontend
-- Segui le convenzioni Spring Boot per il backend  
-- Test coverage minimo 70%
-- Documenta le API con commenti
+### Standard di Sviluppo
+- **TypeScript** obbligatorio per frontend
+- **Spring Boot conventions** per backend
+- **Test coverage** minimo 70%
+- **API documentation** con OpenAPI/Swagger
+- **Code review** obbligatorio per merge
 
-## 🏷️ Versioning
+## 📞 Supporto e Community
 
-Usiamo [SemVer](http://semver.org/) per il versioning. Per le versioni disponibili, vedi i [tags su questo repository](https://your-gitea-instance.com/username/privatecal-v2/releases).
+### Documentazione
+- **API docs**: Swagger UI integrato
+- **Code comments**: Javadoc e TSDoc
+- **Architecture docs**: In `/docs` directory
 
-## ⚡ Performance
+### Reporting Issues
+- 🐛 **Bug reports**: Usa issue template
+- 💡 **Feature requests**: Discussione prima implementazione
+- ❓ **Questions**: Tag appropriati per Q&A
 
-- Frontend con lazy loading
-- API con paginazione
-- Database con indici ottimizzati
-- Build ottimizzato con Vite
-- Docker multi-stage builds
-
-## 📞 Supporto
-
-Per supporto tecnico:
-- 📚 Consulta la documentazione in `/docs`
-- 🐛 Apri una issue per bug
-- 💡 Discord/Forum per discussioni generali
+### Versioning
+Utilizziamo **Semantic Versioning** (SemVer):
+- `MAJOR.MINOR.PATCH`
+- Breaking changes incrementano MAJOR
+- Nuove features incrementano MINOR
+- Bug fixes incrementano PATCH
 
 ---
 
-**Sviluppato con ❤️ per la gestione del tempo personale**
+## 🏷️ Status Progetto
+
+**Versione attuale**: `2.0.0-beta`
+**Stato**: In fase di testing pre-release
+**Tipo**: Progetto open-source personale
+
+**Sviluppato con ❤️ per una gestione del tempo efficace e moderna**

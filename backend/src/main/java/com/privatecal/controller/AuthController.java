@@ -16,6 +16,7 @@ import com.privatecal.entity.User;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
+import com.privatecal.util.ApiConst;
 import com.privatecal.service.TwoFactorService;
 import com.privatecal.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,9 +29,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,24 +46,16 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "User authentication and authorization endpoints")
+@RequiredArgsConstructor
 public class AuthController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    
-    @Autowired
-    private AuthService authService;
-    
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private NotificationService notificationService;
 
-    @Autowired
-    private TwoFactorService twoFactorService;
-
-    @Autowired
-    private EmailService emailService;
+    private final AuthService authService;
+    private final UserService userService;
+    private final NotificationService notificationService;
+    private final TwoFactorService twoFactorService;
+    private final EmailService emailService;
 
     /**
      * User login endpoint
@@ -263,7 +257,7 @@ public class AuthController {
             
             if (currentPassword == null || newPassword == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Current password and new password are required"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Current password and new password are required"));
             }
             
             userService.changeCurrentUserPassword(currentPassword, newPassword);
@@ -271,14 +265,14 @@ public class AuthController {
             logger.info("Password changed successfully");
             
             return ResponseEntity.ok(Map.of(
-                "success", true, 
-                "message", "Password changed successfully"
+                ApiConst.RESP_SUCCESS, true, 
+                ApiConst.RESP_MSG, "Password changed successfully"
             ));
             
         } catch (Exception e) {
             logger.error("Error changing password", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("success", false, "message", e.getMessage()));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, e.getMessage()));
         }
     }
     
@@ -292,7 +286,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> getNotificationSettings() {
         try {
             return ResponseEntity.ok(Map.of(
-                "message", "This endpoint is deprecated. Use /api/notifications/config for notification configuration.",
+                ApiConst.RESP_MSG, "This endpoint is deprecated. Use /api/notifications/config for notification configuration.",
                 "configEndpoint", "/api/notifications/config",
                 "subscriptionEndpoint", "/api/notifications/ntfy/subscription-url",
                 "testEndpoint", "/api/notifications/test"
@@ -312,19 +306,19 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> sendTestNotification(@RequestBody Map<String, String> request) {
         try {
             Long currentUserId = userService.getCurrentUserId();
-            String message = request.getOrDefault("message", "This is a test notification from PrivateCal");
+            String message = request.getOrDefault(ApiConst.RESP_MSG, "This is a test notification from PrivateCal");
 
             notificationService.sendTestNotification(currentUserId, NotificationType.PUSH, message);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Test notification sent successfully"
+                ApiConst.RESP_SUCCESS, true,
+                ApiConst.RESP_MSG, "Test notification sent successfully"
             ));
 
         } catch (Exception e) {
             logger.error("Error sending test notification", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Failed to send test notification"));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Failed to send test notification"));
         }
     }
 
@@ -348,8 +342,8 @@ public class AuthController {
             if (!emailService.isEmailServiceAvailable()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(
-                            "success", false,
-                            "message", "Email service is not available or not properly configured",
+                            ApiConst.RESP_SUCCESS, false,
+                            ApiConst.RESP_MSG, "Email service is not available or not properly configured",
                             "config", emailService.getEmailConfigInfo()
                         ));
             }
@@ -359,13 +353,13 @@ public class AuthController {
             if (currentUser.getEmail() == null || currentUser.getEmail().trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(
-                            "success", false,
-                            "message", "Current user has no email address configured"
+                            ApiConst.RESP_SUCCESS, false,
+                            ApiConst.RESP_MSG, "Current user has no email address configured"
                         ));
             }
 
             // Get custom message or use default
-            String message = request.getOrDefault("message", "This is a test email to verify P-Cal email configuration is working correctly!");
+            String message = request.getOrDefault(ApiConst.RESP_MSG, "This is a test email to verify P-Cal email configuration is working correctly!");
 
             // Send test email
             boolean success = emailService.sendTestEmail(currentUser.getEmail(), message);
@@ -373,15 +367,15 @@ public class AuthController {
             if (success) {
                 logger.info("Test email sent successfully to: {}", currentUser.getEmail());
                 return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Test email sent successfully to " + currentUser.getEmail(),
+                    ApiConst.RESP_SUCCESS, true,
+                    ApiConst.RESP_MSG, "Test email sent successfully to " + currentUser.getEmail(),
                     "recipient", currentUser.getEmail()
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of(
-                            "success", false,
-                            "message", "Failed to send test email"
+                            ApiConst.RESP_SUCCESS, false,
+                            ApiConst.RESP_MSG, "Failed to send test email"
                         ));
             }
 
@@ -389,8 +383,8 @@ public class AuthController {
             logger.error("Error sending test email", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
-                        "success", false,
-                        "message", "Failed to send test email: " + e.getMessage()
+                        ApiConst.RESP_SUCCESS, false,
+                        ApiConst.RESP_MSG, "Failed to send test email: " + e.getMessage()
                     ));
         }
     }
@@ -403,10 +397,8 @@ public class AuthController {
         summary = "Get Email Service Status",
         description = "Check if email service is properly configured and available."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Email service status retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Authentication required")
-    })
+    @ApiResponse(responseCode = "200", description = "Email service status retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Authentication required")
     @GetMapping("/email-status")
     @SecurityRequirement(name = "JWT")
     public ResponseEntity<Map<String, Object>> getEmailServiceStatus() {
@@ -417,7 +409,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of(
                 "available", isAvailable,
                 "configuration", configInfo,
-                "message", isAvailable ? "Email service is available" : "Email service is not properly configured"
+                ApiConst.RESP_MSG, isAvailable ? "Email service is available" : "Email service is not properly configured"
             ));
 
         } catch (Exception e) {
@@ -425,7 +417,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                         "available", false,
-                        "message", "Error checking email service status: " + e.getMessage()
+                        ApiConst.RESP_MSG, "Error checking email service status: " + e.getMessage()
                     ));
         }
     }
@@ -438,12 +430,10 @@ public class AuthController {
         summary = "Get User Preferences",
         description = "Retrieve current user's application preferences including theme, timezone, and notification settings."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Preferences retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = UserPreferencesResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Authentication required"),
-        @ApiResponse(responseCode = "500", description = "Server error")
-    })
+    @ApiResponse(responseCode = "200", description = "Preferences retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = UserPreferencesResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Authentication required")
+    @ApiResponse(responseCode = "500", description = "Server error")
     @GetMapping("/preferences")
     @SecurityRequirement(name = "JWT")
     public ResponseEntity<UserPreferencesResponse> getUserPreferences() {
@@ -501,8 +491,8 @@ public class AuthController {
         logger.info("Logout request received");
         
         return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Logged out successfully"
+            ApiConst.RESP_SUCCESS, true,
+            ApiConst.RESP_MSG, "Logged out successfully"
         ));
     }
     
@@ -525,7 +515,7 @@ public class AuthController {
 
             if (password == null || password.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Password is required to delete account"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Password is required to delete account"));
             }
 
             // Verify password before deletion
@@ -538,14 +528,14 @@ public class AuthController {
             logger.warn("User account deleted successfully");
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Account deleted successfully"
+                ApiConst.RESP_SUCCESS, true,
+                ApiConst.RESP_MSG, "Account deleted successfully"
             ));
 
         } catch (Exception e) {
             logger.error("Error deleting account", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("success", false, "message", e.getMessage()));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, e.getMessage()));
         }
     }
     
@@ -560,13 +550,13 @@ public class AuthController {
 
             if (currentUser.getTwoFactorEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "2FA is already enabled"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "2FA is already enabled"));
             }
 
             TwoFactorSetupResponse setupResponse = twoFactorService.setupTwoFactor(currentUser);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
+                ApiConst.RESP_SUCCESS, true,
                 "secret", setupResponse.getSecret(),
                 "qrCodeUrl", setupResponse.getQrCodeUrl(),
                 "manualEntryKey", setupResponse.getManualEntryKey()
@@ -575,7 +565,7 @@ public class AuthController {
         } catch (Exception e) {
             logger.error("Error setting up 2FA", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Failed to setup 2FA"));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Failed to setup 2FA"));
         }
     }
 
@@ -591,34 +581,34 @@ public class AuthController {
 
             if (secret == null || code == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Secret and code are required"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Secret and code are required"));
             }
 
             User currentUser = userService.getCurrentUser();
 
             if (currentUser.getTwoFactorEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "2FA is already enabled"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "2FA is already enabled"));
             }
 
             boolean isValid = twoFactorService.verifyCode(secret, code);
 
             if (!isValid) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Invalid verification code"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Invalid verification code"));
             }
 
             twoFactorService.enableTwoFactor(currentUser, secret);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "2FA enabled successfully"
+                ApiConst.RESP_SUCCESS, true,
+                ApiConst.RESP_MSG, "2FA enabled successfully"
             ));
 
         } catch (Exception e) {
             logger.error("Error enabling 2FA", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Failed to enable 2FA"));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Failed to enable 2FA"));
         }
     }
 
@@ -633,27 +623,27 @@ public class AuthController {
 
             if (!currentUser.getTwoFactorEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "2FA is not enabled"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "2FA is not enabled"));
             }
 
             boolean passwordValid = authService.verifyPassword(currentUser, request.getPassword());
 
             if (!passwordValid) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("success", false, "message", "Invalid password"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Invalid password"));
             }
 
             twoFactorService.disableTwoFactor(currentUser);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "2FA disabled successfully"
+                ApiConst.RESP_SUCCESS, true,
+                ApiConst.RESP_MSG, "2FA disabled successfully"
             ));
 
         } catch (Exception e) {
             logger.error("Error disabling 2FA", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Failed to disable 2FA"));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Failed to disable 2FA"));
         }
     }
 
@@ -668,25 +658,25 @@ public class AuthController {
 
             if (!currentUser.getTwoFactorEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "2FA is not enabled for this user"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "2FA is not enabled for this user"));
             }
 
             boolean isValid = twoFactorService.verifyCode(currentUser.getTwoFactorSecret(), request.getCode());
 
             if (!isValid) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("success", false, "message", "Invalid verification code"));
+                        .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Invalid verification code"));
             }
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "2FA verification successful"
+                ApiConst.RESP_SUCCESS, true,
+                ApiConst.RESP_MSG, "2FA verification successful"
             ));
 
         } catch (Exception e) {
             logger.error("Error verifying 2FA code", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Failed to verify 2FA code"));
+                    .body(Map.of(ApiConst.RESP_SUCCESS, false, ApiConst.RESP_MSG, "Failed to verify 2FA code"));
         }
     }
 
@@ -822,8 +812,11 @@ public class AuthController {
             @Valid @RequestBody ForgotPasswordRequest request,
             HttpServletRequest httpRequest) {
 
-        logger.info("Password reset request from IP: {} for email: {}",
-                   getClientIpAddress(httpRequest), request.getEmail());
+        if(logger.isInfoEnabled()) {
+    		String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Password reset attempt from IP: {} with token: {}",
+                    ipAddress, request.getEmail());
+    	}
 
         try {
             PasswordResetResponse response = authService.forgotPassword(request);
@@ -853,8 +846,11 @@ public class AuthController {
             @Valid @RequestBody ResetPasswordRequest request,
             HttpServletRequest httpRequest) {
 
-        logger.info("Password reset attempt from IP: {} with token: {}",
-                   getClientIpAddress(httpRequest), request.getToken());
+    	if(logger.isInfoEnabled()) {
+    		String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Password reset attempt from IP: {} with token: {}",
+                    ipAddress, request.getToken());
+    	}
 
         try {
             PasswordResetResponse response = authService.resetPassword(request);

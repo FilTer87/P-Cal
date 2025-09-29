@@ -3,7 +3,6 @@ package com.privatecal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.privatecal.dto.ForgotPasswordRequest;
 import com.privatecal.dto.ResetPasswordRequest;
-import com.privatecal.dto.PasswordResetResponse;
 import com.privatecal.entity.User;
 import com.privatecal.entity.PasswordResetToken;
 import com.privatecal.repository.UserRepository;
@@ -41,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestConfig.class)
 @Transactional
-public class PasswordResetIntegrationTest {
+class PasswordResetIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -12,10 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +30,12 @@ import java.util.Map;
 @RequestMapping("/api/reminders")
 @Tag(name = "Reminders", description = "Reminder management endpoints for creating and managing task notifications")
 @SecurityRequirement(name = "Bearer Authentication")
+@RequiredArgsConstructor
 public class ReminderController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ReminderController.class);
-    
-    @Autowired
-    private ReminderService reminderService;
+
+    private final ReminderService reminderService;
     
     /**
      * Get all reminders for current user
@@ -61,13 +60,11 @@ public class ReminderController {
         summary = "Create Task Reminder", 
         description = "Create a notification reminder for a specific task. The reminder will be triggered at the specified time before the task starts."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Reminder created successfully", 
-                    content = @Content(schema = @Schema(implementation = ReminderResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid reminder data"),
-        @ApiResponse(responseCode = "404", description = "Task not found"),
-        @ApiResponse(responseCode = "401", description = "Authentication required")
-    })
+    @ApiResponse(responseCode = "201", description = "Reminder created successfully", 
+                content = @Content(schema = @Schema(implementation = ReminderResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid reminder data")
+    @ApiResponse(responseCode = "404", description = "Task not found")
+    @ApiResponse(responseCode = "401", description = "Authentication required")
     @PostMapping("/task/{taskId}")
     public ResponseEntity<ReminderResponse> createReminderForTask(
             @Parameter(description = "Task ID", required = true) @PathVariable Long taskId, 

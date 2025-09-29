@@ -4,9 +4,9 @@ import com.privatecal.entity.Reminder;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.service.EmailService;
 import com.privatecal.util.TimezoneUtils;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
  * Sends email notifications using JavaMailSender
  */
 @Component
+@RequiredArgsConstructor
 public class EmailNotificationProvider implements NotificationProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailNotificationProvider.class);
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
     @Override
     public boolean sendReminderNotification(Reminder reminder) {

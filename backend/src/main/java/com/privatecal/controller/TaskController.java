@@ -1,6 +1,5 @@
 package com.privatecal.controller;
 
-import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
 import com.privatecal.service.TaskService;
@@ -13,9 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +33,12 @@ import java.util.Map;
 @RequestMapping("/api/tasks")
 @Tag(name = "Tasks", description = "Task management endpoints for creating, reading, updating and deleting calendar tasks")
 @SecurityRequirement(name = "Bearer Authentication")
+@RequiredArgsConstructor
 public class TaskController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
-    
-    @Autowired
-    private TaskService taskService;
+
+    private final TaskService taskService;
     
     /**
      * Create a new task
@@ -49,12 +48,10 @@ public class TaskController {
         summary = "Create Task", 
         description = "Create a new calendar task with title, description, start/end time, and optional reminders"
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Task created successfully", 
-                    content = @Content(schema = @Schema(implementation = TaskResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid task data or time conflict"),
-        @ApiResponse(responseCode = "401", description = "Authentication required")
-    })
+    @ApiResponse(responseCode = "201", description = "Task created successfully", 
+                content = @Content(schema = @Schema(implementation = TaskResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid task data or time conflict")
+    @ApiResponse(responseCode = "401", description = "Authentication required")
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
             @Parameter(description = "Task details", required = true)

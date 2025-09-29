@@ -1,21 +1,25 @@
 package com.privatecal.service.notification;
 
-import com.privatecal.entity.Reminder;
-import com.privatecal.entity.User;
-import com.privatecal.dto.NotificationType;
-import com.privatecal.repository.UserRepository;
-import com.privatecal.util.TimezoneUtils;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+
+import com.privatecal.dto.NotificationType;
+import com.privatecal.entity.Reminder;
+import com.privatecal.entity.User;
+import com.privatecal.repository.UserRepository;
+import com.privatecal.util.TimezoneUtils;
 
 /**
  * NTFY notification provider implementation

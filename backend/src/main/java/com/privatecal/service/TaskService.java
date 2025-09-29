@@ -6,9 +6,9 @@ import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
 import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.TaskRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -26,21 +25,15 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TaskService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
-    
-    @Autowired
-    private TaskRepository taskRepository;
-    
-    @Autowired
-    private ReminderRepository reminderRepository;
-    
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private ReminderService reminderService;
+
+    private final TaskRepository taskRepository;
+    private final ReminderRepository reminderRepository;
+    private final UserService userService;
+    private final ReminderService reminderService;
     
     /**
      * Create a new task

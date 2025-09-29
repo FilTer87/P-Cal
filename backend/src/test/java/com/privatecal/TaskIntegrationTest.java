@@ -1,13 +1,23 @@
 package com.privatecal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.privatecal.dto.TaskRequest;
-import com.privatecal.dto.ReminderRequest;
-import com.privatecal.dto.NotificationType;
-import com.privatecal.entity.User;
-import com.privatecal.repository.TaskRepository;
-import com.privatecal.repository.UserRepository;
-import com.privatecal.security.UserDetailsImpl;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,27 +25,22 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import com.privatecal.config.TestConfig;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import org.junit.jupiter.api.AfterEach;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.*;
-import java.util.Arrays;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.privatecal.config.TestConfig;
+import com.privatecal.dto.NotificationType;
+import com.privatecal.dto.ReminderRequest;
+import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.User;
+import com.privatecal.repository.TaskRepository;
+import com.privatecal.repository.UserRepository;
+import com.privatecal.security.UserDetailsImpl;
 
 /**
  * Integration tests for Task functionality
