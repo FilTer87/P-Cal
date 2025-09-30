@@ -138,7 +138,8 @@ JOIN users u ON t.user_id = u.id
 WHERE r.is_sent = FALSE 
 AND r.reminder_time <= CURRENT_TIMESTAMP;
 
--- Grant permissions (adjust as needed for your environment)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO calendar_user;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO calendar_user;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO calendar_user;
+-- Grant permissions to the database user (dynamically using current_user)
+-- The user is automatically set by PostgreSQL based on POSTGRES_USER env var
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO CURRENT_USER;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO CURRENT_USER;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO CURRENT_USER;

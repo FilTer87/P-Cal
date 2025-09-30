@@ -48,7 +48,7 @@ wait_for_db() {
         fi
         log_info "Database not ready, waiting... ($retries retries left)"
         retries=$((retries - 1))
-        sleep 2
+        sleep 3
     done
     log_error "Database failed to become ready!"
     exit 1
@@ -210,17 +210,8 @@ main() {
     log_info "PrivateCal Database Migration Runner"
     log_info "=================================="
 
-    # Check if running in init mode (database initialization)
-    if [ "${POSTGRES_INIT_MODE:-false}" = "true" ]; then
-        log_info "Running in PostgreSQL initialization mode"
-        # In init mode, just run the base schema
-        if [ -f "/docker-entrypoint-initdb.d/init.sql" ]; then
-            execute_sql "/docker-entrypoint-initdb.d/init.sql" "Initial schema setup"
-        fi
-    else
-        # Normal migration mode
-        run_migrations
-    fi
+    # Always run migrations (the timing/readiness is handled by docker-entrypoint.sh)
+    run_migrations
 }
 
 # Run main function

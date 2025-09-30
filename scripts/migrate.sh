@@ -97,7 +97,7 @@ wait_for_db() {
         fi
 
         log_info "Attempt $attempt/$max_attempts - waiting for database..."
-        sleep 2
+        sleep 3
         attempt=$((attempt + 1))
     done
 

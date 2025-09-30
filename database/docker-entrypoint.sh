@@ -34,7 +34,7 @@ post_init_migrations() {
         log_info "Post-initialization: Running database migrations..."
 
         # Wait a bit for PostgreSQL to be fully ready
-        sleep 5
+        sleep 6
 
         # Set environment variables for migration script
         export DB_HOST="localhost"
@@ -44,7 +44,10 @@ post_init_migrations() {
         export DB_PASSWORD="${POSTGRES_PASSWORD}"
 
         # Run migrations in background after PostgreSQL is ready
-        /usr/local/bin/run_migrations.sh &
+        # Don't run in background (&) to ensure migrations complete
+        /usr/local/bin/run_migrations.sh
+
+        log_success "Post-initialization migrations completed"
     else
         log_info "Migrations disabled via ENABLE_MIGRATIONS=false"
     fi
@@ -63,9 +66,11 @@ main() {
         # Use async approach to run migrations after init
         {
             # Wait for PostgreSQL to be ready after initialization
-            sleep 10
+            sleep 20
             post_init_migrations
         } &
+
+        MIGRATION_PID=$!
 
         # Start PostgreSQL with standard entrypoint
         run_postgres_entrypoint "$@"
@@ -77,7 +82,7 @@ main() {
         POSTGRES_PID=$!
 
         # Wait for PostgreSQL to be ready
-        sleep 5
+        sleep 6
 
         # Run migrations
         if [ "${ENABLE_MIGRATIONS:-true}" = "true" ]; then

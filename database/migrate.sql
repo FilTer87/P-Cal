@@ -25,16 +25,9 @@ CREATE INDEX IF NOT EXISTS idx_schema_migrations_applied ON schema_migrations(ap
 -- Comment on table
 COMMENT ON TABLE schema_migrations IS 'Tracks database migrations for PrivateCal application';
 
--- Grant permissions only if user exists
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'calendar_user') THEN
-        GRANT SELECT, INSERT, UPDATE ON schema_migrations TO calendar_user;
-        GRANT USAGE, SELECT ON SEQUENCE schema_migrations_id_seq TO calendar_user;
-        RAISE NOTICE 'Permissions granted to calendar_user';
-    ELSE
-        RAISE NOTICE 'User calendar_user does not exist, skipping permissions';
-    END IF;
-END $$;
+-- Grant permissions to the database user (dynamically using current_user)
+-- The user is automatically set by PostgreSQL based on POSTGRES_USER env var
+GRANT SELECT, INSERT, UPDATE ON schema_migrations TO CURRENT_USER;
+GRANT USAGE, SELECT ON SEQUENCE schema_migrations_id_seq TO CURRENT_USER;
 
 \echo 'Migration tracking system setup completed successfully'

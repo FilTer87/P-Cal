@@ -176,7 +176,7 @@ setup_database() {
             print_success "Database is ready!"
             break
         fi
-        sleep 2
+        sleep 3
         if [ $i -eq 30 ]; then
             print_error "Database failed to start within 60 seconds"
             exit 1
