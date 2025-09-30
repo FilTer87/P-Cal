@@ -27,9 +27,9 @@ NC='\033[0m' # No Color
 
 # Configurazione database (da variabili d'ambiente o valori di default)
 DB_CONTAINER="${DB_CONTAINER:-privatecal-db}"
-DB_NAME="${DB_NAME:-calendar_db}"
-DB_USER="${DB_USER:-calendar_user}"
-DB_PASSWORD="${DB_PASSWORD:-calendar_pass}"
+DB_NAME="${DB_NAME:-${DATABASE_NAME:-calendar_db}}"
+DB_USER="${DB_USER:-${DATABASE_USERNAME:-calendar_user}}"
+DB_PASSWORD="${DB_PASSWORD:-${DATABASE_PASSWORD:-calendar_pass}}"
 
 # Banner
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"

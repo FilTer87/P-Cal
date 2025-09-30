@@ -149,7 +149,10 @@ show_status() {
     fi
 
     log_info "Migration history:"
-    docker-compose -f "$COMPOSE_FILE" exec -T "$DB_CONTAINER" psql -U calendar_user -d calendar_db -c \
+    # Get credentials from environment or use defaults
+    local db_user="${DATABASE_USERNAME:-calendar_user}"
+    local db_name="${DATABASE_NAME:-calendar_db}"
+    docker-compose -f "$COMPOSE_FILE" exec -T "$DB_CONTAINER" psql -U "$db_user" -d "$db_name" -c \
         "SELECT migration_name, applied_at, execution_time_ms, success FROM schema_migrations ORDER BY applied_at DESC LIMIT 10;" \
         2>/dev/null || log_warning "Could not retrieve migration status (table may not exist yet)"
 }

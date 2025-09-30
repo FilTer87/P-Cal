@@ -24,10 +24,10 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Configuration
-DB_CONTAINER="privatecal-db"
-DB_NAME="calendar_db"
-DB_USER="calendar_user"
+# Configuration (from environment variables or defaults)
+DB_CONTAINER="${DB_CONTAINER:-privatecal-db}"
+DB_NAME="${DB_NAME:-${DATABASE_NAME:-calendar_db}}"
+DB_USER="${DB_USER:-${DATABASE_USERNAME:-calendar_user}}"
 BACKUP_DIR="./data/backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="privatecal_backup_${TIMESTAMP}.sql"

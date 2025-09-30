@@ -5,12 +5,12 @@
 
 set -e
 
-# Configuration
+# Configuration from environment variables (passed from docker-compose)
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
-DB_NAME="${DB_NAME:-calendar_db}"
-DB_USER="${DB_USER:-calendar_user}"
-DB_PASSWORD="${DB_PASSWORD:-calendar_pass}"
+DB_NAME="${DB_NAME:-${DATABASE_NAME:-calendar_db}}"
+DB_USER="${DB_USER:-${DATABASE_USERNAME:-calendar_user}}"
+DB_PASSWORD="${DB_PASSWORD:-${DATABASE_PASSWORD:-calendar_pass}}"
 MIGRATIONS_DIR="/docker-entrypoint-initdb.d/migrations"
 
 # Colors for output

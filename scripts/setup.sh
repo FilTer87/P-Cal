@@ -146,23 +146,33 @@ setup_database() {
         return
     fi
     
+    # Load environment variables from .env if it exists
+    if [ -f ".env" ]; then
+        export $(grep -v '^#' .env | xargs)
+    fi
+
+    # Use environment variables or defaults
+    local db_name="${DATABASE_NAME:-calendar_db}"
+    local db_user="${DATABASE_USERNAME:-calendar_user}"
+    local db_password="${DATABASE_PASSWORD:-calendar_pass}"
+
     # Start PostgreSQL container for development
     docker run -d \
         --name privatecal-db-dev \
-        -e POSTGRES_DB=calendar_db \
-        -e POSTGRES_USER=calendar_user \
-        -e POSTGRES_PASSWORD=calendar_pass \
+        -e POSTGRES_DB="$db_name" \
+        -e POSTGRES_USER="$db_user" \
+        -e POSTGRES_PASSWORD="$db_password" \
         -p 5432:5432 \
         -v "$(pwd)/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro" \
         -v "$(pwd)/data/postgres:/var/lib/postgresql/data" \
         postgres:15-alpine
-    
+
     print_success "Database container started"
     print_status "Waiting for database to be ready..."
-    
+
     # Wait for database to be ready
     for i in {1..30}; do
-        if docker exec privatecal-db-dev pg_isready -U calendar_user -d calendar_db >/dev/null 2>&1; then
+        if docker exec privatecal-db-dev pg_isready -U "$db_user" -d "$db_name" >/dev/null 2>&1; then
             print_success "Database is ready!"
             break
         fi
