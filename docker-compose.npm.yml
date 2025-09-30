@@ -44,7 +44,7 @@ services:
     container_name: privatecal-db
     environment:
       POSTGRES_DB: calendar_db
-      POSTGRES_USER: calendar_user
+      POSTGRES_USER: ${DATABASE_USERNAME:-calendar_user}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-calendar_pass}
       ENABLE_MIGRATIONS: "true"
     volumes:
