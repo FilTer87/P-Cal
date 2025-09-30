@@ -17,9 +17,9 @@
 # Maven
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
-backend/.mvn/wrapper/maven-wrapper.properties
-backend/mvnw
-backend/mvnw.cmd
+# backend/.mvn/wrapper/maven-wrapper.properties
+# backend/mvnw
+# backend/mvnw.cmd
 
 # IDE - IntelliJ IDEA
 backend/.idea/
