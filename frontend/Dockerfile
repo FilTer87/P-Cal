@@ -14,7 +14,11 @@ COPY . .
 # Set production environment
 ENV NODE_ENV=production
 
-# Build application
+# Set API URL to use relative path (proxied by nginx)
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Build application with environment variables baked in
 RUN npm run build
 
 FROM nginx:alpine as production-stage
