@@ -14,9 +14,9 @@
     
     <groupId>com.privatecal</groupId>
     <artifactId>privatecal-backend</artifactId>
-    <version>2.0.0</version>
+    <version>0.9.0-beta</version>
     <name>P-Cal Backend</name>
-    <description>Calendar application APIs with JWT auth and NTFY notifications</description>
+    <description>Calendar application APIs with JWT auth and multichannel notifications</description>
     
     <licenses>
         <license>

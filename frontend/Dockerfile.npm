@@ -1,0 +1,47 @@
+# Dockerfile per deployment con Nginx Proxy Manager esterno
+# Usa un semplice server HTTP per servire i file statici
+# NPM gestisce SSL, routing e proxy API
+
+FROM node:24-alpine as build-stage
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Build application
+RUN npm run build
+
+# ============================================================================
+# Production stage - Simple HTTP server (no nginx)
+# ============================================================================
+FROM node:24-alpine as production-stage
+
+WORKDIR /app
+
+# Install serve (simple static file server)
+RUN npm install -g serve
+
+# Copy built application
+COPY --from=build-stage /app/dist ./dist
+
+# Create non-root user
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S -u 1001 -G appuser appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+EXPOSE 3000
+
+# Serve static files with SPA fallback
+CMD ["serve", "-s", "dist", "-l", "3000"]

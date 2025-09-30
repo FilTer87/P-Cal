@@ -1,0 +1,118 @@
+# ============================================================================
+# DOCKERFILE OTTIMIZZATO - Backend Spring Boot
+# ============================================================================
+#
+# OTTIMIZZAZIONI IMPLEMENTATE:
+# 1. Multi-stage build per ridurre dimensione immagine finale
+# 2. Layer caching ottimizzato per dipendenze Maven
+# 3. Download separato plugin Maven per evitare re-download
+# 4. BuildKit cache mount per repository Maven (opzionale)
+# 5. Immagine runtime Alpine per dimensioni ridotte
+#
+# COME USARE LA CACHE AVANZATA (Docker BuildKit):
+# export DOCKER_BUILDKIT=1
+# docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t privatecal-backend .
+#
+# ============================================================================
+
+# ============================================================================
+# STAGE 1: Build
+# ============================================================================
+FROM eclipse-temurin:17 as build
+
+WORKDIR /app
+
+# ----------------------------------------------------------------------------
+# LAYER 1: Maven wrapper
+# Questo layer cambia raramente, quindi viene cachato efficacemente
+# ----------------------------------------------------------------------------
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x ./mvnw
+
+# ----------------------------------------------------------------------------
+# LAYER 2: POM files (dipendenze)
+# Questo è il layer CRITICO per la cache!
+# Viene invalidato SOLO se modifichi pom.xml
+# ----------------------------------------------------------------------------
+COPY pom.xml .
+
+# ----------------------------------------------------------------------------
+# LAYER 3: Download dipendenze
+# Questo step scarica TUTTE le dipendenze necessarie
+# La flag -B = batch mode (non interattivo)
+# ----------------------------------------------------------------------------
+# Scarica le dipendenze del progetto
+RUN ./mvnw dependency:go-offline -B
+
+# Scarica anche i plugin Maven (evita download durante la build)
+RUN ./mvnw dependency:resolve-plugins -B
+
+# Pre-compila alcune dipendenze comuni per velocizzare successive build
+# (opzionale, ma aiuta con il warming della cache)
+RUN ./mvnw help:evaluate -Dexpression=project.version -B > /dev/null 2>&1 || true
+
+# ----------------------------------------------------------------------------
+# LAYER 4: Codice sorgente
+# Questo layer cambia frequentemente durante lo sviluppo
+# Ma NON invalida la cache delle dipendenze (layer precedenti)!
+# ----------------------------------------------------------------------------
+COPY src ./src
+
+# ----------------------------------------------------------------------------
+# LAYER 5: Build applicazione
+# Usa le dipendenze già scaricate (la maggior parte)
+# -DskipTests = salta i test per velocizzare (esegui test separatamente in CI)
+# Nota: non usiamo -o (offline) perché dependency:go-offline non scarica
+# tutte le dipendenze (alcune vengono scaricate solo durante la build)
+# ----------------------------------------------------------------------------
+RUN ./mvnw clean package -DskipTests
+
+# Verifica che il JAR sia stato creato
+RUN ls -lh /app/target/*.jar
+
+# ============================================================================
+# STAGE 2: Runtime
+# ============================================================================
+FROM eclipse-temurin:17-jre-alpine
+
+# Metadata immagine
+LABEL maintainer="P-Cal Team"
+LABEL version="0.9.0-beta"
+LABEL description="P-Cal Backend - Private Calendar Application"
+
+# Installa tool utili per debugging e health checks
+RUN apk add --no-cache \
+    curl \
+    tzdata
+
+WORKDIR /app
+
+# Copia solo il JAR compilato (non tutto il codice sorgente!)
+COPY --from=build /app/target/*.jar app.jar
+
+# Crea utente non-root per sicurezza
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S -u 1001 -G appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+USER appuser
+
+# Esponi porta applicazione
+EXPOSE 8080
+
+# Nota: HEALTHCHECK rimosso dal Dockerfile perché:
+# 1. Non supportato da Podman con formato OCI
+# 2. Già configurato in docker-compose.yml
+# Se usi Docker puro, puoi decommentare:
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+#     CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# JVM ottimizzata per container
+# -XX:+UseContainerSupport = usa limiti memoria del container
+# -XX:MaxRAMPercentage=75.0 = usa max 75% RAM disponibile
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", "app.jar"]

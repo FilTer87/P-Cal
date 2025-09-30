@@ -1,14 +1,5 @@
 import { formatDate, formatDateTime, formatTime, formatRelativeTime, getDateDescription } from './dateHelpers'
-import type { TaskPriority } from '../types/task'
-import { TASK_PRIORITIES, LOCALE_STRINGS } from './constants'
-
-/**
- * Format task priority for display
- */
-export const formatTaskPriority = (priority: TaskPriority): string => {
-  const priorityConfig = TASK_PRIORITIES.find(p => p.value === priority)
-  return priorityConfig?.label || priority
-}
+import { LOCALE_STRINGS } from './constants'
 
 
 /**
@@ -230,7 +221,6 @@ export const formatValidationError = (field: string, error: string): string => {
   const fieldNames: Record<string, string> = {
     title: 'Titolo',
     description: 'Descrizione',
-    priority: 'Priorità',
     dueDate: 'Data di scadenza',
     dueTime: 'Orario di scadenza',
     username: 'Nome utente',
@@ -240,7 +230,7 @@ export const formatValidationError = (field: string, error: string): string => {
     firstName: 'Nome',
     lastName: 'Cognome'
   }
-  
+
   const fieldName = fieldNames[field] || field
   return `${fieldName}: ${error}`
 }
@@ -264,28 +254,6 @@ export const formatApiError = (error: any): string => {
   return 'Si è verificato un errore imprevisto'
 }
 
-/**
- * Format calendar event for display
- */
-export const formatCalendarEvent = (task: {
-  title: string
-  priority: TaskPriority
-  dueDate?: string
-}): {
-  title: string
-  className: string
-  color: string
-} => {
-  const priorityConfig = TASK_PRIORITIES.find(p => p.value === task.priority)
-
-  return {
-    title: task.title,
-    className: `priority-${task.priority.toLowerCase()}`,
-    color: priorityConfig?.color.includes('red') ? '#ef4444' :
-           priorityConfig?.color.includes('orange') ? '#f97316' :
-           priorityConfig?.color.includes('yellow') ? '#eab308' : '#3b82f6'
-  }
-}
 
 /**
  * Format date range for display
@@ -421,9 +389,9 @@ export const formatSafeHtml = (html: string): string => {
 /**
  * Format table cell content based on type
  */
-export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | 'boolean' | 'priority' = 'text'): string => {
+export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | 'boolean' = 'text'): string => {
   if (value == null) return '-'
-  
+
   switch (type) {
     case 'number':
       return formatNumber(value)
@@ -431,8 +399,6 @@ export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | '
       return formatDate(value)
     case 'boolean':
       return value ? 'Sì' : 'No'
-    case 'priority':
-      return formatTaskPriority(value)
     case 'text':
     default:
       return String(value)

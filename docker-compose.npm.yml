@@ -1,0 +1,138 @@
+# ============================================================================
+# Docker Compose - Nginx Proxy Manager Setup
+# ============================================================================
+#
+# Configurazione per deployment con Nginx Proxy Manager esterno
+#
+# CARATTERISTICHE:
+# - Porte NON esposte su host (solo rete interna Docker)
+# - NPM gestisce SSL/TLS, domini e certificati Let's Encrypt
+# - Nginx interno container gestisce SPA routing e proxy API
+#
+# USO:
+#   docker-compose -f docker-compose.npm.yml up -d
+#
+# PREREQUISITI:
+# - Nginx Proxy Manager installato e configurato
+# - NPM sulla stessa rete Docker (o rete condivisa)
+#
+# CONFIGURAZIONE NPM:
+# 1. Crea Proxy Host in NPM:
+#    - Domain Names: tuodominio.com
+#    - Scheme: http
+#    - Forward Hostname/IP: privatecal-frontend
+#    - Forward Port: 8080
+#    - Cache Assets: ON
+#    - Block Common Exploits: ON
+#    - Websockets Support: ON
+#
+# 2. SSL Tab:
+#    - SSL Certificate: Request a new SSL Certificate
+#    - Force SSL: ON
+#    - HTTP/2 Support: ON
+#    - HSTS Enabled: ON (opzionale)
+#
+# ============================================================================
+
+version: '3.8'
+
+services:
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: privatecal-db
+    environment:
+      POSTGRES_DB: calendar_db
+      POSTGRES_USER: calendar_user
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-calendar_pass}
+      ENABLE_MIGRATIONS: "true"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    networks:
+      - privatecal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calendar_user -d calendar_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.optimized
+    container_name: privatecal-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://database:5432/calendar_db}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-calendar_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-calendar_pass}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_TOKEN_EXPIRATION=${JWT_ACCESS_TOKEN_EXPIRATION:-86400000}
+      - JWT_REFRESH_TOKEN_EXPIRATION=${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
+      - NTFY_SERVER_URL=${NTFY_SERVER_URL:-https://ntfy.sh}
+      - NTFY_TOPIC_PREFIX=${NTFY_TOPIC_PREFIX:-privatecal-}
+      - NTFY_AUTH_TOKEN=${NTFY_AUTH_TOKEN:-}
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      - MAIL_HOST=${MAIL_HOST:-}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-noreply@privatecal.local}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-P-Cal}
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost}
+    depends_on:
+      database:
+        condition: service_healthy
+    # NOTA: Porta NON esposta su host, solo su rete Docker interna
+    expose:
+      - "8080"
+    networks:
+      - privatecal-network
+      - npm-network  # Rete condivisa con NPM
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: privatecal-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    # NOTA: Porta NON esposta su host, solo su rete Docker interna
+    expose:
+      - "8080"
+    networks:
+      - privatecal-network
+      - npm-network  # Rete condivisa con NPM
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  # Rete interna per comunicazione tra servizi
+  privatecal-network:
+    driver: bridge
+    internal: true  # Non accessibile dall'esterno
+
+  # Rete condivisa con Nginx Proxy Manager
+  # IMPORTANTE: Questa rete deve esistere già (creata da NPM)
+  # Se NPM usa una rete diversa, modificare il nome qui sotto
+  npm-network:
+    external: true
+    name: npm-network  # Replace with the actual network name used by Nginx Proxy

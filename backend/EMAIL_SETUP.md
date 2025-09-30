@@ -247,6 +247,3 @@ Create separate configuration files:
 2. Test email functionality using the provided endpoints
 3. Customize email templates as needed
 4. Set up monitoring for email delivery
-5. Consider implementing password reset functionality (future feature)
-
-For additional support, check the application logs or contact the development team.

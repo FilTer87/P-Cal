@@ -23,9 +23,11 @@ services:
       retries: 5
 
   backend:
-    build: 
+    build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.optimized
+      args:
+        BUILDAH_FORMAT: docker
     container_name: privatecal-backend
     environment:
       - SPRING_PROFILES_ACTIVE=docker

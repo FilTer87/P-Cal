@@ -1,0 +1,79 @@
+# ============================================================================
+# DOCKERFILE ULTRA-OTTIMIZZATO - Con BuildKit Cache Mount
+# ============================================================================
+#
+# QUESTA VERSIONE RICHIEDE DOCKER BUILDKIT
+#
+# VANTAGGI:
+# - Cache persistente del repository Maven locale (~/.m2/repository)
+# - Build successive MOLTO più veloci (anche modificando pom.xml)
+# - Riduce drasticamente download dipendenze
+#
+# COME USARE:
+# export DOCKER_BUILDKIT=1
+# docker build -f Dockerfile.buildkit -t privatecal-backend .
+#
+# OPPURE con docker-compose:
+# COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
+#
+# ============================================================================
+
+# syntax=docker/dockerfile:1.4
+FROM eclipse-temurin:17 as build
+
+WORKDIR /app
+
+# Maven wrapper
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x ./mvnw
+
+# POM per layer caching
+COPY pom.xml .
+
+# Download dipendenze con cache mount persistente
+# --mount=type=cache crea una cache persistente tra diverse build
+# Anche se cancelli l'immagine, la cache rimane!
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw dependency:go-offline -B && \
+    ./mvnw dependency:resolve-plugins -B
+
+# Copia sorgenti
+COPY src ./src
+
+# Build con cache mount
+# Nota: -o (offline) NON è usato qui perché potremmo aver modificato pom.xml
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw clean package -DskipTests -B
+
+# ============================================================================
+# Runtime stage (identico a Dockerfile.optimized)
+# ============================================================================
+FROM eclipse-temurin:17-jre-alpine
+
+LABEL maintainer="P-Cal Team"
+LABEL version="0.9.0-beta"
+LABEL description="P-Cal Backend - BuildKit Optimized"
+
+RUN apk add --no-cache curl tzdata
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S -u 1001 -G appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", "app.jar"]

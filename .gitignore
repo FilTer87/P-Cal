@@ -35,6 +35,9 @@ backend/*.launch
 backend/.settings/
 backend/.metadata
 backend/.recommenders
+backend/.factorypath
+backend/.apt_generated
+backend/.apt_generated_tests
 
 # IDE - NetBeans
 backend/nbproject/private/
@@ -357,3 +360,5 @@ scripts/dev-*
 *.zip
 *.tar.gz
 *.7z
+
+commit_message.txt
