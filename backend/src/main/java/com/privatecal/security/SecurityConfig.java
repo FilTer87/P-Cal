@@ -108,13 +108,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Debug logging
-        System.out.println("=== CORS Configuration ===");
-        System.out.println("Allowed Origins: " + allowedOrigins);
-
-        // Set allowed origins from configuration (split by comma)
-        // Use allowedOrigins instead of allowedOriginPatterns when credentials are enabled
-        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        // Use allowedOriginPatterns to support proxy scenarios
+        // This allows more flexible origin matching
+        configuration.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         
         // Set allowed methods (split by comma)
         configuration.setAllowedMethods(List.of(allowedMethods.split(",")));

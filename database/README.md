@@ -1,15 +1,15 @@
-# 🐳 Sistema di Migrazione Database - Guida Completa
+# ⛁ Database migrations
 
-## 📋 **Panoramica**
+### 📋 **Panoramica**
 
-Sistema automatico di migrazione database per PrivateCal che gestisce:
-- ✅ **Migrazioni automatiche** al startup di Docker Compose
-- ✅ **Tracking delle migrazioni** per evitare duplicazioni
+Sistema automatico di migrazione database per P-Cal che gestisce:
+- ✅ **Migrazioni automatiche** allo startup di Docker Compose
+- ✅ **Tracking delle migrazioni**
 - ✅ **Script di gestione** per operazioni manuali
 - ✅ **Supporto dev/prod** con configurazioni separate
-- ✅ **Rollback sicuro** e gestione errori
+- ✅ **Rollback** e gestione errori
 
-## 🏗️ **Architettura del Sistema**
+### 🏗️ **Architettura del Sistema**
 
 ```
 database/
@@ -27,24 +27,18 @@ scripts/
 └── migrate.sh              # Script di gestione utente
 ```
 
-## 🚀 **Come Usare il Sistema**
+### 🚀 **Come Usare il Sistema**
 
-### **1. Avvio Standard (Automatico)**
+#### **1. Avvio Standard (Automatico)**
 
 ```bash
-# Development (migrazioni automatiche)
-docker-compose -f docker-compose.dev.yml up -d
-
-# Production (migrazioni automatiche)
-docker-compose -f docker-compose.prod.yml up -d
-
 # Standard (migrazioni automatiche)
 docker-compose up -d
 ```
 
 **✨ Le migrazioni vengono eseguite automaticamente!**
 
-### **2. Gestione Manuale delle Migrazioni**
+#### **2. Gestione Manuale delle Migrazioni**
 
 ```bash
 # Rendere eseguibile lo script (solo la prima volta)
@@ -88,9 +82,9 @@ git add database/migrations/003_add_user_avatar.sql
 git commit -m "Add user avatar support"
 ```
 
-## 📁 **Struttura File di Migrazione**
+### 📁 **Struttura File di Migrazione**
 
-### **Convenzioni Nomenclatura**
+#### **Convenzioni Nomenclatura**
 
 ```
 001_initial_schema.sql           # Schema iniziale
@@ -100,7 +94,7 @@ git commit -m "Add user avatar support"
 005_rollback_notifications.sql   # Rollback (se necessario)
 ```
 
-### **Template Migrazione**
+#### **Template Migrazione**
 
 ```sql
 -- Migration: 003 - Add User Avatar
@@ -127,9 +121,9 @@ COMMENT ON COLUMN users.avatar_url IS 'URL of user profile avatar image';
 COMMENT ON COLUMN users.avatar_uploaded_at IS 'Timestamp when avatar was last updated';
 ```
 
-## 🔧 **Configurazioni Docker Compose**
+### 🔧 **Configurazioni Docker Compose**
 
-### **Development (docker-compose.dev.yml)**
+#### **Development (docker-compose.dev.yml)**
 
 ```yaml
 database:
@@ -141,7 +135,7 @@ database:
     - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
 ```
 
-### **Production (docker-compose.prod.yml)**
+#### **Production (docker-compose.prod.yml)**
 
 ```yaml
 database:
@@ -154,7 +148,7 @@ database:
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
 
-### **Disabilitare Migrazioni (se necessario)**
+#### **Disabilitare Migrazioni (se necessario)**
 
 ```yaml
 database:
@@ -162,7 +156,7 @@ database:
     ENABLE_MIGRATIONS: "false"  # Disabilita migrazioni automatiche
 ```
 
-## 📊 **Tracking delle Migrazioni**
+### 📊 **Tracking delle Migrazioni**
 
 Il sistema crea automaticamente la tabella `schema_migrations`:
 
@@ -178,7 +172,7 @@ CREATE TABLE schema_migrations (
 );
 ```
 
-### **Query Utili**
+#### **Query Utili**
 
 ```sql
 -- Vedere tutte le migrazioni applicate
@@ -198,9 +192,9 @@ SELECT EXISTS(
 );
 ```
 
-## ⚠️ **Best Practices**
+### ⚠️ **Best Practices**
 
-### **✅ Cosa Fare**
+#### **✅ Cosa Fare**
 
 1. **Sempre usare IF NOT EXISTS** per CREATE statements
 2. **Verificare esistenza** prima di aggiungere colonne/constraint
@@ -209,7 +203,7 @@ SELECT EXISTS(
 5. **Committare migrazioni** insieme al codice che le richiede
 6. **Documentare bene** le modifiche nei commenti
 
-### **❌ Cosa NON Fare**
+#### **❌ Cosa NON Fare**
 
 1. **Non modificare** migrazioni già applicate
 2. **Non eliminare** file di migrazione dal repo
@@ -217,7 +211,7 @@ SELECT EXISTS(
 4. **Non applicare** migrazioni direttamente in production senza test
 5. **Non rimuovere** la tabella `schema_migrations`
 
-### **🔒 Gestione Rollback**
+#### **🔒 Gestione Rollback**
 
 Il sistema non ha rollback automatico. Per annullare una migrazione:
 
@@ -244,9 +238,9 @@ ALTER TABLE users DROP COLUMN IF EXISTS avatar_uploaded_at CASCADE;
 -- Remove constraints (automatically dropped with columns)
 ```
 
-## 🐛 **Troubleshooting**
+### 🐛 **Troubleshooting**
 
-### **Errore: "Migration already applied"**
+#### **Errore: "Migration already applied"**
 
 ```bash
 # Verificare stato
@@ -257,7 +251,7 @@ docker-compose exec database psql -U calendar_user -d calendar_db -c \
   "DELETE FROM schema_migrations WHERE migration_name = 'problematic_migration';"
 ```
 
-### **Errore: "Database not ready"**
+#### **Errore: "Database not ready"**
 
 ```bash
 # Verificare salute container
@@ -270,7 +264,7 @@ docker-compose ps
 docker-compose restart database
 ```
 
-### **Errore: "Migration failed"**
+#### **Errore: "Migration failed"**
 
 ```bash
 # Vedere dettagli errore nei logs
@@ -282,50 +276,10 @@ psql -U calendar_user -d calendar_db -f database/migrations/problematic.sql
 # Correggere e ri-applicare
 ```
 
-## 🔄 **Scenario Comuni**
 
-### **1. Nuovo Sviluppatore Setup**
+### 📈 **Monitoraggio e Logging**
 
-```bash
-git clone <repo>
-cd privatecal
-docker-compose -f docker-compose.dev.yml up -d
-# Migrazioni vengono applicate automaticamente ✨
-```
-
-### **2. Deploy in Production**
-
-```bash
-# Pull latest code
-git pull origin main
-
-# Apply migrations (automatic on startup)
-docker-compose -f docker-compose.prod.yml up -d
-
-# Verify migrations
-./scripts/migrate.sh status prod
-```
-
-### **3. Aggiungere Nuova Feature**
-
-```bash
-# Create migration
-./scripts/migrate.sh create add_feature_x
-
-# Edit migration file
-vim database/migrations/xxx_add_feature_x.sql
-
-# Test in development
-./scripts/migrate.sh migrate dev
-
-# Commit changes
-git add database/migrations/xxx_add_feature_x.sql
-git commit -m "Add feature X database support"
-```
-
-## 📈 **Monitoraggio e Logging**
-
-### **Log Locations**
+#### **Log Locations**
 
 ```bash
 # Container logs
@@ -338,7 +292,7 @@ docker-compose logs database
 docker-compose exec database tail -f /var/log/postgresql/postgresql.log
 ```
 
-### **Health Checks**
+#### **Health Checks**
 
 ```bash
 # Verificare salute database
@@ -350,15 +304,3 @@ docker-compose exec database pg_isready -U calendar_user -d calendar_db
 # Test connessione applicazione
 curl http://localhost:8080/actuator/health
 ```
-
-## 🎯 **Risultato Finale**
-
-**✅ Sistema di Migrazione Completo:**
-- 🔄 **Automatico**: Migrazioni si applicano al startup
-- 🛡️ **Sicuro**: Tracking per evitare duplicazioni
-- 🚀 **Facile**: Script semplici per gestione
-- 🔍 **Tracciabile**: Log completi di tutte le operazioni
-- 🏗️ **Scalabile**: Supporta dev/staging/production
-- 📦 **Docker-native**: Integrato con Docker Compose
-
-**🎉 Zero configurazione manuale richiesta per nuovi ambienti!**

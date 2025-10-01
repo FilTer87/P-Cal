@@ -1,10 +1,6 @@
-# Project Scripts
 
-Utility scripts for managing project versioning and releases.
 
-## 📄 Available Scripts
-
-### `update-version.sh`
+## `update-version.sh`
 
 Updates the project version across all project files.
 
@@ -70,6 +66,21 @@ Automated release management with Git integration.
 
 **Usage:**
 ```bash
+./scripts/release.sh <release_type> [OPTIONS]
+
+Release types:
+  major  - Increment X.0.0 (breaking changes)
+  minor  - Increment x.Y.0 (new features)
+  patch  - Increment x.y.Z (bug fixes)
+  X.Y.Z  - Custom version
+
+Options:
+  --push              Push commit and tag to remote
+  -m, --message       Custom commit message
+  -f, --message-file  Read commit message from file
+```
+**Examples:**
+```
 # Increment patch version (0.9.0 → 0.9.1)
 ./scripts/release.sh patch
 
@@ -86,7 +97,7 @@ Automated release management with Git integration.
 ./scripts/release.sh minor --push
 ```
 
-**Example:**
+**Output example:**
 ```bash
 $ ./scripts/release.sh patch
 ╔════════════════════════════════════════════════════════╗
