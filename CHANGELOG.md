@@ -22,7 +22,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ---
 
-## [0.9.2-beta] - 2025-10-01
+## [0.9.3-beta] - 2025-10-01
 P-Cal - first public version of the project.
 
 ### Added
@@ -35,7 +35,7 @@ P-Cal - first public version of the project.
 ### Notes
 - This is a **pre-release**: all core features are already operational and there are no known critical bugs; email verification flow is missing in order to release v1.0.0
 
-## [0.9.1-beta] - 2025-10-01
+## [0.9.2-beta] - 2025-10-01
 
 ### Added
 - User registration, login and profile management
