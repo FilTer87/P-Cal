@@ -84,21 +84,21 @@ export class AuthApi {
 
 
   /**
-   * Verify email with token
-   * // TODO - Unused
+   * Verify email address with token from email
    */
-  async verifyEmail(token: string): Promise<void> {
-    return apiClient.post<void>('/auth/verify-email', {
+  async verifyEmail(token: string): Promise<PasswordResetResponse> {
+    return apiClient.post<PasswordResetResponse>('/auth/verify-email', {
       token
     })
   }
 
   /**
-   * Resend email verification
-   * // TODO - Unused
+   * Resend email verification link
    */
-  async resendEmailVerification(): Promise<void> {
-    return apiClient.post<void>('/auth/resend-verification')
+  async resendVerification(email: string): Promise<PasswordResetResponse> {
+    return apiClient.post<PasswordResetResponse>('/auth/resend-verification', {
+      email
+    })
   }
 
 

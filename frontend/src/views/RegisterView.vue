@@ -226,8 +226,23 @@
               </button>
             </div>
 
+            <!-- Email Verification Required Message -->
+            <div v-if="requiresVerification" class="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-700">
+              <div class="flex">
+                <InformationCircleIcon class="h-5 w-5 text-blue-400" />
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    {{ verificationMessage }}
+                  </p>
+                  <p class="mt-2 text-xs text-blue-700 dark:text-blue-300">
+                    Controlla la tua casella di posta e clicca sul link di verifica per completare la registrazione.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- General Error Message -->
-            <div v-if="generalError" class="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+            <div v-else-if="generalError" class="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
               <div class="flex">
                 <ExclamationTriangleIcon class="h-5 w-5 text-red-400" />
                 <div class="ml-3">
@@ -298,10 +313,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  EyeIcon, 
-  EyeSlashIcon, 
+import {
+  EyeIcon,
+  EyeSlashIcon,
   ExclamationTriangleIcon,
+  InformationCircleIcon,
   SunIcon,
   MoonIcon
 } from '@heroicons/vue/24/outline'
@@ -331,6 +347,8 @@ const form = ref<RegisterFormData>({
 
 const errors = ref<Record<string, string>>({})
 const generalError = ref<string>('')
+const requiresVerification = ref(false)
+const verificationMessage = ref<string>('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
@@ -368,12 +386,14 @@ const validateField = (field: keyof RegisterFormData) => {
 
 const handleSubmit = async () => {
   generalError.value = ''
-  
+  requiresVerification.value = false
+  verificationMessage.value = ''
+
   // Validate form
   if (!validateForm()) {
     return
   }
-  
+
   try {
     const success = await register({
       username: form.value.username.trim(),
@@ -382,27 +402,37 @@ const handleSubmit = async () => {
       firstName: form.value.firstName.trim() || undefined,
       lastName: form.value.lastName.trim() || undefined
     })
-    
+
     if (success) {
       // Redirect is handled by the auth composable
       return
     }
-    
+
     generalError.value = 'Errore durante la registrazione. Riprova.'
   } catch (error: any) {
     console.error('Registration error:', error)
-    
+
     if (error.response?.data?.message) {
-      generalError.value = error.response.data.message
+      const message = error.response.data.message
+
+      // Check if this is an email verification required message
+      if (message.includes('check your email') ||
+          message.includes('verifica') ||
+          message.includes('verify your account')) {
+        requiresVerification.value = true
+        verificationMessage.value = message
+      } else {
+        generalError.value = message
+      }
     } else if (error.response?.data?.errors) {
       // Handle field-specific errors from server
       const serverErrors = error.response.data.errors
       const fieldErrors: Record<string, string> = {}
-      
+
       serverErrors.forEach((err: { field: string; message: string }) => {
         fieldErrors[err.field] = err.message
       })
-      
+
       errors.value = { ...errors.value, ...fieldErrors }
     } else {
       generalError.value = error.message || 'Errore durante la registrazione'
