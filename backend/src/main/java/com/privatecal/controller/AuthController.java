@@ -150,10 +150,16 @@ public class AuthController {
                        registerRequest.getUsername(), getClientIpAddress(request));
             
             AuthResponse response = authService.register(registerRequest);
-            
+
+            // Check if email verification is required
+            if (response.isRequiresEmailVerification()) {
+                logger.info("Registration successful for user: {} - email verification required", registerRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            }
+
             if (response.isSuccess()) {
                 logger.info("Registration successful for user: {}", registerRequest.getUsername());
-                
+
                 // Send welcome notification after successful registration
                 try {
                     notificationService.sendTestNotification(
@@ -164,10 +170,10 @@ public class AuthController {
                 } catch (Exception e) {
                     logger.warn("Failed to send welcome notification", e);
                 }
-                
+
                 return ResponseEntity.status(HttpStatus.CREATED).body(response);
             } else {
-                logger.warn("Registration failed for user: {} - {}", 
+                logger.warn("Registration failed for user: {} - {}",
                            registerRequest.getUsername(), response.getMessage());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }

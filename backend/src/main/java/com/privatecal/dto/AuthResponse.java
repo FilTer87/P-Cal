@@ -26,6 +26,7 @@ public class AuthResponse {
     private String message;
     private boolean success = true;
     private boolean requiresTwoFactor = false;
+    private boolean requiresEmailVerification = false;
     
     // Default constructor
     public AuthResponse() {}
@@ -118,7 +119,18 @@ public class AuthResponse {
         response.setMessage(message != null ? message : "Two-factor authentication required");
         return response;
     }
-    
+
+    /**
+     * Create email verification required response
+     */
+    public static AuthResponse requireEmailVerification(String message) {
+        AuthResponse response = new AuthResponse();
+        response.setSuccess(true);
+        response.setRequiresEmailVerification(true);
+        response.setMessage(message != null ? message : "Please verify your email address to complete registration");
+        return response;
+    }
+
     // Getters and Setters
     public String getAccessToken() {
         return accessToken;
@@ -198,6 +210,14 @@ public class AuthResponse {
 
     public void setRequiresTwoFactor(boolean requiresTwoFactor) {
         this.requiresTwoFactor = requiresTwoFactor;
+    }
+
+    public boolean isRequiresEmailVerification() {
+        return requiresEmailVerification;
+    }
+
+    public void setRequiresEmailVerification(boolean requiresEmailVerification) {
+        this.requiresEmailVerification = requiresEmailVerification;
     }
 
     // Helper methods

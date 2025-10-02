@@ -68,7 +68,12 @@ export function useAuth() {
         await redirectAfterLogin()
       }
       return success
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw email verification required error to be handled by the register component
+      if (error.response?.data?.requiresEmailVerification) {
+        throw error
+      }
+
       console.error('Registration failed:', error)
       return false
     }

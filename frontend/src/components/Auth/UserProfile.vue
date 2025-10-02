@@ -142,15 +142,27 @@
               <form @submit.prevent="handlePersonalInfoSave" class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome Utente</label>
-                  <input v-model="profileForm.username" type="text" :disabled="!editModes.personal || isLoading"
-                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
-                  <p v-if="errors.username" class="mt-1 text-xs text-red-600">{{ errors.username }}</p>
+                  <input v-model="profileForm.username" type="text" disabled
+                    class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed" />
+                  <!-- <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Il nome utente non può essere modificato</p> -->
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                  <input v-model="profileForm.email" type="email" :disabled="!editModes.personal || isLoading"
-                    :class="['w-full px-3 py-2 border rounded-lg text-sm', !editModes.personal ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600']" />
+                  <input v-model="profileForm.email" type="email"
+                    :disabled="user?.emailVerified || !editModes.personal || isLoading"
+                    :class="[
+                      'w-full px-3 py-2 border rounded-lg text-sm',
+                      user?.emailVerified || !editModes.personal
+                        ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+                    ]" />
+                  <p v-if="user?.emailVerified" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    ✓ Email verificata e protetta
+                  </p>
+                  <p v-else class="mt-1 text-xs text-yellow-600 dark:text-yellow-400" v-if="editModes.personal">
+                    ⚠ Email non verificata o verifica non richiesta
+                  </p>
                   <p v-if="errors.email" class="mt-1 text-xs text-red-600">{{ errors.email }}</p>
                 </div>
 
@@ -338,17 +350,12 @@
               <input
                 v-model="profileForm.username"
                 type="text"
-                :disabled="!editModes.personal || isLoading"
-                :class="[
-                  'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
-                  !editModes.personal 
-                    ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
-                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-                ]"
+                disabled
+                class="w-full px-4 py-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 placeholder="Nome utente"
               />
-              <p v-if="errors.username" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                {{ errors.username }}
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" v-if="editModes.personal">
+                Il nome utente non può essere modificato
               </p>
             </div>
 
@@ -360,15 +367,21 @@
               <input
                 v-model="profileForm.email"
                 type="email"
-                :disabled="!editModes.personal || isLoading"
+                :disabled="user?.emailVerified || !editModes.personal || isLoading"
                 :class="[
                   'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
-                  !editModes.personal 
-                    ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
+                  user?.emailVerified || !editModes.personal
+                    ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                     : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
                 ]"
                 placeholder="Indirizzo email"
               />
+              <p v-if="user?.emailVerified" class="mt-1 text-sm text-green-500 dark:text-green-400">
+                ✓ Email verificata e protetta
+              </p>
+              <p v-else class="mt-1 text-sm text-yellow-600 dark:text-yellow-400"  v-if="editModes.personal">
+                ⚠ Email non verificata o verifica non richiesta
+              </p>
               <p v-if="errors.email" class="mt-1 text-sm text-red-600 dark:text-red-400">
                 {{ errors.email }}
               </p>
@@ -1283,11 +1296,15 @@ const validateConfirmPassword = () => {
 // Form submission handlers
 const handlePersonalInfoSave = async () => {
   try {
+    // Note: username cannot be modified. Email can only be modified if not verified.
     const updateData: Partial<User> = {
-      username: profileForm.username.trim(),
-      email: profileForm.email.trim(),
       firstName: profileForm.firstName.trim() || undefined,
       lastName: profileForm.lastName.trim() || undefined
+    }
+
+    // Include email only if it's not verified (allowing correction of typos)
+    if (!user.value?.emailVerified) {
+      updateData.email = profileForm.email.trim()
     }
     
     const success = await updateProfile(updateData)

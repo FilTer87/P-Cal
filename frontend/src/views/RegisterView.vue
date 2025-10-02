@@ -412,18 +412,12 @@ const handleSubmit = async () => {
   } catch (error: any) {
     console.error('Registration error:', error)
 
-    if (error.response?.data?.message) {
-      const message = error.response.data.message
-
-      // Check if this is an email verification required message
-      if (message.includes('check your email') ||
-          message.includes('verifica') ||
-          message.includes('verify your account')) {
-        requiresVerification.value = true
-        verificationMessage.value = message
-      } else {
-        generalError.value = message
-      }
+    // Check if this is an email verification required response
+    if (error.response?.data?.requiresEmailVerification) {
+      requiresVerification.value = true
+      verificationMessage.value = error.response.data.message || 'Registration successful! Please check your email to verify your account.'
+    } else if (error.response?.data?.message) {
+      generalError.value = error.response.data.message
     } else if (error.response?.data?.errors) {
       // Handle field-specific errors from server
       const serverErrors = error.response.data.errors

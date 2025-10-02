@@ -16,6 +16,7 @@ public class UserResponse {
     private Long id;
     private String username;
     private String email;
+    private Boolean emailVerified;
     private String firstName;
     private String lastName;
     private String fullName;
@@ -38,6 +39,7 @@ public class UserResponse {
         this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
+        this.emailVerified = user.getEmailVerified();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.fullName = user.getFullName();
@@ -94,6 +96,7 @@ public class UserResponse {
         response.setId(user.getId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
+        response.setEmailVerified(user.getEmailVerified());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setFullName(user.getFullName());
@@ -140,7 +143,15 @@ public class UserResponse {
     public void setEmail(String email) {
         this.email = email;
     }
-    
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
     public String getFirstName() {
         return firstName;
     }

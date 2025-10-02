@@ -213,8 +213,8 @@ public class AuthService {
 
                 logger.info("User {} registered successfully, verification email sent", savedUser.getUsername());
 
-                // Return response without tokens, requiring email verification
-                return AuthResponse.error("Registration successful! Please check your email to verify your account before logging in.");
+                // Return response requiring email verification (success=true with special flag)
+                return AuthResponse.requireEmailVerification("Registration successful! Please check your email to verify your account before logging in.");
             } else {
                 // Original flow: send welcome email and generate tokens
                 // Send welcome email (asynchronous, don't block registration if it fails)
@@ -868,8 +868,8 @@ public class AuthService {
         logger.debug("Cleaning up expired email verification tokens");
 
         try {
-            // Delete tokens expired more than 24 hours ago
-            LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
+            // Delete tokens expired more than 48 hours ago
+            LocalDateTime cutoff = LocalDateTime.now().minusHours(48);
             emailVerificationTokenRepository.deleteExpiredTokens(cutoff);
 
             // Delete used tokens older than 7 days
