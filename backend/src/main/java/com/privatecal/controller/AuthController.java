@@ -870,4 +870,97 @@ public class AuthController {
                 ));
         }
     }
+
+    /**
+     * Verify email address using token
+     */
+    @PostMapping("/verify-email")
+    @Operation(summary = "Verify email", description = "Verify user email address using verification token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or expired token"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> verifyEmail(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        String token = request.get("token");
+
+        if (token == null || token.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(new PasswordResetResponse(
+                    "Token di verifica richiesto.",
+                    false
+                ));
+        }
+
+        if(logger.isInfoEnabled()) {
+            String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Email verification attempt from IP: {} with token: {}",
+                    ipAddress, token);
+        }
+
+        try {
+            PasswordResetResponse response = authService.verifyEmail(token);
+
+            if (response.isSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing email verification", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
+    }
+
+    /**
+     * Resend email verification
+     */
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification email", description = "Resend email verification link to user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Verification email sent (or would be sent if email exists)"),
+        @ApiResponse(responseCode = "400", description = "Invalid email format or rate limit exceeded"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> resendVerification(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        String email = request.get("email");
+
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(new PasswordResetResponse(
+                    "Email richiesta.",
+                    false
+                ));
+        }
+
+        if(logger.isInfoEnabled()) {
+            String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Resend verification email attempt from IP: {} for email: {}",
+                    ipAddress, email);
+        }
+
+        try {
+            PasswordResetResponse response = authService.resendVerificationEmail(email);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error processing resend verification request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
+    }
 }
