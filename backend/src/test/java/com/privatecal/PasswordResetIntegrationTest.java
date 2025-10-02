@@ -8,6 +8,7 @@ import com.privatecal.entity.PasswordResetToken;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
 import com.privatecal.service.AuthService;
+import com.privatecal.service.PasswordResetService;
 import com.privatecal.config.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,9 @@ class PasswordResetIntegrationTest {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -284,7 +288,7 @@ class PasswordResetIntegrationTest {
     @Test
     void testTokenCleanup() {
         // Test cleanup functionality
-        authService.cleanupExpiredTokens();
+        passwordResetService.cleanupExpiredTokens();
 
         // This test mainly verifies the method runs without error
         // In a real scenario, you'd create expired tokens and verify they're deleted

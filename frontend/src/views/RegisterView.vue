@@ -237,6 +237,15 @@
                   <p class="mt-2 text-xs text-blue-700 dark:text-blue-300">
                     Controlla la tua casella di posta e clicca sul link di verifica per completare la registrazione.
                   </p>
+                  <p class="mt-3 text-xs text-blue-700 dark:text-blue-300">
+                    Non hai ricevuto l'email?
+                    <router-link
+                      to="/verify-email"
+                      class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                    >
+                      Richiedi un nuovo invio
+                    </router-link>
+                  </p>
                 </div>
               </div>
             </div>

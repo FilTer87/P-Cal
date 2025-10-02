@@ -16,6 +16,8 @@ import com.privatecal.entity.User;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
+import com.privatecal.service.PasswordResetService;
+import com.privatecal.service.EmailVerificationService;
 import com.privatecal.util.ApiConst;
 import com.privatecal.service.TwoFactorService;
 import com.privatecal.service.EmailService;
@@ -56,6 +58,8 @@ public class AuthController {
     private final NotificationService notificationService;
     private final TwoFactorService twoFactorService;
     private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * User login endpoint
@@ -825,7 +829,7 @@ public class AuthController {
     	}
 
         try {
-            PasswordResetResponse response = authService.forgotPassword(request);
+            PasswordResetResponse response = passwordResetService.forgotPassword(request);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -859,7 +863,7 @@ public class AuthController {
     	}
 
         try {
-            PasswordResetResponse response = authService.resetPassword(request);
+            PasswordResetResponse response = passwordResetService.resetPassword(request);
 
             if (response.isSuccess()) {
                 return ResponseEntity.ok(response);
@@ -908,7 +912,7 @@ public class AuthController {
         }
 
         try {
-            PasswordResetResponse response = authService.verifyEmail(token);
+            PasswordResetResponse response = emailVerificationService.verifyEmail(token);
 
             if (response.isSuccess()) {
                 return ResponseEntity.ok(response);
@@ -957,7 +961,7 @@ public class AuthController {
         }
 
         try {
-            PasswordResetResponse response = authService.resendVerificationEmail(email);
+            PasswordResetResponse response = emailVerificationService.resendVerificationEmail(email);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
