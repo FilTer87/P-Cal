@@ -25,7 +25,7 @@ MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-specific-password
 
 # Email Settings
-EMAIL_FROM_ADDRESS=noreply@privatecal.com
+EMAIL_FROM_ADDRESS=noreply@p-cal.me
 EMAIL_FROM_NAME=P-Cal
 APP_BASE_URL=http://localhost:3000
 ```
@@ -89,7 +89,7 @@ Response:
 ```json
 {
   "available": true,
-  "configuration": "Email Service - Enabled: true, From: P-Cal <noreply@privatecal.com>, Base URL: http://localhost:3000",
+  "configuration": "Email Service - Enabled: true, From: P-Cal <noreply@p-cal.me>, Base URL: http://localhost:3000",
   "message": "Email service is available"
 }
 ```
@@ -170,7 +170,7 @@ spring:
 app:
   email:
     enabled: ${EMAIL_ENABLED:false}
-    from-address: ${EMAIL_FROM_ADDRESS:noreply@privatecal.com}
+    from-address: ${EMAIL_FROM_ADDRESS:noreply@p-cal.me}
     from-name: ${EMAIL_FROM_NAME:P-Cal}
     base-url: ${APP_BASE_URL:http://localhost:3000}
 ```

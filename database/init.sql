@@ -83,7 +83,7 @@ CREATE TRIGGER update_tasks_updated_at
 
 -- Insert sample data for development
 INSERT INTO users (username, email, password_hash, first_name, last_name) VALUES 
-('demo_user', 'demo@privatecal.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Demo', 'User'),
+('demo_user', 'demo@p-cal.me', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Demo', 'User'),
 ('john_doe', 'john@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John', 'Doe');
 
 -- Sample tasks (demo data)

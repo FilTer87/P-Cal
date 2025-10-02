@@ -31,6 +31,8 @@ import com.privatecal.dto.ForgotPasswordRequest;
 import com.privatecal.dto.ResetPasswordRequest;
 import com.privatecal.dto.PasswordResetResponse;
 import com.privatecal.config.EmailConfig;
+import com.privatecal.entity.EmailVerificationToken;
+import com.privatecal.repository.EmailVerificationTokenRepository;
 
 /**
  * Authentication service for user login, registration, and token management
@@ -50,6 +52,7 @@ public class AuthService {
     private final TwoFactorService twoFactorService;
     private final NotificationService notificationService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final EmailService emailService;
     private final EmailConfig emailConfig;
 
@@ -79,8 +82,14 @@ public class AuthService {
             
             UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
-            // Get user entity to check 2FA status
+            // Get user entity to check 2FA status and email verification
             User user = getUserFromUserDetails(userPrincipal);
+
+            // Check if email verification is required and user email is not verified
+            if (emailConfig.isVerificationEnabled() && !user.getEmailVerified()) {
+                logger.warn("Login blocked - email not verified for user: {}", user.getUsername());
+                return AuthResponse.error("Email not verified. Please check your email to verify your account.");
+            }
 
             // Check if 2FA is enabled for this user
             if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
@@ -192,30 +201,55 @@ public class AuthService {
                 // Continue with registration even if NTFY topic generation fails
             }
 
-            // Create UserDetails for token generation
-            UserDetailsImpl userDetails = UserDetailsImpl.build(savedUser);
-            
-            // Generate JWT tokens
-            String accessToken = jwtUtils.generateAccessToken(userDetails, savedUser.getId(), savedUser.getFullName());
-            String refreshToken = jwtUtils.generateRefreshToken(userDetails, savedUser.getId());
-            
-            // Get token expiration times
-            LocalDateTime accessTokenExpires = jwtUtils.getAccessTokenExpirationTime();
-            LocalDateTime refreshTokenExpires = jwtUtils.getRefreshTokenExpirationTime();
-            
-            // Create user response
-            UserResponse userResponse = UserResponse.minimal(savedUser);
-            
-            logger.info("User {} registered successfully", savedUser.getUsername());
-            
-            return AuthResponse.success(
-                accessToken, 
-                refreshToken, 
-                accessTokenExpires, 
-                refreshTokenExpires, 
-                userResponse,
-                "Registration successful"
-            );
+            // Check if email verification is enabled
+            if (emailConfig.isVerificationEnabled()) {
+                // Send verification email instead of welcome email
+                boolean emailSent = sendVerificationEmail(savedUser);
+
+                if (!emailSent) {
+                    logger.error("Failed to send verification email for user: {}", savedUser.getUsername());
+                    // Don't block registration if email fails to send
+                }
+
+                logger.info("User {} registered successfully, verification email sent", savedUser.getUsername());
+
+                // Return response without tokens, requiring email verification
+                return AuthResponse.error("Registration successful! Please check your email to verify your account before logging in.");
+            } else {
+                // Original flow: send welcome email and generate tokens
+                // Send welcome email (asynchronous, don't block registration if it fails)
+                try {
+                    emailService.sendWelcomeEmail(savedUser);
+                } catch (Exception e) {
+                    logger.error("Failed to send welcome email for user: {}", savedUser.getUsername(), e);
+                    // Continue with registration even if email fails
+                }
+
+                // Create UserDetails for token generation
+                UserDetailsImpl userDetails = UserDetailsImpl.build(savedUser);
+
+                // Generate JWT tokens
+                String accessToken = jwtUtils.generateAccessToken(userDetails, savedUser.getId(), savedUser.getFullName());
+                String refreshToken = jwtUtils.generateRefreshToken(userDetails, savedUser.getId());
+
+                // Get token expiration times
+                LocalDateTime accessTokenExpires = jwtUtils.getAccessTokenExpirationTime();
+                LocalDateTime refreshTokenExpires = jwtUtils.getRefreshTokenExpirationTime();
+
+                // Create user response
+                UserResponse userResponse = UserResponse.minimal(savedUser);
+
+                logger.info("User {} registered successfully", savedUser.getUsername());
+
+                return AuthResponse.success(
+                    accessToken,
+                    refreshToken,
+                    accessTokenExpires,
+                    refreshTokenExpires,
+                    userResponse,
+                    "Registration successful"
+                );
+            }
             
         } catch (Exception e) {
             logger.error("Registration failed for user: {}", registerRequest.getUsername(), e);
@@ -614,6 +648,238 @@ public class AuthService {
 
         } catch (Exception e) {
             logger.error("Error during password reset tokens cleanup", e);
+        }
+    }
+
+    // ============================================
+    // EMAIL VERIFICATION METHODS
+    // ============================================
+
+    /**
+     * Send email verification token to user
+     */
+    @Transactional
+    public boolean sendVerificationEmail(User user) {
+        try {
+            logger.debug("Generating email verification token for user: {}", user.getUsername());
+
+            // Invalidate any existing tokens for this user
+            emailVerificationTokenRepository.markAllUserTokensAsUsed(user);
+            emailVerificationTokenRepository.flush();
+
+            // Generate new verification token
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiryDate = LocalDateTime.now().plusHours(48); // Token expires in 48 hours
+
+            EmailVerificationToken verificationToken = new EmailVerificationToken(token, user, expiryDate);
+            emailVerificationTokenRepository.save(verificationToken);
+
+            // Send verification email
+            String verificationUrl = buildEmailVerificationUrl(token);
+            String subject = "P-Cal - Verifica il tuo indirizzo email";
+            String htmlBody = buildEmailVerificationTemplate(user, verificationUrl);
+
+            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+
+            if (emailSent) {
+                logger.info("Verification email sent to: {}", user.getEmail());
+            } else {
+                logger.error("Failed to send verification email to: {}", user.getEmail());
+            }
+
+            return emailSent;
+
+        } catch (Exception e) {
+            logger.error("Error sending verification email for user: {}", user.getUsername(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Verify user email using token
+     */
+    @Transactional
+    public PasswordResetResponse verifyEmail(String token) {
+        logger.debug("Email verification attempt with token: {}", token);
+
+        try {
+            // Find valid token
+            Optional<EmailVerificationToken> tokenOptional = emailVerificationTokenRepository
+                .findValidTokenByToken(token, LocalDateTime.now());
+
+            if (tokenOptional.isEmpty()) {
+                logger.warn("Invalid or expired email verification token: {}", token);
+                return new PasswordResetResponse(
+                    "Token non valido o scaduto. Richiedi un nuovo link di verifica.",
+                    false
+                );
+            }
+
+            EmailVerificationToken verificationToken = tokenOptional.get();
+            User user = verificationToken.getUser();
+
+            // Mark email as verified
+            user.setEmailVerified(true);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            // Mark token as used
+            verificationToken.setUsed(true);
+            emailVerificationTokenRepository.save(verificationToken);
+
+            // Send welcome email after successful verification
+            try {
+                emailService.sendWelcomeEmail(user);
+            } catch (Exception e) {
+                logger.error("Failed to send welcome email after verification for user: {}", user.getUsername(), e);
+                // Don't fail verification if welcome email fails
+            }
+
+            logger.info("Email verified successfully for user: {}", user.getUsername());
+
+            return new PasswordResetResponse(
+                "Email verificata con successo! Ora puoi effettuare il login.",
+                true
+            );
+
+        } catch (Exception e) {
+            logger.error("Error during email verification with token: {}", token, e);
+            return new PasswordResetResponse(
+                "Si è verificato un errore durante la verifica. Riprova più tardi.",
+                false
+            );
+        }
+    }
+
+    /**
+     * Resend verification email (with rate limiting)
+     */
+    @Transactional
+    public PasswordResetResponse resendVerificationEmail(String email) {
+        logger.debug("Resend verification email requested for: {}", email);
+
+        try {
+            // Find user by email
+            Optional<User> userOptional = userRepository.findByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                // Don't reveal if email exists or not for security
+                logger.warn("Resend verification requested for non-existent email: {}", email);
+                return new PasswordResetResponse(
+                    "Se l'email esiste e non è ancora verificata, riceverai un nuovo link di verifica.",
+                    true
+                );
+            }
+
+            User user = userOptional.get();
+
+            // Check if email is already verified
+            if (user.getEmailVerified()) {
+                logger.info("Resend verification requested for already verified user: {}", user.getUsername());
+                return new PasswordResetResponse(
+                    "Questa email è già stata verificata. Puoi effettuare il login.",
+                    true
+                );
+            }
+
+            // Rate limiting: max 5 resends per hour
+            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+            long recentTokensCount = emailVerificationTokenRepository.countRecentTokensByUser(user, oneHourAgo);
+
+            if (recentTokensCount >= 5) {
+                logger.warn("Rate limit exceeded for user: {} ({} requests in last hour)", user.getUsername(), recentTokensCount);
+                return new PasswordResetResponse(
+                    "Hai richiesto troppi link di verifica. Riprova tra un'ora.",
+                    false
+                );
+            }
+
+            // Send new verification email
+            boolean emailSent = sendVerificationEmail(user);
+
+            if (!emailSent) {
+                return new PasswordResetResponse(
+                    "Si è verificato un errore durante l'invio dell'email. Riprova più tardi.",
+                    false
+                );
+            }
+
+            return new PasswordResetResponse(
+                "Se l'email esiste e non è ancora verificata, riceverai un nuovo link di verifica.",
+                true
+            );
+
+        } catch (Exception e) {
+            logger.error("Error during resend verification email for: {}", email, e);
+            return new PasswordResetResponse(
+                "Si è verificato un errore. Riprova più tardi.",
+                false
+            );
+        }
+    }
+
+    /**
+     * Build email verification URL
+     */
+    private String buildEmailVerificationUrl(String token) {
+        return emailConfig.getBaseUrl() + "/verify-email?token=" + token;
+    }
+
+    /**
+     * Build email verification email template
+     */
+    private String buildEmailVerificationTemplate(User user, String verificationUrl) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Verifica Email - P-Cal</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #2563eb;">P-Cal - Verifica il tuo indirizzo email</h1>
+                    <p>Ciao %s,</p>
+                    <p>Benvenuto su P-Cal! Per completare la registrazione, devi verificare il tuo indirizzo email.</p>
+                    <p>Clicca sul seguente link per verificare la tua email:</p>
+                    <div style="margin: 30px 0;">
+                        <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Verifica Email</a>
+                    </div>
+                    <p><strong>Questo link scadrà tra 48 ore.</strong></p>
+                    <p>Se non hai richiesto questa registrazione, ignora questa email.</p>
+                    <hr style="margin: 30px 0;">
+                    <p style="font-size: 12px; color: #666;">
+                        Questo è un messaggio automatico, non rispondere a questa email.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """,
+            user.getFirstName() != null ? user.getFirstName() : user.getUsername(),
+            verificationUrl
+        );
+    }
+
+    /**
+     * Cleanup expired email verification tokens (scheduled job)
+     */
+    @Transactional
+    public void cleanupExpiredVerificationTokens() {
+        logger.debug("Cleaning up expired email verification tokens");
+
+        try {
+            // Delete tokens expired more than 24 hours ago
+            LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
+            emailVerificationTokenRepository.deleteExpiredTokens(cutoff);
+
+            // Delete used tokens older than 7 days
+            LocalDateTime usedCutoff = LocalDateTime.now().minusDays(7);
+            emailVerificationTokenRepository.deleteUsedTokensOlderThan(usedCutoff);
+
+            logger.info("Email verification tokens cleanup completed");
+
+        } catch (Exception e) {
+            logger.error("Error during email verification tokens cleanup", e);
         }
     }
 }

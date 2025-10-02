@@ -17,9 +17,11 @@ public class EmailConfig {
 
     private boolean enabled = false;
 
+    private boolean verificationEnabled = false;
+
     @Email
     @NotBlank
-    private String fromAddress = "noreply@privatecal.com";
+    private String fromAddress = "noreply@p-cal.me";
 
     @NotBlank
     private String fromName = "P-Cal";
@@ -36,6 +38,14 @@ public class EmailConfig {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isVerificationEnabled() {
+        return verificationEnabled;
+    }
+
+    public void setVerificationEnabled(boolean verificationEnabled) {
+        this.verificationEnabled = verificationEnabled;
     }
 
     public String getFromAddress() {
