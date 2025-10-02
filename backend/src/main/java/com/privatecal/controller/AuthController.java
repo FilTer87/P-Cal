@@ -16,6 +16,8 @@ import com.privatecal.entity.User;
 import com.privatecal.service.AuthService;
 import com.privatecal.service.NotificationService;
 import com.privatecal.service.UserService;
+import com.privatecal.service.PasswordResetService;
+import com.privatecal.service.EmailVerificationService;
 import com.privatecal.util.ApiConst;
 import com.privatecal.service.TwoFactorService;
 import com.privatecal.service.EmailService;
@@ -56,6 +58,8 @@ public class AuthController {
     private final NotificationService notificationService;
     private final TwoFactorService twoFactorService;
     private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * User login endpoint
@@ -150,10 +154,16 @@ public class AuthController {
                        registerRequest.getUsername(), getClientIpAddress(request));
             
             AuthResponse response = authService.register(registerRequest);
-            
+
+            // Check if email verification is required
+            if (response.isRequiresEmailVerification()) {
+                logger.info("Registration successful for user: {} - email verification required", registerRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            }
+
             if (response.isSuccess()) {
                 logger.info("Registration successful for user: {}", registerRequest.getUsername());
-                
+
                 // Send welcome notification after successful registration
                 try {
                     notificationService.sendTestNotification(
@@ -164,10 +174,10 @@ public class AuthController {
                 } catch (Exception e) {
                     logger.warn("Failed to send welcome notification", e);
                 }
-                
+
                 return ResponseEntity.status(HttpStatus.CREATED).body(response);
             } else {
-                logger.warn("Registration failed for user: {} - {}", 
+                logger.warn("Registration failed for user: {} - {}",
                            registerRequest.getUsername(), response.getMessage());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
@@ -819,7 +829,7 @@ public class AuthController {
     	}
 
         try {
-            PasswordResetResponse response = authService.forgotPassword(request);
+            PasswordResetResponse response = passwordResetService.forgotPassword(request);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -853,7 +863,7 @@ public class AuthController {
     	}
 
         try {
-            PasswordResetResponse response = authService.resetPassword(request);
+            PasswordResetResponse response = passwordResetService.resetPassword(request);
 
             if (response.isSuccess()) {
                 return ResponseEntity.ok(response);
@@ -863,6 +873,99 @@ public class AuthController {
 
         } catch (Exception e) {
             logger.error("Error processing password reset", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
+    }
+
+    /**
+     * Verify email address using token
+     */
+    @PostMapping("/verify-email")
+    @Operation(summary = "Verify email", description = "Verify user email address using verification token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or expired token"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> verifyEmail(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        String token = request.get("token");
+
+        if (token == null || token.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(new PasswordResetResponse(
+                    "Token di verifica richiesto.",
+                    false
+                ));
+        }
+
+        if(logger.isInfoEnabled()) {
+            String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Email verification attempt from IP: {} with token: {}",
+                    ipAddress, token);
+        }
+
+        try {
+            PasswordResetResponse response = emailVerificationService.verifyEmail(token);
+
+            if (response.isSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing email verification", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new PasswordResetResponse(
+                    "Si è verificato un errore interno. Riprova più tardi.",
+                    false
+                ));
+        }
+    }
+
+    /**
+     * Resend email verification
+     */
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification email", description = "Resend email verification link to user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Verification email sent (or would be sent if email exists)"),
+        @ApiResponse(responseCode = "400", description = "Invalid email format or rate limit exceeded"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PasswordResetResponse> resendVerification(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        String email = request.get("email");
+
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(new PasswordResetResponse(
+                    "Email richiesta.",
+                    false
+                ));
+        }
+
+        if(logger.isInfoEnabled()) {
+            String ipAddress = getClientIpAddress(httpRequest);
+            logger.info("Resend verification email attempt from IP: {} for email: {}",
+                    ipAddress, email);
+        }
+
+        try {
+            PasswordResetResponse response = emailVerificationService.resendVerificationEmail(email);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error processing resend verification request", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new PasswordResetResponse(
                     "Si è verificato un errore interno. Riprova più tardi.",

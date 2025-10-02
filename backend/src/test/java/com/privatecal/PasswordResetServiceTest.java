@@ -7,8 +7,9 @@ import com.privatecal.entity.User;
 import com.privatecal.entity.PasswordResetToken;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
-import com.privatecal.service.AuthService;
+import com.privatecal.service.PasswordResetService;
 import com.privatecal.service.EmailService;
+import com.privatecal.service.EmailTemplateBuilder;
 import com.privatecal.config.EmailConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
 /**
- * Unit tests for password reset functionality in AuthService
+ * Unit tests for password reset functionality in PasswordResetService
  */
 @ExtendWith(MockitoExtension.class)
 class PasswordResetServiceTest {
@@ -43,13 +44,16 @@ class PasswordResetServiceTest {
     private EmailService emailService;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private EmailTemplateBuilder templateBuilder;
 
     @Mock
     private EmailConfig emailConfig;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
-    private AuthService authService;
+    private PasswordResetService passwordResetService;
 
     private User testUser;
     private final String TEST_EMAIL = "test@example.com";
@@ -68,6 +72,12 @@ class PasswordResetServiceTest {
 
         // Configure EmailConfig mock (lenient to avoid unnecessary stubbing warnings)
         lenient().when(emailConfig.getBaseUrl()).thenReturn("http://localhost:3000");
+
+        // Configure EmailTemplateBuilder mock (lenient to avoid unnecessary stubbing warnings)
+        lenient().when(templateBuilder.buildPasswordResetEmail(any(User.class), anyString()))
+            .thenReturn("<html>Password Reset Email</html>");
+        lenient().when(templateBuilder.buildPasswordResetConfirmationEmail(any(User.class)))
+            .thenReturn("<html>Password Reset Confirmation</html>");
     }
 
     @Test
@@ -80,7 +90,7 @@ class PasswordResetServiceTest {
         when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
-        PasswordResetResponse response = authService.forgotPassword(request);
+        PasswordResetResponse response = passwordResetService.forgotPassword(request);
 
         // Then
         assertTrue(response.isSuccess());
@@ -100,7 +110,7 @@ class PasswordResetServiceTest {
         when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
 
         // When
-        PasswordResetResponse response = authService.forgotPassword(request);
+        PasswordResetResponse response = passwordResetService.forgotPassword(request);
 
         // Then
         assertTrue(response.isSuccess()); // Should still return success for security
@@ -132,7 +142,7 @@ class PasswordResetServiceTest {
         when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
-        PasswordResetResponse response = authService.resetPassword(request);
+        PasswordResetResponse response = passwordResetService.resetPassword(request);
 
         // Then
         assertTrue(response.isSuccess());
@@ -158,7 +168,7 @@ class PasswordResetServiceTest {
             .thenReturn(Optional.empty());
 
         // When
-        PasswordResetResponse response = authService.resetPassword(request);
+        PasswordResetResponse response = passwordResetService.resetPassword(request);
 
         // Then
         assertFalse(response.isSuccess());
@@ -178,7 +188,7 @@ class PasswordResetServiceTest {
         doNothing().when(passwordResetTokenRepository).deleteUsedTokensOlderThan(any(LocalDateTime.class));
 
         // When
-        authService.cleanupExpiredTokens();
+        passwordResetService.cleanupExpiredTokens();
 
         // Then
         verify(passwordResetTokenRepository).deleteExpiredTokens(any(LocalDateTime.class));
@@ -196,7 +206,7 @@ class PasswordResetServiceTest {
             .thenReturn(false); // Email service returns false on failure
 
         // When
-        PasswordResetResponse response = authService.forgotPassword(request);
+        PasswordResetResponse response = passwordResetService.forgotPassword(request);
 
         // Then
         assertFalse(response.isSuccess()); // Should return error response instead of throwing

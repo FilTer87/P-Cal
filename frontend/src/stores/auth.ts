@@ -166,11 +166,29 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const response = await authApi.register(credentials)
-      
+
+      // Check if email verification is required
+      if (response.requiresEmailVerification) {
+        // Don't set auth data, throw error to be caught by RegisterView
+        throw {
+          response: {
+            data: {
+              requiresEmailVerification: true,
+              message: response.message
+            }
+          }
+        }
+      }
+
       setAuthData(response)
       showSuccess('Registrazione completata con successo!')
       return true
     } catch (error: any) {
+      // Re-throw email verification required to be handled by the register component
+      if (error.response?.data?.requiresEmailVerification) {
+        throw error
+      }
+
       const errorMessage = error.response?.data?.message || 'Errore durante la registrazione'
       showError(errorMessage)
       return false

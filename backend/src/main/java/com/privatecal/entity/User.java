@@ -76,6 +76,9 @@ public class User {
     @Column(name = "two_factor_secret")
     private String twoFactorSecret;
 
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
     @Size(max = 100)
     @Column(name = "ntfy_topic", unique = true, length = 100)
     private String ntfyTopic;
@@ -260,6 +263,14 @@ public class User {
 
     public void setTwoFactorSecret(String twoFactorSecret) {
         this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public String getNtfyTopic() {

@@ -2,6 +2,7 @@ export interface User {
   id: number
   username: string
   email: string
+  emailVerified?: boolean
   firstName?: string
   lastName?: string
   fullName?: string
@@ -33,6 +34,7 @@ export interface AuthResponse {
   tokenType: string
   expiresIn: number
   requiresTwoFactor?: boolean
+  requiresEmailVerification?: boolean
   message?: string
   success?: boolean
 }

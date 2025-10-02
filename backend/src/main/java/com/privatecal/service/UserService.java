@@ -7,6 +7,7 @@ import com.privatecal.entity.User;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
+import com.privatecal.config.EmailConfig;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailConfig emailConfig;
     
     /**
      * Get current authenticated user
@@ -125,14 +127,25 @@ public class UserService {
         
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().trim().isEmpty()) {
             String newEmail = updateRequest.getEmail().trim();
-            
-            // Check if email is already taken by another user
-            Optional<User> existingUser = userRepository.findByEmail(newEmail);
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new RuntimeException("Email is already taken by another user");
+            String currentEmail = user.getEmail();
+
+            // Check if email is being changed
+            if (!newEmail.equals(currentEmail)) {
+                // If email verification is enabled and current email is verified, prevent modification
+                if (emailConfig.isVerificationEnabled() && user.getEmailVerified()) {
+                    logger.warn("Attempt to modify verified email for user: {}", user.getUsername());
+                    throw new RuntimeException("Cannot modify verified email address. Contact support if you need to change your email.");
+                }
+
+                // Check if email is already taken by another user
+                Optional<User> existingUser = userRepository.findByEmail(newEmail);
+                if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
+                    throw new RuntimeException("Email is already taken by another user");
+                }
+
+                user.setEmail(newEmail);
+                logger.info("Email updated for user: {} (from {} to {})", user.getUsername(), currentEmail, newEmail);
             }
-            
-            user.setEmail(newEmail);
         }
         
         if (updateRequest.getTimezone() != null) {

@@ -31,6 +31,15 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/EmailVerificationView.vue'),
+    meta: {
+      requiresGuest: true,
+      title: 'Verifica Email - P-Cal'
+    }
+  },
+  {
     path: '/',
     name: 'Calendar',
     component: () => import('../views/CalendarView.vue'),

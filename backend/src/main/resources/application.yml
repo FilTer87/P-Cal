@@ -99,7 +99,8 @@ app:
   # Email Configuration
   email:
     enabled: ${EMAIL_ENABLED:true}
-    from-address: ${EMAIL_FROM_ADDRESS:noreply@privatecal.com}
+    verification-enabled: ${EMAIL_VERIFICATION:false}
+    from-address: ${EMAIL_FROM_ADDRESS:noreply@p-cal.me}
     from-name: ${EMAIL_FROM_NAME:P-Cal}
     base-url: ${APP_BASE_URL:http://localhost}
     templates:

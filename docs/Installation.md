@@ -67,11 +67,12 @@ Configure **at least one** notification method:
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `EMAIL_ENABLED` | Enable email functionality | `true` |
+| `EMAIL_VERIFICATION` | Require email verification after registration | `false` |
 | `MAIL_HOST` | SMTP server hostname | `smtp.gmail.com` |
 | `MAIL_PORT` | SMTP server port | `587` |
 | `MAIL_USERNAME` | SMTP username (email address) | `your.email@gmail.com` |
 | `MAIL_PASSWORD` | SMTP password | Use [App Password](https://support.google.com/accounts/answer/185833) for Gmail |
-| `EMAIL_FROM_ADDRESS` | From email address | `noreply@p-cal.com` |
+| `EMAIL_FROM_ADDRESS` | From email address | `noreply@p-cal.me` |
 
 **OR Push notifications (ntfy):**
 | Variable | Description | Example |
