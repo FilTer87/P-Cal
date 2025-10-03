@@ -88,7 +88,7 @@ export const rules = {
 
   phone: (value: string): ValidationResult => {
     if (!value) return { isValid: true }
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+    const phoneRegex = /^[\+]?[1-9][\d]{5,15}$/
     return {
       isValid: phoneRegex.test(value.replace(/\s/g, '')),
       message: 'Inserisci un numero di telefono valido'
@@ -621,7 +621,7 @@ export const checkPasswordStrength = (password: string): {
     feedback.push('Evita sequenze comuni di caratteri')
   }
 
-  const isStrong = score >= 4 && password.length >= 8
+  const isStrong = score >= 5 && password.length >= 8
 
   return {
     score: Math.max(0, Math.min(5, score)),
