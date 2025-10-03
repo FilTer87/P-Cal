@@ -25,7 +25,21 @@
     "logout": "Esci (Logout)",
     "forgotPassword": "Password dimenticata?",
     "resetPassword": "Reimposta password",
-    "confirmPassword": "Conferma password"
+    "confirmPassword": "Conferma password",
+    "loginTitle": "Accedi al tuo account",
+    "rememberMe": "Ricordami",
+    "loggingIn": "Accesso in corso...",
+    "noAccount": "Non hai un account?",
+    "or": "oppure",
+    "invalidCredentials": "Nome utente o password non corretti",
+    "loginError": "Errore durante l'accesso",
+    "twoFactorRequired": "Autenticazione a due fattori richiesta",
+    "invalidTwoFactorCode": "Codice di verifica non valido",
+    "resetEmailSent": "Email di reset inviata! Controlla la tua casella di posta.",
+    "tagline": "Il tuo calendario personale",
+    "usernamePlaceholder": "Inserisci il tuo nome utente",
+    "passwordPlaceholder": "Inserisci la tua password",
+    "changeTheme": "Cambia tema: {theme}"
   },
   "validation": {
     "required": "Questo campo è obbligatorio",

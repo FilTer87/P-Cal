@@ -25,7 +25,21 @@
     "logout": "Logout",
     "forgotPassword": "Forgot password?",
     "resetPassword": "Reset password",
-    "confirmPassword": "Confirm password"
+    "confirmPassword": "Confirm password",
+    "loginTitle": "Sign in to your account",
+    "rememberMe": "Remember me",
+    "loggingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "or": "or",
+    "invalidCredentials": "Invalid username or password",
+    "loginError": "Login error",
+    "twoFactorRequired": "Two-factor authentication required",
+    "invalidTwoFactorCode": "Invalid verification code",
+    "resetEmailSent": "Reset email sent! Check your inbox.",
+    "tagline": "Your personal calendar",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "changeTheme": "Change theme: {theme}"
   },
   "validation": {
     "required": "This field is required",

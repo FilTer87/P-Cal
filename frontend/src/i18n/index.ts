@@ -30,16 +30,19 @@ export function getBrowserLocale(): Locale {
 }
 
 // Create i18n instance
-export const i18n: I18n = createI18n<[MessageSchema], Locale>({
-  legacy: false, // Use Composition API
+export const i18n: I18n = createI18n({
+  legacy: false, // Use Composition API (no eval, CSP-safe)
   locale: DEFAULT_LOCALE,
   fallbackLocale: DEFAULT_LOCALE,
+  globalInjection: true,
   messages: {
     'it-IT': itIT,
     'en-US': enUS
   },
   missingWarn: import.meta.env.DEV,
-  fallbackWarn: import.meta.env.DEV
+  fallbackWarn: import.meta.env.DEV,
+  // Ensure no message compilation at runtime (CSP-safe)
+  warnHtmlMessage: false
 })
 
 // Helper to change locale
