@@ -31,4 +31,4 @@ jobs:
         #cache: 'npm'
     - run: npm i ./frontend
     - run: npm run build ./frontend --if-present
-    #- run: npm test
+    - run: npm test
