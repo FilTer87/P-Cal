@@ -1,4 +1,5 @@
 import { isValidDate, isValidDateString, isValidTimeString } from './dateHelpers'
+import { i18n } from '../i18n'
 
 export interface ValidationResult {
   isValid: boolean
@@ -11,57 +12,80 @@ export interface FormValidationResult {
 }
 
 /**
- * Basic validation rules
+ * Basic validation rules with i18n support
+ * Note: For Vue components, use useValidators() composable for better i18n integration
  */
 export const rules = {
-  required: (value: any): ValidationResult => ({
-    isValid: value !== null && value !== undefined && value !== '',
-    message: 'Questo campo è obbligatorio'
-  }),
+  required: (value: any): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value !== null && value !== undefined && value !== '',
+      message: t('validation.required')
+    }
+  },
 
   email: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return {
       isValid: emailRegex.test(value),
-      message: 'Inserisci un indirizzo email valido'
+      message: t('validation.email')
     }
   },
 
-  minLength: (length: number) => (value: string): ValidationResult => ({
-    isValid: !value || value.length >= length,
-    message: `Deve contenere almeno ${length} caratteri`
-  }),
+  minLength: (length: number) => (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || value.length >= length,
+      message: t('validation.minLength', { length })
+    }
+  },
 
-  maxLength: (length: number) => (value: string): ValidationResult => ({
-    isValid: !value || value.length <= length,
-    message: `Non può superare i ${length} caratteri`
-  }),
+  maxLength: (length: number) => (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || value.length <= length,
+      message: t('validation.maxLength', { length })
+    }
+  },
 
   pattern: (regex: RegExp, message: string) => (value: string): ValidationResult => ({
     isValid: !value || regex.test(value),
     message
   }),
 
-  numeric: (value: string): ValidationResult => ({
-    isValid: !value || /^\d+$/.test(value),
-    message: 'Deve contenere solo numeri'
-  }),
+  numeric: (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || /^\d+$/.test(value),
+      message: t('validation.numeric')
+    }
+  },
 
-  alphanumeric: (value: string): ValidationResult => ({
-    isValid: !value || /^[a-zA-Z0-9]+$/.test(value),
-    message: 'Deve contenere solo lettere e numeri'
-  }),
+  alphanumeric: (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || /^[a-zA-Z0-9]+$/.test(value),
+      message: t('validation.alphanumeric')
+    }
+  },
 
-  minValue: (min: number) => (value: number): ValidationResult => ({
-    isValid: value == null || value >= min,
-    message: `Il valore deve essere almeno ${min}`
-  }),
+  minValue: (min: number) => (value: number): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value == null || value >= min,
+      message: t('validation.minValue', { min })
+    }
+  },
 
-  maxValue: (max: number) => (value: number): ValidationResult => ({
-    isValid: value == null || value <= max,
-    message: `Il valore non può superare ${max}`
-  }),
+  maxValue: (max: number) => (value: number): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value == null || value <= max,
+      message: t('validation.maxValue', { max })
+    }
+  },
 
   date: (value: string): ValidationResult => ({
     isValid: !value || isValidDateString(value),
@@ -74,6 +98,7 @@ export const rules = {
   }),
 
   url: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     try {
       new URL(value)
@@ -81,17 +106,18 @@ export const rules = {
     } catch {
       return {
         isValid: false,
-        message: 'Inserisci un URL valido'
+        message: t('validation.url')
       }
     }
   },
 
   phone: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     const phoneRegex = /^[\+]?[1-9][\d]{5,15}$/
     return {
       isValid: phoneRegex.test(value.replace(/\s/g, '')),
-      message: 'Inserisci un numero di telefono valido'
+      message: t('validation.phone')
     }
   },
 

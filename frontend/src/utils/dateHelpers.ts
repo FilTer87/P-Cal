@@ -44,48 +44,66 @@ import {
   getMonth,
   getYear
 } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { it, enUS } from 'date-fns/locale'
+import { i18n } from '../i18n'
+
+// Map of supported locales for date-fns
+const dateFnsLocales: Record<string, Locale> = {
+  'it-IT': it,
+  'en-US': enUS
+}
 
 /**
- * Format date for display in Italian locale
+ * Get date-fns locale from current i18n locale
+ */
+const getDateFnsLocale = (): Locale => {
+  const currentLocale = i18n.global.locale.value
+  return dateFnsLocales[currentLocale] || it
+}
+
+/**
+ * Format date for display with locale support
  * @param date - Date object or UTC ISO string from backend
  * @param pattern - Format pattern (default: dd/MM/yyyy)
  * @returns Formatted date in local timezone
  */
 export const formatDate = (date: Date | string, pattern = 'dd/MM/yyyy'): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
   // parseISO automatically converts UTC string to local timezone
-  return format(dateObj, pattern, { locale: it })
+  return format(dateObj, pattern, { locale: getDateFnsLocale() })
 }
 
 /**
- * Format datetime for display in Italian locale
+ * Format datetime for display with locale support
  * @param date - Date object or UTC ISO string from backend
  * @param pattern - Format pattern (default: dd/MM/yyyy HH:mm)
  * @returns Formatted datetime in local timezone
  */
 export const formatDateTime = (date: Date | string, pattern = 'dd/MM/yyyy HH:mm'): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
   // parseISO automatically converts UTC string to local timezone
-  return format(dateObj, pattern, { locale: it })
+  return format(dateObj, pattern, { locale: getDateFnsLocale() })
 }
 
 /**
- * Format time only
+ * Format time only with locale support
  * @param date - Date object or UTC ISO string from backend
  * @param pattern - Format pattern (default: HH:mm)
  * @returns Formatted time in local timezone
  */
 export const formatTime = (date: Date | string, pattern = 'HH:mm'): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Ora non valida'
-  
+  if (!isValid(dateObj)) return t('errors.invalidTime')
+
   // parseISO automatically converts UTC string to local timezone
-  return format(dateObj, pattern, { locale: it })
+  return format(dateObj, pattern, { locale: getDateFnsLocale() })
 }
 
 /**
@@ -122,11 +140,12 @@ export const formatDateTimeForAPI = (date: Date | string): string => {
  * Format relative time (e.g., "2 hours ago", "in 3 days")
  */
 export const formatRelativeTime = (date: Date | string): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
-  return formatDistanceToNow(dateObj, { 
-    locale: it, 
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  return formatDistanceToNow(dateObj, {
+    locale: getDateFnsLocale(),
     addSuffix: true,
     includeSeconds: true
   })
@@ -136,45 +155,48 @@ export const formatRelativeTime = (date: Date | string): string => {
  * Format distance between two dates
  */
 export const formatDateDistance = (startDate: Date | string, endDate: Date | string): string => {
+  const { t } = i18n.global
   const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
   const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
-  
-  if (!isValid(start) || !isValid(end)) return 'Date non valide'
-  
-  return formatDistance(start, end, { locale: it })
+
+  if (!isValid(start) || !isValid(end)) return t('errors.invalidDate')
+
+  return formatDistance(start, end, { locale: getDateFnsLocale() })
 }
 
 /**
  * Format date relative to today (e.g., "today", "yesterday", "Monday")
  */
 export const formatRelativeDate = (date: Date | string): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
-  return formatRelative(dateObj, new Date(), { locale: it })
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  return formatRelative(dateObj, new Date(), { locale: getDateFnsLocale() })
 }
 
 /**
  * Get human-readable date description
  */
 export const getDateDescription = (date: Date | string): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
-  if (isToday(dateObj)) return 'Oggi'
-  if (isTomorrow(dateObj)) return 'Domani'
-  if (isYesterday(dateObj)) return 'Ieri'
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  if (isToday(dateObj)) return t('dateTime.today')
+  if (isTomorrow(dateObj)) return t('dateTime.tomorrow')
+  if (isYesterday(dateObj)) return t('dateTime.yesterday')
   if (isThisWeek(dateObj, { weekStartsOn: 1 })) {
-    return format(dateObj, 'EEEE', { locale: it })
+    return format(dateObj, 'EEEE', { locale: getDateFnsLocale() })
   }
   if (isThisMonth(dateObj)) {
-    return format(dateObj, 'EEEE d', { locale: it })
+    return format(dateObj, 'EEEE d', { locale: getDateFnsLocale() })
   }
   if (isThisYear(dateObj)) {
-    return format(dateObj, 'd MMMM', { locale: it })
+    return format(dateObj, 'd MMMM', { locale: getDateFnsLocale() })
   }
-  
-  return format(dateObj, 'd MMMM yyyy', { locale: it })
+
+  return format(dateObj, 'd MMMM yyyy', { locale: getDateFnsLocale() })
 }
 
 /**

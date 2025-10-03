@@ -1,39 +1,46 @@
 import { formatDate, formatDateTime, formatTime, formatRelativeTime, getDateDescription } from './dateHelpers'
-import { LOCALE_STRINGS } from './constants'
+import { i18n } from '../i18n'
 
+/**
+ * Get current locale from i18n
+ */
+const getCurrentLocale = (): string => {
+  return i18n.global.locale.value
+}
 
 /**
  * Format file size in human readable format
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes'
-  
+
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 /**
- * Format number with thousand separators (Italian format)
+ * Format number with thousand separators
  */
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('it-IT').format(num)
+export const formatNumber = (num: number, locale?: string): string => {
+  return new Intl.NumberFormat(locale || getCurrentLocale()).format(num)
 }
 
 /**
- * Format currency (Euro)
+ * Format currency (default Euro, locale-aware)
  */
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('it-IT', {
+export const formatCurrency = (amount: number, locale?: string, currency = 'EUR'): string => {
+  return new Intl.NumberFormat(locale || getCurrentLocale(), {
     style: 'currency',
-    currency: 'EUR'
+    currency
   }).format(amount)
 }
 
 /**
  * Format percentage (expects value as 0-100, e.g., 50 for 50%)
+ * Note: Percentage format is locale-independent (always uses comma for IT locale in tests)
  */
 export const formatPercentage = (value: number, decimals = 1): string => {
   const formatted = value.toFixed(decimals)
@@ -42,29 +49,38 @@ export const formatPercentage = (value: number, decimals = 1): string => {
 
 /**
  * Format duration in minutes to human readable format
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatDuration = (minutes: number): string => {
+  const { t } = i18n.global
+
   if (minutes < 60) {
-    return `${minutes} ${minutes === 1 ? 'minuto' : 'minuti'}`
+    return minutes === 1
+      ? `${minutes} ${t('dateTime.duration.minute')}`
+      : `${minutes} ${t('dateTime.duration.minutes')}`
   }
-  
+
   const hours = Math.floor(minutes / 60)
   const remainingMinutes = minutes % 60
-  
+
   if (hours < 24) {
     if (remainingMinutes === 0) {
-      return `${hours} ${hours === 1 ? 'ora' : 'ore'}`
+      return hours === 1
+        ? `${hours} ${t('dateTime.duration.hour')}`
+        : `${hours} ${t('dateTime.duration.hours')}`
     }
     return `${hours}h ${remainingMinutes}m`
   }
-  
+
   const days = Math.floor(hours / 24)
   const remainingHours = hours % 24
-  
+
   if (remainingHours === 0) {
-    return `${days} ${days === 1 ? 'giorno' : 'giorni'}`
+    return days === 1
+      ? `${days} ${t('dateTime.duration.day')}`
+      : `${days} ${t('dateTime.duration.days')}`
   }
-  
+
   return `${days}g ${remainingHours}h`
 }
 
@@ -77,15 +93,18 @@ export const formatTimeAgo = (date: Date | string): string => {
 
 /**
  * Format task due date with context
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatTaskDueDate = (dueDate: string): {
   text: string
   color: 'green' | 'blue' | 'yellow' | 'red' | 'gray'
   isPast: boolean
 } => {
+  const { t } = i18n.global
+
   if (!dueDate) {
     return {
-      text: 'Nessuna scadenza',
+      text: t('dateTime.noDueDate'),
       color: 'gray',
       isPast: false
     }
@@ -97,10 +116,9 @@ export const formatTaskDueDate = (dueDate: string): {
   const description = getDateDescription(due)
 
   if (isPast) {
-    // Remove "fa" suffix to avoid redundancy in "Passato di X fa"
     const timeAgo = formatTimeAgo(due).replace(' fa', '').trim()
     return {
-      text: `Passato di ${timeAgo}`,
+      text: `${t('dateTime.pastDue')} ${timeAgo}`,
       color: 'gray',
       isPast: true
     }
@@ -108,7 +126,7 @@ export const formatTaskDueDate = (dueDate: string): {
 
   const timeUntil = formatTimeAgo(due).replace('tra', '').trim()
   return {
-    text: `Scade ${description.toLowerCase()} (${timeUntil})`,
+    text: `${t('dateTime.dueIn')} ${description.toLowerCase()} (${timeUntil})`,
     color: due.getTime() - now.getTime() <= 24 * 60 * 60 * 1000 ? 'yellow' : 'blue',
     isPast: false
   }
@@ -116,35 +134,38 @@ export const formatTaskDueDate = (dueDate: string): {
 
 /**
  * Format reminder time with context
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatReminderTime = (reminderDateTime: string, sent = false): {
   text: string
   color: 'green' | 'blue' | 'yellow' | 'red' | 'gray'
 } => {
+  const { t } = i18n.global
+
   if (sent) {
     return {
-      text: `Inviato il ${formatDateTime(reminderDateTime)}`,
+      text: `${t('dateTime.sentOn')} ${formatDateTime(reminderDateTime)}`,
       color: 'green'
     }
   }
-  
+
   const now = new Date()
   const reminder = new Date(reminderDateTime)
   const isPast = reminder < now
-  
+
   if (isPast) {
     return {
-      text: `Doveva essere inviato ${formatTimeAgo(reminder)}`,
+      text: `${t('dateTime.shouldHaveBeenSent')} ${formatTimeAgo(reminder)}`,
       color: 'red'
     }
   }
-  
+
   const description = getDateDescription(reminder)
   const timeUntil = formatTimeAgo(reminder).replace('tra', '').trim()
-  
+
   return {
     text: `${description} (${timeUntil})`,
-    color: reminder.getTime() - now.getTime() <= 60 * 60 * 1000 ? 'yellow' : 'blue' // 1 hour threshold
+    color: reminder.getTime() - now.getTime() <= 60 * 60 * 1000 ? 'yellow' : 'blue'
   }
 }
 
@@ -190,16 +211,20 @@ export const formatText = (text: string, maxLength = 100): string => {
 
 /**
  * Format list of items with proper conjunctions
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
-export const formatList = (items: string[], conjunction = 'e'): string => {
+export const formatList = (items: string[], conjunction?: string): string => {
+  const { t } = i18n.global
+  const conj = conjunction || t('formatters.listConjunction')
+
   if (items.length === 0) return ''
   if (items.length === 1) return items[0]
-  if (items.length === 2) return items.join(` ${conjunction} `)
-  
+  if (items.length === 2) return items.join(` ${conj} `)
+
   const allButLast = items.slice(0, -1).join(', ')
   const last = items[items.length - 1]
-  
-  return `${allButLast} ${conjunction} ${last}`
+
+  return `${allButLast} ${conj} ${last}`
 }
 
 /**
@@ -214,42 +239,35 @@ export const formatSearchHighlight = (text: string, query: string): string => {
 
 /**
  * Format validation error message
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatValidationError = (field: string, error: string): string => {
-  const fieldNames: Record<string, string> = {
-    title: 'Titolo',
-    description: 'Descrizione',
-    dueDate: 'Data di scadenza',
-    dueTime: 'Orario di scadenza',
-    username: 'Nome utente',
-    email: 'Email',
-    password: 'Password',
-    confirmPassword: 'Conferma password',
-    firstName: 'Nome',
-    lastName: 'Cognome'
-  }
-
-  const fieldName = fieldNames[field] || field
+  const { t } = i18n.global
+  const fieldKey = `formatters.fieldNames.${field}`
+  const fieldName = t(fieldKey, field) // fallback to field name if key not found
   return `${fieldName}: ${error}`
 }
 
 /**
  * Format API error for display
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatApiError = (error: any): string => {
+  const { t } = i18n.global
+
   if (error?.response?.data?.message) {
     return error.response.data.message
   }
-  
+
   if (error?.message) {
     return error.message
   }
-  
+
   if (typeof error === 'string') {
     return error
   }
-  
-  return 'Si è verificato un errore imprevisto'
+
+  return t('errors.generic')
 }
 
 
@@ -265,9 +283,9 @@ export const formatDateRange = (startDate: Date | string, endDate: Date | string
     return `${formatDate(start)} ${formatTime(start)}-${formatTime(end)}`
   }
   
-  // Same month
+  // Same month - use date-fns formatting which handles locale automatically
   if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${formatDate(start, 'd')}-${formatDate(end)} ${LOCALE_STRINGS.months[start.getMonth()]} ${start.getFullYear()}`
+    return `${formatDate(start, 'd')}-${formatDate(end, 'd MMMM yyyy')}`
   }
   
   // Same year
@@ -416,8 +434,11 @@ export const formatSafeHtml = (html: string): string => {
 
 /**
  * Format table cell content based on type
+ * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | 'boolean' = 'text'): string => {
+  const { t } = i18n.global
+
   if (value == null) return '-'
 
   switch (type) {
@@ -426,7 +447,7 @@ export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | '
     case 'date':
       return formatDate(value)
     case 'boolean':
-      return value ? 'Sì' : 'No'
+      return value ? t('common.yes') : t('common.no')
     case 'text':
     default:
       return String(value)

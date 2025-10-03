@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { DEFAULT_SETTINGS, LOCALE_STRINGS } from '../utils/constants'
+import { DEFAULT_SETTINGS } from '../utils/constants'
 import { setLocale, type Locale } from '../i18n'
 
 export type WeekStartDay = 0 | 1 // 0 = Sunday, 1 = Monday
