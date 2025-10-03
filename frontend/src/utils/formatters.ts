@@ -33,14 +33,11 @@ export const formatCurrency = (amount: number): string => {
 }
 
 /**
- * Format percentage
+ * Format percentage (expects value as 0-100, e.g., 50 for 50%)
  */
 export const formatPercentage = (value: number, decimals = 1): string => {
-  return new Intl.NumberFormat('it-IT', {
-    style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value / 100)
+  const formatted = value.toFixed(decimals)
+  return `${formatted.replace('.', ',')}%`
 }
 
 /**
@@ -100,7 +97,8 @@ export const formatTaskDueDate = (dueDate: string): {
   const description = getDateDescription(due)
 
   if (isPast) {
-    const timeAgo = formatTimeAgo(due).replace('fa', 'fa')
+    // Remove "fa" suffix to avoid redundancy in "Passato di X fa"
+    const timeAgo = formatTimeAgo(due).replace(' fa', '').trim()
     return {
       text: `Passato di ${timeAgo}`,
       color: 'gray',
@@ -353,25 +351,55 @@ export const formatSlug = (text: string): string => {
 }
 
 /**
- * Format phone number for display (Italian format)
+ * Format phone number for display (generic international format)
  */
 export const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, '')
-  
-  if (cleaned.startsWith('39')) {
-    // Italian international format
-    const national = cleaned.substring(2)
-    if (national.length === 10) {
-      return `+39 ${national.substring(0, 3)} ${national.substring(3, 6)} ${national.substring(6)}`
+
+  // If starts with +, preserve it
+  const hasPlus = phone.trim().startsWith('+')
+
+  // No formatting for very short numbers
+  if (cleaned.length < 6) {
+    return phone
+  }
+
+  // Format international numbers (with country code)
+  if (hasPlus || cleaned.length > 10) {
+    // Extract country code (1-3 digits)
+    let countryCode = ''
+    let remaining = cleaned
+
+    if (cleaned.length >= 11) {
+      // Try common country code patterns
+      if (cleaned.startsWith('1')) {
+        countryCode = cleaned.substring(0, 1) // USA/Canada
+        remaining = cleaned.substring(1)
+      } else if (cleaned.startsWith('39') || cleaned.startsWith('44') || cleaned.startsWith('33')) {
+        countryCode = cleaned.substring(0, 2) // Italy, UK, France, etc.
+        remaining = cleaned.substring(2)
+      } else {
+        countryCode = cleaned.substring(0, 2)
+        remaining = cleaned.substring(2)
+      }
+
+      // Format remaining number in groups of 3-4
+      const formatted = remaining.replace(/(\d{3})(?=\d)/g, '$1 ').trim()
+      return `+${countryCode} ${formatted}`
     }
   }
-  
+
+  // Format national numbers (10 digits) in groups
   if (cleaned.length === 10) {
-    // Italian national format
-    return `${cleaned.substring(0, 3)} ${cleaned.substring(3, 6)} ${cleaned.substring(6)}`
+    return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
   }
-  
-  return phone // Return original if format is unknown
+
+  // Format other lengths in groups of 3
+  if (cleaned.length >= 6) {
+    return cleaned.replace(/(\d{3})(?=\d)/g, '$1 ').trim()
+  }
+
+  return phone
 }
 
 /**
@@ -379,11 +407,11 @@ export const formatPhoneNumber = (phone: string): string => {
  */
 export const formatSafeHtml = (html: string): string => {
   return html
+    .replace(/&/g, '&amp;')   // Must be FIRST to avoid double-escaping
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
-    .replace(/&/g, '&amp;')
 }
 
 /**
