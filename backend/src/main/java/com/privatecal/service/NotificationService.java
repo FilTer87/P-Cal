@@ -142,13 +142,13 @@ public class NotificationService {
         }
 
         String randomSuffix = generateRandomString(10);
-        String topic = ntfyTopicPrefix + "-" + userId + "-" + randomSuffix;
+        String topic = ntfyTopicPrefix + userId + "-" + randomSuffix;
 
         // Ensure uniqueness by checking database
         int attempts = 0;
         while (attempts < 10 && isTopicAlreadyUsed(topic)) {
             randomSuffix = generateRandomString(10);
-            topic = ntfyTopicPrefix + "-" + userId + "-" + randomSuffix;
+            topic = ntfyTopicPrefix + userId + "-" + randomSuffix;
             attempts++;
         }
 

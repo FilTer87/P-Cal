@@ -384,7 +384,7 @@ const generateNewTopic = async () => {
   if (!userId) return
 
   const randomSuffix = Math.random().toString(36).substr(2, 10)
-  const newTopic = `${notificationConfig.value.ntfyTopicPrefix}-${userId}-${randomSuffix}`
+  const newTopic = `${notificationConfig.value.ntfyTopicPrefix}${userId}-${randomSuffix}`
 
   await updateNtfyTopic(newTopic)
 }

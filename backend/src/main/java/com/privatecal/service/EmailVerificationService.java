@@ -32,6 +32,7 @@ public class EmailVerificationService {
     private final EmailService emailService;
     private final EmailTemplateBuilder templateBuilder;
     private final EmailConfig emailConfig;
+    private final NotificationService notificationService;
 
     /**
      * Send email verification token to user

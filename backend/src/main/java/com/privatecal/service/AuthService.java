@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import com.privatecal.config.EmailConfig;
@@ -46,6 +47,7 @@ public class AuthService {
     private final EmailVerificationService emailVerificationService;
     private final EmailService emailService;
     private final EmailConfig emailConfig;
+    private final EntityManager entityManager;
 
     /**
      * Authenticate user and generate JWT tokens
@@ -180,20 +182,29 @@ public class AuthService {
             
             // Save user
             User savedUser = userRepository.save(newUser);
+            logger.debug("User saved with ID: {}", savedUser.getId());
 
             // Generate and assign NTFY topic for the new user
             try {
                 String ntfyTopic = notificationService.generateNtfyTopicForUser(savedUser.getId());
                 savedUser.setNtfyTopic(ntfyTopic);
                 savedUser = userRepository.save(savedUser);
-                logger.info("Generated NTFY topic for new user {}: {}", savedUser.getUsername(), ntfyTopic);
+                logger.info("✅ NTFY topic generated and saved for user {}: {}", savedUser.getUsername(), ntfyTopic);
             } catch (Exception e) {
-                logger.error("Failed to generate NTFY topic for new user {}: {}", savedUser.getUsername(), e.getMessage());
+                logger.error("❌ Failed to generate NTFY topic for new user {}: {}", savedUser.getUsername(), e.getMessage(), e);
                 // Continue with registration even if NTFY topic generation fails
             }
 
+            logger.debug("User NTFY topic before email verification check: {}", savedUser.getNtfyTopic());
+
             // Check if email verification is enabled
             if (emailConfig.isVerificationEnabled()) {
+                logger.debug("Email verification is ENABLED - sending verification email");
+
+                // Force flush to ensure NTFY topic is persisted before email verification flow
+                entityManager.flush();
+                logger.debug("Flushed entity manager - NTFY topic should be persisted");
+
                 // Send verification email instead of welcome email
                 boolean emailSent = emailVerificationService.sendVerificationEmail(savedUser);
 
