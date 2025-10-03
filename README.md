@@ -1,4 +1,4 @@
-[![CodeQL](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql)[![Java CI with Maven](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml)[![Node.js CI](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml)
+[![CodeQL](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql) [![Java CI with Maven](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml) [![Node.js CI](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml)
 # P-Cal 📅
 Leggi la [versione in italiano qui](./README.it.md)
 
