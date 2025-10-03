@@ -1,3 +1,4 @@
+[![CodeQL](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql)
 # P-Cal 📅
 Leggi la [versione in italiano qui](./README.it.md)
 
