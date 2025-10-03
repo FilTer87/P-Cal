@@ -13,29 +13,33 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  frontend-build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-        dir: ['./frontend']
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     defaults:
       run:
-        working-directory: ${{ matrix.dir }}
+        working-directory: ./frontend
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: '${{ matrix.dir }}/package-lock.json'
-    - run: npm install
-    - run: npm test
-    - run: npm ci
-    - run: npm run build ${{ matrix.dir }} --if-present
+        cache-dependency-path: './frontend/package-lock.json'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build
+      run: npm run build
