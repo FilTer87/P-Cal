@@ -4,21 +4,21 @@
       <div class="text-center">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white">P-Cal</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Il tuo calendario personale
+          {{ $t('auth.tagline') }}
         </p>
       </div>
       
       <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <h2 class="mb-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Crea il tuo account
+            {{ $t('auth.registerTitle') }}
           </h2>
           
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <!-- Username Field -->
             <div>
               <label for="username" class="label">
-                Nome utente <span class="text-red-500">*</span>
+                {{ $t('auth.username') }} <span class="text-red-500">*</span>
               </label>
               <div class="mt-1">
                 <input
@@ -30,7 +30,7 @@
                   required
                   class="input"
                   :class="{ 'input-error': errors.username }"
-                  placeholder="Scegli un nome utente"
+                  :placeholder="$t('auth.usernamePlaceholder')"
                 />
               </div>
               <p v-if="errors.username" class="error-message">
@@ -41,7 +41,7 @@
             <!-- Email Field -->
             <div>
               <label for="email" class="label">
-                Email <span class="text-red-500">*</span>
+                {{ $t('auth.email') }} <span class="text-red-500">*</span>
               </label>
               <div class="mt-1">
                 <input
@@ -53,7 +53,7 @@
                   required
                   class="input"
                   :class="{ 'input-error': errors.email }"
-                  placeholder="Inserisci la tua email"
+                  :placeholder="$t('auth.emailPlaceholder')"
                 />
               </div>
               <p v-if="errors.email" class="error-message">
@@ -66,7 +66,7 @@
               <!-- First Name -->
               <div>
                 <label for="firstName" class="label">
-                  Nome
+                  {{ $t('auth.firstName') }}
                 </label>
                 <div class="mt-1">
                   <input
@@ -77,7 +77,7 @@
                     autocomplete="given-name"
                     class="input"
                     :class="{ 'input-error': errors.firstName }"
-                    placeholder="Nome"
+                    :placeholder="$t('auth.firstNamePlaceholder')"
                   />
                 </div>
                 <p v-if="errors.firstName" class="error-message">
@@ -88,7 +88,7 @@
               <!-- Last Name -->
               <div>
                 <label for="lastName" class="label">
-                  Cognome
+                  {{ $t('auth.lastName') }}
                 </label>
                 <div class="mt-1">
                   <input
@@ -99,7 +99,7 @@
                     autocomplete="family-name"
                     class="input"
                     :class="{ 'input-error': errors.lastName }"
-                    placeholder="Cognome"
+                    :placeholder="$t('auth.lastNamePlaceholder')"
                   />
                 </div>
                 <p v-if="errors.lastName" class="error-message">
@@ -111,7 +111,7 @@
             <!-- Password Field -->
             <div>
               <label for="password" class="label">
-                Password <span class="text-red-500">*</span>
+                {{ $t('auth.password') }} <span class="text-red-500">*</span>
               </label>
               <div class="mt-1 relative">
                 <input
@@ -123,7 +123,7 @@
                   required
                   class="input pr-10"
                   :class="{ 'input-error': errors.password }"
-                  placeholder="Crea una password sicura"
+                  :placeholder="$t('auth.passwordPlaceholder')"
                 />
                 <button
                   type="button"
@@ -151,7 +151,7 @@
             <!-- Confirm Password Field -->
             <div>
               <label for="confirmPassword" class="label">
-                Conferma password <span class="text-red-500">*</span>
+                {{ $t('auth.confirmPassword') }} <span class="text-red-500">*</span>
               </label>
               <div class="mt-1 relative">
                 <input
@@ -163,7 +163,7 @@
                   required
                   class="input pr-10"
                   :class="{ 'input-error': errors.confirmPassword }"
-                  placeholder="Conferma la tua password"
+                  :placeholder="$t('auth.confirmPasswordPlaceholder')"
                 />
                 <button
                   type="button"
@@ -222,7 +222,7 @@
                 :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
                 <div v-if="isLoading" class="loading-spinner"></div>
-                {{ isLoading ? 'Registrazione in corso...' : 'Registrati' }}
+                {{ isLoading ? $t('auth.registering') : $t('auth.register') }}
               </button>
             </div>
 
@@ -271,7 +271,7 @@
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  oppure
+                  {{ $t('auth.or') }}
                 </span>
               </div>
             </div>
@@ -280,12 +280,12 @@
           <!-- Login Link -->
           <div class="mt-6 text-center">
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Hai già un account?
+              {{ $t("auth.hasAccount") }}
               <router-link
                 to="/login"
                 class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                Accedi
+                {{ $t("auth.login") }}
               </router-link>
             </p>
           </div>
@@ -295,7 +295,7 @@
             <button
               @click="toggleTheme"
               class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
-              :title="`Cambia tema: ${themeName}`"
+              :title="$t('auth.changeTheme', { theme: themeName })"
             >
               <SunIcon v-if="isDarkMode" class="h-5 w-5" />
               <MoonIcon v-else class="h-5 w-5" />
@@ -322,6 +322,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -338,6 +339,7 @@ import PasswordStrengthIndicator from '../components/Common/PasswordStrengthIndi
 import type { RegisterFormData } from '../types/auth'
 
 // Composables
+const { t } = useI18n()
 const router = useRouter()
 const { register, isLoading, requireGuest } = useAuth()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
@@ -417,14 +419,14 @@ const handleSubmit = async () => {
       return
     }
 
-    generalError.value = 'Errore durante la registrazione. Riprova.'
+    generalError.value = t('auth.registrationError')
   } catch (error: any) {
     console.error('Registration error:', error)
 
     // Check if this is an email verification required response
     if (error.response?.data?.requiresEmailVerification) {
       requiresVerification.value = true
-      verificationMessage.value = error.response.data.message || 'Registration successful! Please check your email to verify your account.'
+      verificationMessage.value = error.response.data.message || t('auth.registrationSuccess')
     } else if (error.response?.data?.message) {
       generalError.value = error.response.data.message
     } else if (error.response?.data?.errors) {
@@ -438,7 +440,7 @@ const handleSubmit = async () => {
 
       errors.value = { ...errors.value, ...fieldErrors }
     } else {
-      generalError.value = error.message || 'Errore durante la registrazione'
+      generalError.value = error.message || t('auth.registrationError')
     }
   }
 }

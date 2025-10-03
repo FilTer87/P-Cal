@@ -39,7 +39,18 @@
     "tagline": "Your personal calendar",
     "usernamePlaceholder": "Enter your username",
     "passwordPlaceholder": "Enter your password",
-    "changeTheme": "Change theme: {theme}"
+    "changeTheme": "Change theme: {theme}",
+    "registerTitle": "Create an account",
+    "registering": "Registering...",
+    "hasAccount": "Already have an account?",
+    "firstNamePlaceholder": "First name",
+    "lastNamePlaceholder": "Last name",
+    "emailPlaceholder": "Enter your email",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "registrationSuccess": "Registration successful! Check your email to verify your account.",
+    "registrationError": "Registration error",
+    "emailVerificationSent": "Verification email sent! Check your inbox.",
+    "required": "required"
   },
   "validation": {
     "required": "This field is required",

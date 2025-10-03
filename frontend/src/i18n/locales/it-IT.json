@@ -39,7 +39,18 @@
     "tagline": "Il tuo calendario personale",
     "usernamePlaceholder": "Inserisci il tuo nome utente",
     "passwordPlaceholder": "Inserisci la tua password",
-    "changeTheme": "Cambia tema: {theme}"
+    "changeTheme": "Cambia tema: {theme}",
+    "registerTitle": "Crea un account",
+    "registering": "Registrazione in corso...",
+    "hasAccount": "Hai già un account?",
+    "firstNamePlaceholder": "Nome",
+    "lastNamePlaceholder": "Cognome",
+    "emailPlaceholder": "Inserisci la tua email",
+    "confirmPasswordPlaceholder": "Conferma la tua password",
+    "registrationSuccess": "Registrazione completata! Controlla la tua email per verificare l'account.",
+    "registrationError": "Errore durante la registrazione",
+    "emailVerificationSent": "Email di verifica inviata! Controlla la tua casella di posta.",
+    "required": "obbligatorio"
   },
   "validation": {
     "required": "Questo campo è obbligatorio",

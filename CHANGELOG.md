@@ -18,6 +18,7 @@ Internationalization support (EN/IT)
 ### Fixed
 
 ### Security
+Content Security Policy fix with unplugin-vue-i18n (prevent 'eval()')
 
 
 ---
