@@ -3,13 +3,18 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { i18n, initializeLocale } from './i18n'
 import './style.css'
 
 const app = createApp(App)
 const pinia = createPinia()
 
+// Initialize i18n locale from storage or browser
+initializeLocale()
+
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 app.mount('#app')
 
 // Register Service Worker for notifications

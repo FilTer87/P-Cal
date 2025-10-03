@@ -1,0 +1,161 @@
+{
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "close": "Chiudi",
+    "loading": "Caricamento...",
+    "search": "Cerca",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "next": "Avanti",
+    "previous": "Precedente",
+    "yes": "Sì",
+    "no": "No"
+  },
+  "auth": {
+    "username": "Nome utente",
+    "password": "Password",
+    "email": "Email",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "login": "Accedi",
+    "register": "Registrati",
+    "logout": "Esci (Logout)",
+    "forgotPassword": "Password dimenticata?",
+    "resetPassword": "Reimposta password",
+    "confirmPassword": "Conferma password"
+  },
+  "validation": {
+    "required": "Questo campo è obbligatorio",
+    "email": "Inserisci un indirizzo email valido",
+    "minLength": "Deve contenere almeno {length} caratteri",
+    "maxLength": "Non può superare i {length} caratteri",
+    "minValue": "Il valore minimo è {min}",
+    "maxValue": "Il valore massimo è {max}",
+    "numeric": "Deve contenere solo numeri",
+    "alphanumeric": "Deve contenere solo lettere e numeri",
+    "url": "Inserisci un URL valido",
+    "phone": "Inserisci un numero di telefono valido",
+    "match": "Le password non corrispondono",
+    "passwordStrength": {
+      "weak": "Password debole",
+      "medium": "Password media",
+      "strong": "Password forte"
+    },
+    "auth": {
+      "usernameRequired": "Nome utente è obbligatorio",
+      "usernameMinLength": "Nome utente deve avere almeno {min} caratteri",
+      "usernameMaxLength": "Nome utente non può superare i {max} caratteri",
+      "usernameInvalidChars": "Nome utente può contenere solo lettere, numeri, underscore, punti e trattini",
+      "passwordRequired": "Password è obbligatoria",
+      "passwordMinLength": "Password deve avere almeno {min} caratteri",
+      "passwordMaxLength": "Password non può superare i {max} caratteri",
+      "passwordLowercase": "Password deve contenere almeno una lettera minuscola",
+      "passwordUppercase": "Password deve contenere almeno una lettera maiuscola",
+      "passwordNumber": "Password deve contenere almeno un numero",
+      "confirmPasswordRequired": "Conferma password è obbligatoria",
+      "confirmPasswordMismatch": "Le password non corrispondono",
+      "emailRequired": "Email è obbligatoria",
+      "emailInvalid": "Inserisci un indirizzo email valido",
+      "emailMaxLength": "Email non può superare i {max} caratteri",
+      "nameMaxLength": "Nome non può superare i {max} caratteri",
+      "nameInvalidChars": "Nome può contenere solo lettere, spazi, apostrofi e trattini"
+    },
+    "task": {
+      "titleRequired": "Titolo è obbligatorio",
+      "titleMaxLength": "Titolo non può superare i {max} caratteri",
+      "descriptionMaxLength": "Descrizione non può superare i {max} caratteri",
+      "priorityRequired": "Priorità è obbligatoria",
+      "priorityInvalid": "Priorità deve essere: LOW, MEDIUM, HIGH o URGENT"
+    },
+    "reminder": {
+      "dateRequired": "Data è obbligatoria",
+      "timeRequired": "Ora è obbligatoria",
+      "timeFuture": "La data e l'ora devono essere nel futuro"
+    }
+  },
+  "tasks": {
+    "title": "Task",
+    "noTasksAvailable": "Nessun task disponibile",
+    "createTask": "Crea nuovo task",
+    "yourTasks": "I tuoi task",
+    "createNew": "Crea nuovo task",
+    "priority": {
+      "LOW": "Bassa",
+      "MEDIUM": "Media",
+      "HIGH": "Alta",
+      "URGENT": "Urgente"
+    }
+  },
+  "calendar": {
+    "views": {
+      "month": "Mese",
+      "week": "Settimana",
+      "day": "Giorno",
+      "agenda": "Agenda"
+    }
+  },
+  "dateTime": {
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "tomorrow": "Domani",
+    "thisWeek": "Questa settimana",
+    "nextWeek": "Prossima settimana",
+    "thisMonth": "Questo mese",
+    "nextMonth": "Prossimo mese",
+    "invalidDate": "Data non valida",
+    "invalidTime": "Ora non valida",
+    "noDueDate": "Nessuna scadenza",
+    "pastDue": "Passato di",
+    "dueIn": "Scade",
+    "sentOn": "Inviato il",
+    "shouldHaveBeenSent": "Doveva essere inviato",
+    "duration": {
+      "minute": "minuto",
+      "minutes": "minuti",
+      "hour": "ora",
+      "hours": "ore",
+      "day": "giorno",
+      "days": "giorni"
+    }
+  },
+  "errors": {
+    "generic": "Si è verificato un errore imprevisto",
+    "network": "Errore di connessione",
+    "unauthorized": "Non autorizzato",
+    "invalidDate": "Data non valida",
+    "invalidTime": "Ora non valida"
+  },
+  "formatters": {
+    "fieldNames": {
+      "title": "Titolo",
+      "description": "Descrizione",
+      "email": "Email",
+      "username": "Nome utente",
+      "password": "Password",
+      "firstName": "Nome",
+      "lastName": "Cognome",
+      "phone": "Telefono",
+      "date": "Data",
+      "time": "Ora",
+      "priority": "Priorità",
+      "status": "Stato",
+      "dueDate": "Scadenza"
+    },
+    "listConjunction": "e"
+  },
+  "password": {
+    "strength": {
+      "required": "Password è obbligatoria",
+      "tooShort": "Password troppo corta (minimo {min} caratteri)",
+      "missingLowercase": "Aggiungi almeno una lettera minuscola",
+      "missingUppercase": "Aggiungi almeno una lettera maiuscola",
+      "missingNumber": "Aggiungi almeno un numero",
+      "missingSpecial": "Aggiungi almeno un carattere speciale",
+      "repeatedChars": "Evita caratteri ripetuti",
+      "commonSequences": "Evita sequenze comuni (123, abc, ecc.)"
+    }
+  }
+}

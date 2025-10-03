@@ -1,0 +1,161 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "search": "Search",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "username": "Username",
+    "password": "Password",
+    "email": "Email",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset password",
+    "confirmPassword": "Confirm password"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Enter a valid email address",
+    "minLength": "Must contain at least {length} characters",
+    "maxLength": "Cannot exceed {length} characters",
+    "minValue": "Minimum value is {min}",
+    "maxValue": "Maximum value is {max}",
+    "numeric": "Must contain only numbers",
+    "alphanumeric": "Must contain only letters and numbers",
+    "url": "Enter a valid URL",
+    "phone": "Enter a valid phone number",
+    "match": "Passwords do not match",
+    "passwordStrength": {
+      "weak": "Weak password",
+      "medium": "Medium password",
+      "strong": "Strong password"
+    },
+    "auth": {
+      "usernameRequired": "Username is required",
+      "usernameMinLength": "Username must be at least {min} characters",
+      "usernameMaxLength": "Username cannot exceed {max} characters",
+      "usernameInvalidChars": "Username can only contain letters, numbers, underscores, dots and hyphens",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least {min} characters",
+      "passwordMaxLength": "Password cannot exceed {max} characters",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordNumber": "Password must contain at least one number",
+      "confirmPasswordRequired": "Confirm password is required",
+      "confirmPasswordMismatch": "Passwords do not match",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "emailMaxLength": "Email cannot exceed {max} characters",
+      "nameMaxLength": "Name cannot exceed {max} characters",
+      "nameInvalidChars": "Name can only contain letters, spaces, apostrophes and hyphens"
+    },
+    "task": {
+      "titleRequired": "Title is required",
+      "titleMaxLength": "Title cannot exceed {max} characters",
+      "descriptionMaxLength": "Description cannot exceed {max} characters",
+      "priorityRequired": "Priority is required",
+      "priorityInvalid": "Priority must be: LOW, MEDIUM, HIGH or URGENT"
+    },
+    "reminder": {
+      "dateRequired": "Date is required",
+      "timeRequired": "Time is required",
+      "timeFuture": "Date and time must be in the future"
+    }
+  },
+  "tasks": {
+    "title": "Task",
+    "noTasksAvailable": "No tasks available",
+    "createTask": "Create new task",
+    "yourTasks": "Your tasks",
+    "createNew": "Create new task",
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    }
+  },
+  "calendar": {
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "agenda": "Agenda"
+    }
+  },
+  "dateTime": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This week",
+    "nextWeek": "Next week",
+    "thisMonth": "This month",
+    "nextMonth": "Next month",
+    "invalidDate": "Invalid date",
+    "invalidTime": "Invalid time",
+    "noDueDate": "No due date",
+    "pastDue": "Past due by",
+    "dueIn": "Due in",
+    "sentOn": "Sent on",
+    "shouldHaveBeenSent": "Should have been sent",
+    "duration": {
+      "minute": "minute",
+      "minutes": "minutes",
+      "hour": "hour",
+      "hours": "hours",
+      "day": "day",
+      "days": "days"
+    }
+  },
+  "errors": {
+    "generic": "An unexpected error occurred",
+    "network": "Network error",
+    "unauthorized": "Unauthorized",
+    "invalidDate": "Invalid date",
+    "invalidTime": "Invalid time"
+  },
+  "formatters": {
+    "fieldNames": {
+      "title": "Title",
+      "description": "Description",
+      "email": "Email",
+      "username": "Username",
+      "password": "Password",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "date": "Date",
+      "time": "Time",
+      "priority": "Priority",
+      "status": "Status",
+      "dueDate": "Due date"
+    },
+    "listConjunction": "and"
+  },
+  "password": {
+    "strength": {
+      "required": "Password is required",
+      "tooShort": "Password too short (minimum {min} characters)",
+      "missingLowercase": "Add at least one lowercase letter",
+      "missingUppercase": "Add at least one uppercase letter",
+      "missingNumber": "Add at least one number",
+      "missingSpecial": "Add at least one special character",
+      "repeatedChars": "Avoid repeated characters",
+      "commonSequences": "Avoid common sequences (123, abc, etc.)"
+    }
+  }
+}

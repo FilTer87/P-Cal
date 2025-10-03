@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { DEFAULT_SETTINGS, LOCALE_STRINGS } from '../utils/constants'
+import { setLocale, type Locale } from '../i18n'
 
 export type WeekStartDay = 0 | 1 // 0 = Sunday, 1 = Monday
 
@@ -9,6 +10,7 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   calendarView: 'month' | 'week' | 'day' | 'agenda'
   timeFormat: '12h' | '24h'
+  locale: Locale
   notifications: boolean
   reminderSound: boolean
 }
@@ -20,6 +22,7 @@ export const useSettingsStore = defineStore('settings', () => {
     theme: DEFAULT_SETTINGS.theme,
     calendarView: DEFAULT_SETTINGS.calendarView,
     timeFormat: DEFAULT_SETTINGS.timeFormat,
+    locale: 'it-IT',
     notifications: DEFAULT_SETTINGS.notifications,
     reminderSound: DEFAULT_SETTINGS.reminderSound
   })
@@ -144,12 +147,20 @@ export const useSettingsStore = defineStore('settings', () => {
     saveSettings()
   }
 
+  const updateLocale = (locale: Locale) => {
+    settings.value.locale = locale
+    setLocale(locale)
+    saveSettings()
+    console.debug('🌐 Locale updated to:', locale)
+  }
+
   const resetSettings = () => {
     settings.value = {
       weekStartDay: DEFAULT_SETTINGS.startOfWeek as WeekStartDay,
       theme: DEFAULT_SETTINGS.theme,
       calendarView: DEFAULT_SETTINGS.calendarView,
       timeFormat: DEFAULT_SETTINGS.timeFormat,
+      locale: 'it-IT',
       notifications: DEFAULT_SETTINGS.notifications,
       reminderSound: DEFAULT_SETTINGS.reminderSound
     }
@@ -166,19 +177,19 @@ export const useSettingsStore = defineStore('settings', () => {
   return {
     // State
     settings,
-    
+
     // Computed
     weekStartDay,
     timeFormat,
     weekdaysShort,
     weekdaysFull,
     weekStartOptions,
-    
+
     // Time formatting utilities
     formatTime,
     formatHourLabel,
     getTimeInputStep,
-    
+
     // Actions
     loadSettings,
     saveSettings,
@@ -186,6 +197,7 @@ export const useSettingsStore = defineStore('settings', () => {
     updateTheme,
     updateCalendarView,
     updateTimeFormat,
+    updateLocale,
     updateNotifications,
     updateReminderSound,
     resetSettings
