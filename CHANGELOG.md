@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ## [Unreleased]
 
 ### Added
-- Email verification flow on user registration
+Internationalization support (EN/IT)
 
 ### Changed
 
@@ -21,6 +21,19 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 
 ---
+
+## [0.10.0-beta] - 2025-10-03
+
+### Added
+- Email verification flow on user registration (Optional - enable/disable from env config)
+- Frontend testing with vitest
+- Minor fixes
+
+### Changed
+- if email verification enabled, no email update possible because of security reasons (additional specific flow is needed)
+
+### Fixed
+- minor fronted format and validation fix
 
 ## [0.9.3-beta] - 2025-10-01
 P-Cal - first public version of the project.

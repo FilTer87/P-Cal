@@ -361,4 +361,8 @@ scripts/dev-*
 *.tar.gz
 *.7z
 
+# ==============================================
+# PRIVATE STUFF
+# ==============================================
 commit_message.txt
+features_analysis/

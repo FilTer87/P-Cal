@@ -1,6 +1,6 @@
 [![CodeQL](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/github-code-scanning/codeql) [![Java CI with Maven](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/maven.yml) [![Node.js CI](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml/badge.svg)](https://github.com/FilTer87/P-Cal/actions/workflows/node.js.yml)
 # P-Cal 📅
-Leggi la [versione in italiano qui](./README.it.md)
+Leggi la [versione in italiano qui](./README_it.md)
 
 A simple and modern **personal calendar** web application, featuring advanced event management and **programmable reminders**, with a **multi-channel notification** system.
 
@@ -46,6 +46,7 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 - **Smart time visualization** distinguishing past and future events
 - **Precise hourly grid** in week view with visual indicators for off-screen activities
 - **Informative tooltips**
+- **Internationalization** (Work In Progress)
 
 #### ⏰ **Advanced Reminder System**
 - **Multi-channel notifications**: currently implemented Email and NTFY server
