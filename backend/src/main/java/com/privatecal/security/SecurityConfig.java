@@ -151,6 +151,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // CSRF protection disabled for stateless REST API with JWT authentication
+            // CSRF attacks exploit automatic cookie submission, but JWT tokens are sent
+            // explicitly in Authorization headers and cannot be exploited this way.
+            // Reference: https://security.stackexchange.com/questions/166724/should-i-use-csrf-protection-on-rest-api-endpoints
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz

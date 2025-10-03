@@ -100,7 +100,8 @@ export const formatTaskDueDate = (dueDate: string): {
   const description = getDateDescription(due)
 
   if (isPast) {
-    const timeAgo = formatTimeAgo(due).replace('fa', 'fa')
+    // Remove "fa" suffix to avoid redundancy in "Passato di X fa"
+    const timeAgo = formatTimeAgo(due).replace(' fa', '').trim()
     return {
       text: `Passato di ${timeAgo}`,
       color: 'gray',
@@ -379,11 +380,11 @@ export const formatPhoneNumber = (phone: string): string => {
  */
 export const formatSafeHtml = (html: string): string => {
   return html
+    .replace(/&/g, '&amp;')   // Must be FIRST to avoid double-escaping
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
-    .replace(/&/g, '&amp;')
 }
 
 /**
