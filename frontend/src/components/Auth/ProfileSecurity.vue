@@ -4,7 +4,7 @@
     <div>
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Cambia Password
+          {{ t('profile.changePassword') }}
         </h3>
         <button
           @click="toggleEdit"
@@ -13,7 +13,7 @@
           <svg v-if="!isEditing" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          {{ isEditing ? 'Annulla' : 'Modifica Password' }}
+          {{ isEditing ? t('common.cancel') : t('profile.changePassword') }}
         </button>
       </div>
 
@@ -21,7 +21,7 @@
         <!-- Current Password -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Password Attuale *
+            {{ t('profile.currentPasswordLabel') }} *
           </label>
           <div class="relative">
             <input
@@ -30,7 +30,7 @@
               required
               :disabled="isLoading"
               class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
-              placeholder="Inserisci password attuale"
+              :placeholder="t('profile.currentPasswordPlaceholder')"
             />
             <button
               type="button"
@@ -67,7 +67,7 @@
         <!-- New Password -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Nuova Password *
+            {{ t('profile.newPasswordLabel') }} *
           </label>
           <div class="relative">
             <input
@@ -76,7 +76,7 @@
               required
               :disabled="isLoading"
               class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
-              placeholder="Inserisci nuova password"
+              :placeholder="t('profile.newPasswordPlaceholder')"
             />
             <button
               type="button"
@@ -116,7 +116,7 @@
         <!-- Confirm New Password -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Conferma Nuova Password *
+            {{ t('profile.confirmNewPasswordLabel') }} *
           </label>
           <div class="relative">
             <input
@@ -125,7 +125,7 @@
               required
               :disabled="isLoading"
               class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
-              placeholder="Conferma nuova password"
+              :placeholder="t('profile.confirmNewPasswordPlaceholder')"
             />
             <button
               type="button"
@@ -167,7 +167,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Annulla
+            {{ t('common.cancel') }}
           </button>
           <button
             type="submit"
@@ -175,7 +175,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-            {{ isLoading ? 'Cambiando...' : 'Cambia Password' }}
+            {{ isLoading ? t('profile.changingPassword') : t('profile.changePassword') }}
           </button>
         </div>
       </form>
@@ -186,10 +186,10 @@
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Autenticazione a Due Fattori
+            {{ t('profile.twoFactorAuth') }}
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Aumenta la sicurezza del tuo account abilitando l'autenticazione a due fattori
+            {{ t('profile.twoFactorAuthDescription') }}
           </p>
         </div>
         <button
@@ -197,7 +197,7 @@
           :disabled="isLoading"
           class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {{ twoFactorEnabled ? 'Disabilita 2FA' : 'Abilita 2FA' }}
+          {{ twoFactorEnabled ? t('profile.disable2FA') : t('profile.enable2FA') }}
         </button>
       </div>
     </div>
@@ -206,9 +206,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { checkPasswordStrength } from '@/utils/validators'
 import PasswordStrengthIndicator from '@/components/Common/PasswordStrengthIndicator.vue'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
+
+// Composables
+const { t } = useI18n()
 
 // Props
 interface Props {

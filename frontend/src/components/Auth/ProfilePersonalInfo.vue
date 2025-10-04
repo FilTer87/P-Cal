@@ -3,7 +3,7 @@
     <!-- Header with Edit Button -->
     <div class="flex items-center justify-between mb-6">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-        Informazioni Personali
+        {{ t('profile.personalInfo') }}
       </h3>
       <button
         @click="toggleEdit"
@@ -15,7 +15,7 @@
         <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        {{ isEditing ? 'Annulla' : 'Modifica' }}
+        {{ isEditing ? t('common.cancel') : t('common.edit') }}
       </button>
     </div>
 
@@ -23,24 +23,24 @@
       <!-- Username -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Nome Utente
+          {{ t('profile.usernameLabel') }}
         </label>
         <input
           :value="username"
           type="text"
           disabled
           class="w-full px-4 py-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-          placeholder="Nome utente"
+          :placeholder="t('profile.usernamePlaceholder')"
         />
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" v-if="isEditing">
-          Il nome utente non può essere modificato
+          {{ t('profile.usernameCannotBeModified') }}
         </p>
       </div>
 
       <!-- Email -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Email
+          {{ t('profile.emailLabel') }}
         </label>
         <input
           v-model="formData.email"
@@ -52,13 +52,13 @@
               ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
           ]"
-          placeholder="Indirizzo email"
+          :placeholder="t('profile.emailPlaceholder')"
         />
         <p v-if="emailVerified" class="mt-1 text-sm text-green-500 dark:text-green-400">
-          ✓ Email verificata e protetta
+          ✓ {{ t('profile.emailVerified') }}
         </p>
         <p v-else class="mt-1 text-sm text-yellow-600 dark:text-yellow-400" v-if="isEditing">
-          ⚠ Email non verificata o verifica non richiesta
+          ⚠ {{ t('profile.emailNotVerified') }}
         </p>
         <p v-if="errors.email" class="mt-1 text-sm text-red-600 dark:text-red-400">
           {{ errors.email }}
@@ -68,7 +68,7 @@
       <!-- First Name -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Nome
+          {{ t('profile.firstNameLabel') }}
         </label>
         <input
           v-model="formData.firstName"
@@ -80,14 +80,14 @@
               ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
           ]"
-          :placeholder="isEditing ? 'Inserisci il tuo nome' : 'Nome non specificato'"
+          :placeholder="isEditing ? t('profile.firstNamePlaceholder') : t('profile.firstNameEmpty')"
         />
       </div>
 
       <!-- Last Name -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Cognome
+          {{ t('profile.lastNameLabel') }}
         </label>
         <input
           v-model="formData.lastName"
@@ -99,7 +99,7 @@
               ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
           ]"
-          :placeholder="isEditing ? 'Inserisci il tuo cognome' : 'Cognome non specificato'"
+          :placeholder="isEditing ? t('profile.lastNamePlaceholder') : t('profile.lastNameEmpty')"
         />
       </div>
 
@@ -112,7 +112,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Annulla
+            {{ t('common.cancel') }}
           </button>
           <button
             type="submit"
@@ -120,7 +120,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-            {{ isLoading ? 'Salvando...' : 'Salva Modifiche' }}
+            {{ isLoading ? t('profile.saving') : t('profile.saveChanges') }}
           </button>
         </div>
       </div>
@@ -130,7 +130,11 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
+
+// Composables
+const { t } = useI18n()
 
 // Props
 interface Props {

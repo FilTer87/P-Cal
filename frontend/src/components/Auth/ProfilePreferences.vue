@@ -3,15 +3,15 @@
     <!-- Theme Preference -->
     <div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Tema Applicazione
+        {{ t('profile.themeLabel') }}
       </h3>
       <div class="flex items-center justify-between">
         <div>
           <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-            Modalità tema
+            {{ t('profile.themeMode') }}
           </h4>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Scegli come visualizzare l'interfaccia
+            {{ t('profile.themeModeDescription') }}
           </p>
         </div>
         <div class="flex items-center space-x-2">
@@ -38,17 +38,17 @@
     <!-- App Preferences -->
     <div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Preferenze Applicazione
+        {{ t('profile.appPreferences') }}
       </h3>
       <div class="space-y-6">
         <!-- Time Format -->
         <div class="flex items-center justify-between">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              Formato orario
+              {{ t('profile.timeFormatLabel') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Formato di visualizzazione degli orari
+              {{ t('profile.timeFormatDescription') }}
             </p>
           </div>
           <select
@@ -57,8 +57,8 @@
             :disabled="isLoading"
             class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="24h">24 ore (15:30)</option>
-            <option value="12h">12 ore (3:30 PM)</option>
+            <option value="24h">{{ t('profile.timeFormat24h') }}</option>
+            <option value="12h">{{ t('profile.timeFormat12h') }}</option>
           </select>
         </div>
 
@@ -66,10 +66,10 @@
         <div class="flex items-center justify-between">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              Visualizzazione predefinita
+              {{ t('profile.defaultCalendarView') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Vista che si apre all'avvio dell'applicazione
+              {{ t('profile.defaultCalendarViewDescription') }}
             </p>
           </div>
           <select
@@ -78,17 +78,17 @@
             :disabled="isLoading"
             class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="week">Settimana</option>
-            <option value="month">Mese</option>
-            <option value="day">Giorno</option>
-            <option value="agenda">Agenda</option>
+            <option value="week">{{ t('profile.calendarViewWeek') }}</option>
+            <option value="month">{{ t('profile.calendarViewMonth') }}</option>
+            <option value="day">{{ t('profile.calendarViewDay') }}</option>
+            <option value="agenda">{{ t('profile.calendarViewAgenda') }}</option>
           </select>
         </div>
 
         <!-- Timezone -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Fuso Orario
+            {{ t('profile.timezoneLabel') }}
           </label>
           <select
             v-model="preferences.timezone"
@@ -122,7 +122,7 @@
         <!-- Week Start Day -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Inizio Settimana
+            {{ t('profile.weekStartLabel') }}
           </label>
           <select
             v-model="preferences.weekStartDay"
@@ -130,8 +130,8 @@
             :disabled="isLoading"
             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
           >
-            <option :value="1">Lunedì</option>
-            <option :value="0">Domenica</option>
+            <option :value="1">{{ t('profile.weekStartMonday') }}</option>
+            <option :value="0">{{ t('profile.weekStartSunday') }}</option>
           </select>
         </div>
       </div>
@@ -140,16 +140,16 @@
     <!-- Notification Preferences -->
     <div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Preferenze Notifiche
+        {{ t('profile.notificationPreferences') }}
       </h3>
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <div>
             <label for="email-notifications" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Notifiche Email
+              {{ t('profile.emailNotificationsLabel') }}
             </label>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Ricevi notifiche via email per promemoria importanti
+              {{ t('profile.emailNotificationsDescription') }}
             </p>
           </div>
           <input
@@ -165,10 +165,10 @@
         <div class="flex items-center justify-between">
           <div>
             <label for="reminder-notifications" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Notifiche Promemoria
+              {{ t('profile.reminderNotificationsLabel') }}
             </label>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Ricevi notifiche push per i tuoi promemoria
+              {{ t('profile.reminderNotificationsDescription') }}
             </p>
           </div>
           <input
@@ -186,7 +186,7 @@
     <!-- Advanced Notifications Section -->
     <div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Notifiche Avanzate
+        {{ t('profile.advancedNotifications') }}
       </h3>
       <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
         <NotificationSettings />
@@ -196,9 +196,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
+
+// Composables
+const { t } = useI18n()
 
 // Props
 interface Props {
@@ -257,11 +261,11 @@ watch(() => [props.theme, props.timeFormat, props.calendarView, props.timezone, 
 })
 
 // Theme options
-const themeOptions = [
-  { value: 'light', label: 'Modalità chiara', icon: SunIcon },
-  { value: 'dark', label: 'Modalità scura', icon: MoonIcon },
-  { value: 'system', label: 'Segui sistema', icon: ComputerDesktopIcon }
-]
+const themeOptions = computed(() => [
+  { value: 'light', label: t('profile.lightMode'), icon: SunIcon },
+  { value: 'dark', label: t('profile.darkMode'), icon: MoonIcon },
+  { value: 'system', label: t('profile.systemMode'), icon: ComputerDesktopIcon }
+])
 
 // Event handlers
 const handleThemeChange = (theme: string) => {
