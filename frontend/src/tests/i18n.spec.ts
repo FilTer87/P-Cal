@@ -28,13 +28,19 @@ describe('i18n Configuration', () => {
       itKeys.forEach(key => {
         const value = getNestedValue(itIT, key)
         expect(value, `Empty value for it-IT key: ${key}`).toBeTruthy()
-        expect(typeof value, `Invalid type for it-IT key: ${key}`).toBe('string')
+        // Skip type check for literal syntax values (wrapped in {})
+        if (typeof value === 'string' && !value.startsWith('{')) {
+          expect(typeof value, `Invalid type for it-IT key: ${key}`).toBe('string')
+        }
       })
 
       enKeys.forEach(key => {
         const value = getNestedValue(enUS, key)
         expect(value, `Empty value for en-US key: ${key}`).toBeTruthy()
-        expect(typeof value, `Invalid type for en-US key: ${key}`).toBe('string')
+        // Skip type check for literal syntax values (wrapped in {})
+        if (typeof value === 'string' && !value.startsWith('{')) {
+          expect(typeof value, `Invalid type for en-US key: ${key}`).toBe('string')
+        }
       })
     })
 

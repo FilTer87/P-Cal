@@ -4,7 +4,7 @@
       <div class="text-center">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white">P-Cal</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Il tuo calendario personale
+          {{ $t('auth.tagline') }}
         </p>
       </div>
 
@@ -17,14 +17,14 @@
               <CheckCircleIcon class="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-              Password Reimpostata!
+              {{ $t('auth.resetPasswordSuccess') }}
             </h2>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              La tua password è stata cambiata con successo. Ora puoi effettuare il login con la nuova password.
+              {{ $t('auth.resetPasswordSuccessMessage') }}
             </p>
             <div class="mt-6">
               <router-link to="/login" class="btn btn-primary w-full">
-                Vai al Login
+                {{ $t('auth.goToLogin') }}
               </router-link>
             </div>
           </div>
@@ -32,7 +32,7 @@
           <!-- Reset Form -->
           <div v-else>
             <h2 class="mb-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-              Reimposta Password
+              {{ $t('auth.resetPasswordTitle') }}
             </h2>
 
             <!-- Invalid Token Error -->
@@ -42,15 +42,15 @@
                 <ExclamationTriangleIcon class="h-5 w-5 text-red-400" />
                 <div class="ml-3">
                   <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                    Token Non Valido
+                    {{ $t('auth.invalidTokenTitle') }}
                   </h3>
                   <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                    <p>Il link per il reset della password non è valido o è scaduto. Richiedi un nuovo link.</p>
+                    <p>{{ $t('auth.invalidTokenMessage') }}</p>
                   </div>
                   <div class="mt-4">
                     <router-link to="/login"
                       class="text-sm font-medium text-red-800 dark:text-red-200 hover:text-red-700 dark:hover:text-red-100 underline">
-                      Torna al Login
+                      {{ $t('auth.backToLogin') }}
                     </router-link>
                   </div>
                 </div>
@@ -61,12 +61,12 @@
               <!-- Password Field -->
               <div>
                 <label for="new-password" class="label">
-                  Nuova Password
+                  {{ $t('auth.newPassword') }}
                 </label>
                 <div class="mt-1 relative">
                   <input id="new-password" v-model="form.newPassword" :type="showPassword ? 'text' : 'password'"
                     autocomplete="new-password" required autofocus class="input pr-10"
-                    :class="{ 'input-error': errors.newPassword }" placeholder="Inserisci la nuova password"
+                    :class="{ 'input-error': errors.newPassword }" :placeholder="$t('auth.newPasswordPlaceholder')"
                     @input="validateField('newPassword')" />
                   <button type="button" @click="togglePasswordVisibility"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -87,13 +87,13 @@
               <!-- Confirm Password Field -->
               <div>
                 <label for="confirm-password" class="label">
-                  Conferma Nuova Password
+                  {{ $t('auth.confirmNewPassword') }}
                 </label>
                 <div class="mt-1 relative">
                   <input id="confirm-password" v-model="form.confirmPassword"
                     :type="showConfirmPassword ? 'text' : 'password'" autocomplete="new-password" required
                     class="input pr-10" :class="{ 'input-error': errors.confirmPassword }"
-                    placeholder="Conferma la nuova password" @input="validateField('confirmPassword')" />
+                    :placeholder="$t('auth.confirmNewPasswordPlaceholder')" @input="validateField('confirmPassword')" />
                   <button type="button" @click="toggleConfirmPasswordVisibility"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <EyeIcon v-if="!showConfirmPassword"
@@ -111,7 +111,7 @@
               <div>
                 <button type="submit" :disabled="isLoading || !isFormValid" class="btn btn-primary w-full">
                   <div v-if="isLoading" class="loading-spinner"></div>
-                  {{ isLoading ? 'Reimpostazione in corso...' : 'Reimposta Password' }}
+                  {{ isLoading ? $t('auth.resettingPassword') : $t('auth.resetPasswordButton') }}
                 </button>
               </div>
 
@@ -134,7 +134,7 @@
             <div class="mt-6 text-center">
             <router-link to="/login"
               class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-              ← Torna al Login
+              ← {{ $t('auth.backToLogin') }}
             </router-link>
           </div>
         </div>
@@ -143,7 +143,7 @@
         <div class="mt-6 flex justify-center">
           <button @click="toggleTheme"
             class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
-            :title="`Cambia tema: ${themeName}`">
+            :title="$t('auth.changeTheme', { theme: themeName })">
             <SunIcon v-if="isDarkMode" class="h-5 w-5" />
             <MoonIcon v-else class="h-5 w-5" />
           </button>
@@ -166,6 +166,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -182,6 +183,7 @@ import PasswordStrengthIndicator from '@/components/Common/PasswordStrengthIndic
 import type { ResetPasswordFormData } from '@/types/auth'
 
 // Composables
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
@@ -249,7 +251,7 @@ const handleSubmit = async () => {
   }
 
   if (!passwordStrength.value.isStrong) {
-    generalError.value = 'La password non rispetta i criteri di sicurezza richiesti'
+    generalError.value = t('auth.passwordSecurityError')
     return
   }
 
@@ -264,9 +266,9 @@ const handleSubmit = async () => {
 
     if (response.success) {
       isSuccess.value = true
-      showSuccess('Password reimpostata con successo!')
+      showSuccess(t('auth.resetPasswordSuccess'))
     } else {
-      generalError.value = response.message || 'Errore durante la reimpostazione della password'
+      generalError.value = response.message || t('auth.resetPasswordError')
     }
   } catch (error: any) {
     console.error('Reset password error:', error)
@@ -277,7 +279,7 @@ const handleSubmit = async () => {
         error.response?.data?.message?.includes('scaduto')) {
       invalidToken.value = true
     } else {
-      generalError.value = error.response?.data?.message || error.message || 'Errore durante la reimpostazione della password'
+      generalError.value = error.response?.data?.message || error.message || t('auth.resetPasswordError')
     }
   } finally {
     isLoading.value = false
