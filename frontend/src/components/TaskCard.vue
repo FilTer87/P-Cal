@@ -23,7 +23,7 @@
           <BellIcon
             v-if="hasReminders"
             class="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
-            title="Ha promemoria"
+            :title="t('tasks.hasReminders')"
           />
         </div>
       </div>
@@ -33,9 +33,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BellIcon } from '@heroicons/vue/24/outline'
 import type { Task } from '../types/task'
 import { formatTime } from '../utils/dateHelpers'
+
+// Composables
+const { t } = useI18n()
 
 // Props
 interface Props {
