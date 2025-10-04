@@ -359,6 +359,42 @@
       "week": "Week",
       "day": "Day",
       "agenda": "Agenda"
+    },
+    "noActivities": "No activities in this period",
+    "noActivitiesToday": "No activities scheduled for today",
+    "createFirstActivity": "Create the first activity",
+    "completedActivities": "Completed activities ({count})",
+    "completedActivitiesShort": "Completed activities",
+    "moreActivities": "+{count} more",
+    "agendaDescription": "View activities for the next {days} days",
+    "today": "Today",
+    "navigation": {
+      "toggleMenu": "Toggle menu",
+      "previousPeriod": "Previous period (Ctrl + ←)",
+      "goToToday": "Go to today (Ctrl + T)",
+      "nextPeriod": "Next period (Ctrl + →)"
+    },
+    "weekView": {
+      "hourLabel": "Hour",
+      "time": "Time",
+      "location": "Location"
+    },
+    "sidebar": {
+      "closeMenu": "Close menu",
+      "accountManagement": "Account Management",
+      "logout": "Logout",
+      "statistics": "Statistics",
+      "statsPending": "Pending",
+      "statsCompleted": "Completed",
+      "statsToday": "Today",
+      "statsOverdue": "Overdue",
+      "todayTasks": "Today's tasks",
+      "upcomingReminders": "Upcoming reminders",
+      "newActivity": "New Activity",
+      "newActivityShortcut": "New activity (Ctrl + N)",
+      "noTime": "No time",
+      "showMoreActivities": "Show {count} more activities",
+      "deletedActivity": "Deleted activity"
     }
   },
   "dateTime": {

@@ -37,7 +37,7 @@
           >
             <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
             <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
-              Attività completate ({{ pastTasks.length }})
+              {{ t('calendar.completedActivities', { count: pastTasks.length }) }}
               <svg
                 class="h-4 w-4 transition-transform duration-200"
                 :class="{ 'rotate-180': showPastTasks }"
@@ -77,13 +77,13 @@
         <!-- Empty state -->
         <div v-if="currentTasks.length === 0 && pastTasks.length === 0" class="text-center py-8">
           <p class="text-gray-500 dark:text-gray-400">
-            Nessuna attività programmata per oggi
+            {{ t('calendar.noActivitiesToday') }}
           </p>
           <button
             @click="handleCreateTask"
             class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
-            Crea la prima attività
+            {{ t('calendar.createFirstActivity') }}
           </button>
         </div>
       </div>
@@ -93,10 +93,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Task } from '@/types/task'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { splitTasksByTime } from '@/composables/useTaskFilters'
 import { formatTime, getDayName, formatDate } from '@/utils/dateHelpers'
+
+// i18n
+const { t } = useI18n()
 
 // Props
 interface Props {
@@ -122,9 +126,13 @@ const dayTitle = computed(() => {
   return `${getDayName(props.currentDate)}, ${formatDate(props.currentDate)}`
 })
 
-const { current: currentTasks, past: pastTasks } = computed(() => {
-  return splitTasksByTime(props.tasks)
-}).value
+const currentTasks = computed(() => {
+  return splitTasksByTime(props.tasks).current
+})
+
+const pastTasks = computed(() => {
+  return splitTasksByTime(props.tasks).past
+})
 
 // Methods
 const taskDisplayClasses = (task: Task): string => {

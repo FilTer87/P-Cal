@@ -9,7 +9,7 @@
             <!-- Mobile Sidebar Toggle -->
             <button @click="showMobileSidebar = !showMobileSidebar"
               class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
-              title="Toggle menu">
+              :title="t('calendar.navigation.toggleMenu')">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -50,20 +50,20 @@
             <div class="flex items-center space-x-1">
               <button @click="navigatePrevious"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo precedente (Ctrl + ←)">
+                :title="t('calendar.navigation.previousPeriod')">
                 <ChevronLeftIcon class="h-5 w-5" />
               </button>
 
               <button @click="goToToday"
                 class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Vai a oggi (Ctrl + T)">
-                <span class="hidden sm:inline">Oggi</span>
+                :title="t('calendar.navigation.goToToday')">
+                <span class="hidden sm:inline">{{ t('calendar.today') }}</span>
                 <span class="sm:hidden">•</span>
               </button>
 
               <button @click="navigateNext"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo successivo (Ctrl + →)">
+                :title="t('calendar.navigation.nextPeriod')">
                 <ChevronRightIcon class="h-5 w-5" />
               </button>
             </div>
@@ -100,10 +100,10 @@
           <div class="flex items-center justify-between">
             <div v-if="isAgendaView">
               <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
-                Agenda
+                {{ t('calendar.views.agenda') }}
               </h2>
               <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Visualizza le attività dei prossimi {{ agendaDays }} giorni
+                {{ t('calendar.agendaDescription', { days: agendaDays }) }}
               </p>
             </div>
             <h2 v-else class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
@@ -210,6 +210,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -237,6 +238,9 @@ import { useCalendar } from '../composables/useCalendar'
 import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
 import { useTheme } from '../composables/useTheme'
+
+// i18n
+const { t } = useI18n()
 
 // Utilities
 import {

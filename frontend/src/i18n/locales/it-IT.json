@@ -359,6 +359,42 @@
       "week": "Settimana",
       "day": "Giorno",
       "agenda": "Agenda"
+    },
+    "noActivities": "Nessuna attività in questo periodo",
+    "noActivitiesToday": "Nessuna attività programmata per oggi",
+    "createFirstActivity": "Crea la prima attività",
+    "completedActivities": "Attività completate ({count})",
+    "completedActivitiesShort": "Attività completate",
+    "moreActivities": "+{count} altro/i",
+    "agendaDescription": "Visualizza le attività dei prossimi {days} giorni",
+    "today": "Oggi",
+    "navigation": {
+      "toggleMenu": "Attiva/disattiva menu",
+      "previousPeriod": "Periodo precedente (Ctrl + ←)",
+      "goToToday": "Vai a oggi (Ctrl + T)",
+      "nextPeriod": "Periodo successivo (Ctrl + →)"
+    },
+    "weekView": {
+      "hourLabel": "Ora",
+      "time": "Orario",
+      "location": "Luogo"
+    },
+    "sidebar": {
+      "closeMenu": "Chiudi menu",
+      "accountManagement": "Gestione Account",
+      "logout": "Disconnetti",
+      "statistics": "Statistiche",
+      "statsPending": "In corso",
+      "statsCompleted": "Completate",
+      "statsToday": "Oggi",
+      "statsOverdue": "In ritardo",
+      "todayTasks": "Attività di oggi",
+      "upcomingReminders": "Promemoria imminenti",
+      "newActivity": "Nuova Attività",
+      "newActivityShortcut": "Nuova attività (Ctrl + N)",
+      "noTime": "Nessuna ora",
+      "showMoreActivities": "Mostra altre {count} attività",
+      "deletedActivity": "Attività eliminata"
     }
   },
   "dateTime": {

@@ -41,7 +41,7 @@
           @click.stop="handleMoreClick(day.date)"
           class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1 hover:underline transition-colors"
         >
-          +{{ day.tasks.length - maxVisibleTasks }} altro/i
+          {{ t('calendar.moreActivities', { count: day.tasks.length - maxVisibleTasks }) }}
         </button>
       </div>
     </div>
@@ -50,10 +50,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Task } from '@/types/task'
 import type { CalendarDate, CalendarTask } from '@/types/calendar'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { useSettingsStore } from '@/stores/settings'
+
+// i18n
+const { t } = useI18n()
 
 // Props
 interface Props {

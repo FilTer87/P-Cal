@@ -8,7 +8,7 @@
     <div class="p-4">
       <!-- Mobile Close Button -->
       <div class="md:hidden flex justify-end mb-4">
-        <button @click="handleCloseSidebar" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Chiudi menu">
+        <button @click="handleCloseSidebar" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" :aria-label="t('calendar.sidebar.closeMenu')">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -51,7 +51,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Gestione Account
+            {{ t('calendar.sidebar.accountManagement') }}
           </button>
 
           <button @click="handleLogout"
@@ -60,7 +60,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Disconnetti
+            {{ t('calendar.sidebar.logout') }}
           </button>
         </div>
       </div>
@@ -69,7 +69,7 @@
       <!-- <div class="mb-6">
         <div class="flex items-center justify-between mb-3 cursor-pointer" @click="toggleStatistics">
           <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-            Statistiche
+            {{ t('calendar.sidebar.statistics') }}
           </h3>
           <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200" 
             :class="{ 'rotate-180': showStatistics }" />
@@ -82,7 +82,7 @@
                 {{ taskStats?.pending ?? 0 }}
               </div>
               <div class="text-xs text-blue-600 dark:text-blue-400">
-                In corso
+                {{ t('calendar.sidebar.statsPending') }}
               </div>
             </div>
             <div class="bg-green-50 dark:bg-green-900/20 p-2 sm:p-3 rounded-md">
@@ -90,7 +90,7 @@
                 {{ taskStats?.completed ?? 0 }}
               </div>
               <div class="text-xs text-green-600 dark:text-green-400">
-                Completate
+                {{ t('calendar.sidebar.statsCompleted') }}
               </div>
             </div>
             <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-md">
@@ -98,7 +98,7 @@
                 {{ taskStats?.today ?? 0 }}
               </div>
               <div class="text-xs text-yellow-600 dark:text-yellow-400">
-                Oggi
+                {{ t('calendar.sidebar.statsToday') }}
               </div>
             </div>
             <div class="bg-red-50 dark:bg-red-900/20 p-2 sm:p-3 rounded-md">
@@ -106,7 +106,7 @@
                 {{ taskStats?.overdue ?? 0 }}
               </div>
               <div class="text-xs text-red-600 dark:text-red-400">
-                In ritardo
+                {{ t('calendar.sidebar.statsOverdue') }}
               </div>
             </div>
           </div>
@@ -117,7 +117,7 @@
       <div class="mb-4 rounded-lg transition-colors" :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeSection === 'tasks' }" v-if="todayTasks && todayTasks.length > 0 && !isDayView">
         <div class="flex items-center justify-between mb-2 cursor-pointer p-2 rounded-lg" @click="toggleAccordion('tasks')">
           <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-            Attività di oggi
+            {{ t('calendar.sidebar.todayTasks') }}
           </h3>
           <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200"
             :class="{ 'rotate-180': activeSection === 'tasks' }" />
@@ -132,7 +132,7 @@
                   {{ task.title }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ task.endDatetime ? formatTime(task.endDatetime) : 'Nessuna ora' }}
+                  {{ task.endDatetime ? formatTime(task.endDatetime) : t('calendar.sidebar.noTime') }}
                 </p>
               </div>
               <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>
@@ -140,7 +140,7 @@
           </div>
           <div v-if="todayTasks && todayTasks.length > 5" class="mt-2 text-center">
             <button @click="showTodayView" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-              Mostra altre {{ todayTasks.length - 5 }} attività
+              {{ t('calendar.sidebar.showMoreActivities', { count: todayTasks.length - 5 }) }}
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@
       <div class="mb-4 rounded-lg transition-colors" :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': activeSection === 'reminders' }" v-if="upcomingReminders && upcomingReminders.length > 0">
         <div class="flex items-center justify-between mb-2 cursor-pointer p-2 rounded-lg" @click="toggleAccordion('reminders')">
           <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-            Promemoria imminenti
+            {{ t('calendar.sidebar.upcomingReminders') }}
           </h3>
           <ChevronDownIcon class="h-4 w-4 text-gray-400 transition-transform duration-200"
             :class="{ 'rotate-180': activeSection === 'reminders' }" />
@@ -169,9 +169,9 @@
       </div>
 
       <!-- New Task Button -->
-      <button @click="handleNewTask" class="w-full btn btn-primary mb-6" title="Nuova attività (Ctrl + N)">
+      <button @click="handleNewTask" class="w-full btn btn-primary mb-6" :title="t('calendar.sidebar.newActivityShortcut')">
         <PlusIcon class="h-4 w-4 mr-2" />
-        Nuova Attività
+        {{ t('calendar.sidebar.newActivity') }}
       </button>
       
     </div>
@@ -180,6 +180,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import {
@@ -188,6 +189,9 @@ import {
 } from '@heroicons/vue/24/outline'
 import { formatTime } from '../../utils/dateHelpers'
 import type { Task, Reminder } from '../../types/task'
+
+// i18n
+const { t } = useI18n()
 
 // Props
 interface Props {
@@ -271,10 +275,10 @@ const getTaskTitle = (taskId: number) => {
   // Try to find the task in the reminder data first (it includes taskTitle)
   const reminder = props.upcomingReminders?.find(r => r.taskId === taskId)
   if (reminder?.taskTitle) return reminder.taskTitle
-  
+
   // Fallback to finding in todayTasks
   const task = props.todayTasks?.find(t => t.id === taskId)
-  return task?.title || 'Attività eliminata'
+  return task?.title || t('calendar.sidebar.deletedActivity')
 }
 
 const formatReminderTimeShort = (reminder: Reminder) => {

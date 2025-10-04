@@ -47,7 +47,7 @@
           >
             <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
             <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
-              Attività completate ({{ getTodayPastTasks(dayTasks).length }})
+              {{ t('calendar.completedActivities', { count: getTodayPastTasks(dayTasks).length }) }}
               <svg
                 class="h-4 w-4 transition-transform duration-200"
                 :class="{ 'rotate-180': showPastTasks }"
@@ -115,7 +115,7 @@
 
     <div v-if="sortedTasksEntries.length === 0" class="text-center py-8">
       <p class="text-gray-500 dark:text-gray-400">
-        Nessuna attività in questo periodo
+        {{ t('calendar.noActivities') }}
       </p>
     </div>
   </div>
@@ -123,10 +123,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Task } from '@/types/task'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { splitTasksByTime } from '@/composables/useTaskFilters'
 import { formatTime, getDateDescription, formatDate } from '@/utils/dateHelpers'
+
+// i18n
+const { t } = useI18n()
 
 // Props
 interface Props {

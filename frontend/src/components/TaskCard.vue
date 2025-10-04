@@ -8,10 +8,10 @@
     <div class="flex items-center justify-between">
       <div class="flex-1 min-w-0">
         <!-- Title and Description in one line -->
-        <p class="text-sm text-gray-900 dark:text-white truncate">
-          <p class="font-bold">{{ task.title }}</p>
-          <p v-if="task.description"><span class="text-gray-600 dark:text-gray-500">{{ task.description }}</span></p>
-        </p>
+        <div class="text-sm text-gray-900 dark:text-white">
+          <p class="font-bold truncate">{{ task.title }}</p>
+          <p v-if="task.description" class="text-gray-600 dark:text-gray-500 truncate text-xs">{{ task.description }}</p>
+        </div>
 
         <!-- Time range -->
         <div class="flex items-center justify-between mt-1">

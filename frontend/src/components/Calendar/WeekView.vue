@@ -3,7 +3,7 @@
     <!-- Week Header -->
     <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 mb-4">
       <div class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center">
-        Ora
+        {{ t('calendar.weekView.hourLabel') }}
       </div>
       <div v-for="day in getWeekDays(currentDate)" :key="day.getTime()"
         class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center" :class="{
@@ -112,11 +112,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
 import type { Task } from '../../types/task'
+
+// i18n
+const { t } = useI18n()
 
 // Props
 interface Props {
@@ -392,12 +396,12 @@ const getTaskTooltipContent = (task: any) => {
   // Add time info
   const timeStr = formatTaskTime(task)
   if (timeStr) {
-    parts.push(`Orario: ${timeStr}`)
+    parts.push(`${t('calendar.weekView.time')}: ${timeStr}`)
   }
 
   // Add location if present
   if (task.location) {
-    parts.push(`Luogo: ${task.location}`)
+    parts.push(`${t('calendar.weekView.location')}: ${task.location}`)
   }
 
   // Add description if present and not too long
