@@ -16,6 +16,7 @@ Internationalization support (EN/IT)
 ### Removed
 
 ### Fixed
+- generate and update NTFY personal topic fix
 
 ### Security
 Content Security Policy fix with unplugin-vue-i18n (prevent 'eval()')

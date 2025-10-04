@@ -90,13 +90,19 @@ export const useSettingsStore = defineStore('settings', () => {
       const stored = sessionStorage.getItem('app-settings')
       if (stored) {
         const parsedSettings = JSON.parse(stored) as Partial<AppSettings>
-        
+
+        // Validate and sanitize weekStartDay
+        if (parsedSettings.weekStartDay !== undefined) {
+          const day = Number(parsedSettings.weekStartDay)
+          parsedSettings.weekStartDay = (day === 0 || day === 1) ? day as WeekStartDay : 1
+        }
+
         // Merge with defaults to ensure all properties exist
         settings.value = {
           ...settings.value,
           ...parsedSettings
         }
-        
+
         console.debug('⚙️ Settings loaded from sessionStorage:', settings.value)
       } else {
         console.debug('⚙️ No stored settings found, using defaults:', settings.value)
