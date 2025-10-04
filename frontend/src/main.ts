@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import { i18n, initializeLocale } from './i18n'
+import { i18n, initializeLocale, setupLocaleWatcher } from './i18n'
 import './style.css'
 
 const app = createApp(App)
@@ -11,6 +11,9 @@ const pinia = createPinia()
 
 // Initialize i18n locale from storage or browser
 initializeLocale()
+
+// Setup locale change detection
+setupLocaleWatcher()
 
 app.use(pinia)
 app.use(router)

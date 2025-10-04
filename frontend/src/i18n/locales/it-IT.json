@@ -236,11 +236,6 @@
     "url": "Inserisci un URL valido",
     "phone": "Inserisci un numero di telefono valido",
     "match": "Le password non corrispondono",
-    "passwordStrength": {
-      "weak": "Password debole",
-      "medium": "Password media",
-      "strong": "Password forte"
-    },
     "auth": {
       "usernameRequired": "Nome utente è obbligatorio",
       "usernameMinLength": "Nome utente deve avere almeno {min} caratteri",
@@ -265,12 +260,15 @@
       "titleMaxLength": "Titolo non può superare i {max} caratteri",
       "descriptionMaxLength": "Descrizione non può superare i {max} caratteri",
       "priorityRequired": "Priorità è obbligatoria",
-      "priorityInvalid": "Priorità deve essere: LOW, MEDIUM, HIGH o URGENT"
+      "priorityInvalid": "Priorità deve essere: LOW, MEDIUM, HIGH o URGENT",
+      "dueDateInvalid": "Data di scadenza non valida",
+      "dueTimeInvalid": "Orario non valido (formato HH:MM)"
     },
     "reminder": {
-      "dateRequired": "Data è obbligatoria",
+      "dateRequired": "Data e ora del promemoria sono obbligatorie",
+      "dateInvalid": "Data e ora del promemoria non valide",
       "timeRequired": "Ora è obbligatoria",
-      "timeFuture": "La data e l'ora devono essere nel futuro"
+      "timeFuture": "Il promemoria deve essere impostato per il futuro"
     }
   },
   "tasks": {
@@ -344,6 +342,7 @@
     "listConjunction": "e"
   },
   "password": {
+    "checkPasswordStrength": "Sicurezza password",
     "strength": {
       "required": "Password è obbligatoria",
       "tooShort": "Password troppo corta (minimo {min} caratteri)",

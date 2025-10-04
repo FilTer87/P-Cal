@@ -49,7 +49,6 @@ export const formatPercentage = (value: number, decimals = 1): string => {
 
 /**
  * Format duration in minutes to human readable format
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatDuration = (minutes: number): string => {
   const { t } = i18n.global
@@ -93,7 +92,6 @@ export const formatTimeAgo = (date: Date | string): string => {
 
 /**
  * Format task due date with context
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatTaskDueDate = (dueDate: string): {
   text: string
@@ -134,7 +132,6 @@ export const formatTaskDueDate = (dueDate: string): {
 
 /**
  * Format reminder time with context
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatReminderTime = (reminderDateTime: string, sent = false): {
   text: string
@@ -211,7 +208,6 @@ export const formatText = (text: string, maxLength = 100): string => {
 
 /**
  * Format list of items with proper conjunctions
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatList = (items: string[], conjunction?: string): string => {
   const { t } = i18n.global
@@ -239,7 +235,6 @@ export const formatSearchHighlight = (text: string, query: string): string => {
 
 /**
  * Format validation error message
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatValidationError = (field: string, error: string): string => {
   const { t } = i18n.global
@@ -250,7 +245,6 @@ export const formatValidationError = (field: string, error: string): string => {
 
 /**
  * Format API error for display
- * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatApiError = (error: any): string => {
   const { t } = i18n.global

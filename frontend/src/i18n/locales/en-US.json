@@ -236,11 +236,6 @@
     "url": "Enter a valid URL",
     "phone": "Enter a valid phone number",
     "match": "Passwords do not match",
-    "passwordStrength": {
-      "weak": "Weak password",
-      "medium": "Medium password",
-      "strong": "Strong password"
-    },
     "auth": {
       "usernameRequired": "Username is required",
       "usernameMinLength": "Username must be at least {min} characters",
@@ -265,12 +260,15 @@
       "titleMaxLength": "Title cannot exceed {max} characters",
       "descriptionMaxLength": "Description cannot exceed {max} characters",
       "priorityRequired": "Priority is required",
-      "priorityInvalid": "Priority must be: LOW, MEDIUM, HIGH or URGENT"
+      "priorityInvalid": "Priority must be: LOW, MEDIUM, HIGH or URGENT",
+      "dueDateInvalid": "Invalid due date",
+      "dueTimeInvalid": "Invalid time (format HH:MM)"
     },
     "reminder": {
-      "dateRequired": "Date is required",
+      "dateRequired": "Reminder date and time are required",
+      "dateInvalid": "Invalid reminder date and time",
       "timeRequired": "Time is required",
-      "timeFuture": "Date and time must be in the future"
+      "timeFuture": "Reminder must be set for the future"
     }
   },
   "tasks": {
@@ -344,6 +342,7 @@
     "listConjunction": "and"
   },
   "password": {
+    "checkPasswordStrength": "Password strength",
     "strength": {
       "required": "Password is required",
       "tooShort": "Password too short (minimum {min} characters)",

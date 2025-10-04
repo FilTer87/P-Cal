@@ -200,7 +200,7 @@
                 <label for="acceptTerms" class="text-gray-600 dark:text-gray-300">
                   <span class="text-red-500">*</span> Accetto i 
                   <a href="#" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-                    termini e condizioni
+                    Terms e condizioni
                   </a>
                   e l'
                   <a href="#" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
@@ -311,7 +311,7 @@
       <p class="mt-1">
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Privacy</a>
         ·
-        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Termini</a>
+        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Terms</a>
         <!-- ·
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a> -->
       </p>

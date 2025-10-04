@@ -171,7 +171,7 @@
       <p class="mt-1">
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Privacy</a>
         ·
-        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Termini</a>
+        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Terms</a>
         <!-- ·
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a> --> <!-- TODO -->
       </p>

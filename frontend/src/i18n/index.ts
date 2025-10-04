@@ -79,3 +79,29 @@ export function initializeLocale() {
   const locale = getInitialLocale()
   setLocale(locale)
 }
+
+// Setup locale change detection
+export function setupLocaleWatcher() {
+  // Listen for language change events (when user changes browser language)
+  window.addEventListener('languagechange', () => {
+    // Only auto-switch if user hasn't manually set a preference
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem('locale')
+      // If no manual preference exists, update to browser locale
+      if (!stored) {
+        const newLocale = getBrowserLocale()
+        setLocale(newLocale)
+      }
+    }
+  })
+
+  // Also check localStorage changes from other tabs
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'locale' && e.newValue) {
+      const newLocale = e.newValue as Locale
+      if (AVAILABLE_LOCALES.includes(newLocale) && i18n.global.locale.value !== newLocale) {
+        i18n.global.locale.value = newLocale
+      }
+    }
+  })
+}
