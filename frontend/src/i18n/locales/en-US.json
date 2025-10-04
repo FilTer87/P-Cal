@@ -12,7 +12,12 @@
     "next": "Next",
     "previous": "Previous",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "processing": "Processing...",
+    "showDetails": "Show details",
+    "confirmProceed": "I confirm I want to proceed",
+    "closeModal": "Close",
+    "closeNotification": "Close notification"
   },
   "auth": {
     "username": "Username",
@@ -395,6 +400,43 @@
       "noTime": "No time",
       "showMoreActivities": "Show {count} more activities",
       "deletedActivity": "Deleted activity"
+    }
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "subtitle": "Configure how to receive reminders for your activities",
+    "enableNotifications": "Enable Notifications",
+    "enableNotificationsDesc": "Turn on or off all notifications for reminders",
+    "browserNotifications": "Browser Notifications",
+    "browserNotificationsDesc": "Show notifications in browser when open",
+    "pushNotifications": "Push Notifications (NTFY)",
+    "pushNotificationsDesc": "Receive notifications even when browser is closed",
+    "ntfyServer": "NTFY Server",
+    "ntfyServerReadonly": "NTFY server configured by system (read-only)",
+    "personalTopic": "Personal Topic",
+    "topicPlaceholder": "Automatically generated topic",
+    "generateNewTopic": "Generate new topic",
+    "serverPlaceholder": "System configured server",
+    "requestPermission": "Request Permission",
+    "saveSettings": "Save Settings",
+    "permissionGranted": "Granted",
+    "permissionDenied": "Denied",
+    "permissionDefault": "Not requested"
+  },
+  "reminders": {
+    "mode": "Reminder mode",
+    "beforeDue": "Before due date",
+    "specificDateTime": "Specific date and time",
+    "timeBefore": "Time before due date",
+    "commonPresets": "Common presets",
+    "reminderDate": "Reminder date",
+    "reminderTime": "Reminder time",
+    "reminderLabel": "Reminder",
+    "units": {
+      "minutes": "Minutes",
+      "hours": "Hours",
+      "days": "Days",
+      "weeks": "Weeks"
     }
   },
   "dateTime": {

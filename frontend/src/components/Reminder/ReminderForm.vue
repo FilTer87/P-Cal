@@ -4,7 +4,7 @@
       <!-- Time Selection Mode -->
       <div>
         <label class="text-base font-medium text-gray-900 dark:text-gray-100">
-          Modalità promemoria
+          {{ t('reminders.mode') }}
         </label>
         <div class="mt-2 space-y-2">
           <label class="flex items-center">
@@ -15,7 +15,7 @@
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
             />
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Prima della scadenza
+              {{ t('reminders.beforeDue') }}
             </span>
           </label>
           <label class="flex items-center">
@@ -26,7 +26,7 @@
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
             />
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Data e ora specifica
+              {{ t('reminders.specificDateTime') }}
             </span>
           </label>
         </div>
@@ -36,7 +36,7 @@
       <div v-if="form.mode === 'offset'" class="space-y-4">
         <div>
           <label for="offset-value" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Tempo prima della scadenza
+            {{ t('reminders.timeBefore') }}
           </label>
           <div class="flex space-x-2">
             <input
@@ -54,21 +54,21 @@
               required
               class="block rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
-              <option value="minutes">Minuti</option>
-              <option value="hours">Ore</option>
-              <option value="days">Giorni</option>
-              <option value="weeks">Settimane</option>
+              <option value="minutes">{{ t('reminders.units.minutes') }}</option>
+              <option value="hours">{{ t('reminders.units.hours') }}</option>
+              <option value="days">{{ t('reminders.units.days') }}</option>
+              <option value="weeks">{{ t('reminders.units.weeks') }}</option>
             </select>
           </div>
           <p v-if="offsetReminderTime" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Promemoria: {{ offsetReminderTime }}
+            {{ t('reminders.reminderLabel') }}: {{ offsetReminderTime }}
           </p>
         </div>
 
         <!-- Common Presets -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Preimpostazioni comuni
+            {{ t('reminders.commonPresets') }}
           </label>
           <div class="grid grid-cols-3 gap-2">
             <button
@@ -89,7 +89,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label for="reminder-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Data promemoria
+              {{ t('reminders.reminderDate') }}
             </label>
             <input
               id="reminder-date"
@@ -103,7 +103,7 @@
           </div>
           <div>
             <label for="reminder-time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora promemoria
+              {{ t('reminders.reminderTime') }}
             </label>
             <input
               id="reminder-time"
@@ -162,7 +162,7 @@
           @click="$emit('cancel')"
           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
         >
-          Annulla
+          {{ t('common.cancel') }}
         </button>
         <button
           type="submit"
@@ -170,7 +170,7 @@
           class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           <LoadingSpinner v-if="isSubmitting" size="small" class="mr-2" />
-          {{ isEditing ? 'Aggiorna' : 'Crea' }} Promemoria
+          {{ isEditing ? t('common.edit') : t('common.save') }} {{ t('reminders.reminderLabel') }}
         </button>
       </div>
     </form>
@@ -179,11 +179,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { format, parseISO, subMinutes, addMinutes, isBefore } from 'date-fns'
 import { useReminders } from '../../composables/useReminders'
 import type { Reminder } from '../../types/task'
 import LoadingSpinner from '../Common/LoadingSpinner.vue'
 import { ExclamationCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 interface Props {
   taskId: number

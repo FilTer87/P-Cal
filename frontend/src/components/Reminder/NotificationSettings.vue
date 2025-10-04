@@ -5,10 +5,10 @@
       <div class="flex items-center justify-between mb-6">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Impostazioni Notifiche
+            {{ t('notifications.title') }}
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Configura come ricevere i promemoria per le tue attività
+            {{ t('notifications.subtitle') }}
           </p>
         </div>
         <BellIcon class="h-6 w-6 text-gray-400" />
@@ -19,10 +19,10 @@
         <div class="flex items-center justify-between">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Abilita Notifiche
+              {{ t('notifications.enableNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Attiva o disattiva tutte le notifiche per i promemoria
+              {{ t('notifications.enableNotificationsDesc') }}
             </p>
           </div>
           <button
@@ -47,10 +47,10 @@
         <div class="flex items-center justify-between mb-3">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Notifiche Browser
+              {{ t('notifications.browserNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Mostra notifiche nel browser quando è aperto
+              {{ t('notifications.browserNotificationsDesc') }}
             </p>
           </div>
           <div class="flex items-center space-x-2">
@@ -73,7 +73,7 @@
               class="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors duration-200"
             >
               <LoadingSpinner v-if="isRequestingPermissions" size="small" class="mr-1" />
-              Richiedi Permesso
+              {{ t('notifications.requestPermission') }}
             </button>
           </div>
         </div>
@@ -84,10 +84,10 @@
         <div class="flex items-center justify-between mb-3">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Notifiche Push (NTFY)
+              {{ t('notifications.pushNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Ricevi notifiche anche quando il browser è chiuso
+              {{ t('notifications.pushNotificationsDesc') }}
             </p>
           </div>
           <button
@@ -110,31 +110,31 @@
         <div v-if="settings.ntfyEnabled" class="space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <div>
             <label for="ntfy-server" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Server NTFY
+              {{ t('notifications.ntfyServer') }}
             </label>
             <input
               id="ntfy-server"
               v-model="settings.ntfyServer"
               type="url"
-              placeholder="Server configurato dal sistema"
+              :placeholder="t('notifications.serverPlaceholder')"
               readonly
               class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Server NTFY configurato dal sistema (sola lettura)
+              {{ t('notifications.ntfyServerReadonly') }}
             </p>
           </div>
 
           <div>
             <label for="ntfy-topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Topic Personale
+              {{ t('notifications.personalTopic') }}
             </label>
             <div class="flex space-x-2">
               <input
                 id="ntfy-topic"
                 v-model="settings.ntfyTopic"
                 type="text"
-                placeholder="Topic generato automaticamente"
+                :placeholder="t('notifications.topicPlaceholder')"
                 class="flex-1 block rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
                 readonly
               />
@@ -142,7 +142,7 @@
                 @click="generateNewTopic"
                 :disabled="isUpdatingTopic || !notificationConfig"
                 class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Genera nuovo topic"
+                :title="t('notifications.generateNewTopic')"
               >
                 <LoadingSpinner v-if="isUpdatingTopic" size="small" class="h-4 w-4" />
                 <ArrowPathIcon v-else class="h-4 w-4" />
@@ -230,7 +230,7 @@
           class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           <LoadingSpinner v-if="isSaving" size="small" class="mr-2" />
-          Salva Impostazioni
+          {{ t('notifications.saveSettings') }}
         </button>
       </div>
     </div>
@@ -239,6 +239,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '../../composables/useAuth'
 import { useCustomToast } from '../../composables/useCustomToast'
 import { useNotificationPermissions } from '../../composables/useNotificationPermissions'
@@ -248,6 +249,9 @@ import {
   QrCodeIcon,
   ArrowPathIcon
 } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 interface NotificationSettings {
   enabled: boolean
@@ -391,10 +395,10 @@ const generateNewTopic = async () => {
 
 const getBrowserPermissionLabel = (permission: NotificationPermission): string => {
   switch (permission) {
-    case 'granted': return 'Autorizzato'
-    case 'denied': return 'Negato'
-    case 'default': return 'Non richiesto'
-    default: return 'Sconosciuto'
+    case 'granted': return t('notifications.permissionGranted')
+    case 'denied': return t('notifications.permissionDenied')
+    case 'default': return t('notifications.permissionDefault')
+    default: return t('notifications.permissionDefault')
   }
 }
 

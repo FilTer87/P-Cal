@@ -12,7 +12,12 @@
     "next": "Avanti",
     "previous": "Precedente",
     "yes": "Sì",
-    "no": "No"
+    "no": "No",
+    "processing": "Elaborazione...",
+    "showDetails": "Mostra dettagli",
+    "confirmProceed": "Confermo di voler procedere",
+    "closeModal": "Chiudi",
+    "closeNotification": "Chiudi notifica"
   },
   "auth": {
     "username": "Nome utente",
@@ -395,6 +400,43 @@
       "noTime": "Nessuna ora",
       "showMoreActivities": "Mostra altre {count} attività",
       "deletedActivity": "Attività eliminata"
+    }
+  },
+  "notifications": {
+    "title": "Impostazioni Notifiche",
+    "subtitle": "Configura come ricevere i promemoria per le tue attività",
+    "enableNotifications": "Abilita Notifiche",
+    "enableNotificationsDesc": "Attiva o disattiva tutte le notifiche per i promemoria",
+    "browserNotifications": "Notifiche Browser",
+    "browserNotificationsDesc": "Mostra notifiche nel browser quando è aperto",
+    "pushNotifications": "Notifiche Push (NTFY)",
+    "pushNotificationsDesc": "Ricevi notifiche anche quando il browser è chiuso",
+    "ntfyServer": "Server NTFY",
+    "ntfyServerReadonly": "Server NTFY configurato dal sistema (sola lettura)",
+    "personalTopic": "Topic Personale",
+    "topicPlaceholder": "Topic generato automaticamente",
+    "generateNewTopic": "Genera nuovo topic",
+    "serverPlaceholder": "Server configurato dal sistema",
+    "requestPermission": "Richiedi Permesso",
+    "saveSettings": "Salva Impostazioni",
+    "permissionGranted": "Concesso",
+    "permissionDenied": "Negato",
+    "permissionDefault": "Non richiesto"
+  },
+  "reminders": {
+    "mode": "Modalità promemoria",
+    "beforeDue": "Prima della scadenza",
+    "specificDateTime": "Data e ora specifica",
+    "timeBefore": "Tempo prima della scadenza",
+    "commonPresets": "Preimpostazioni comuni",
+    "reminderDate": "Data promemoria",
+    "reminderTime": "Ora promemoria",
+    "reminderLabel": "Promemoria",
+    "units": {
+      "minutes": "Minuti",
+      "hours": "Ore",
+      "days": "Giorni",
+      "weeks": "Settimane"
     }
   },
   "dateTime": {
