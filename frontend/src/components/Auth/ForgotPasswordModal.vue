@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" title="Password Dimenticata" size="md">
+  <Modal v-model="isOpen" :title="$t('auth.forgotPasswordTitle')" size="md">
     <div class="space-y-4">
       <!-- Info Message -->
       <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
@@ -9,11 +9,11 @@
           </svg>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-              Recupero Password
+              {{ $t('auth.forgotPasswordTitle') }}
             </h3>
             <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
               <p>
-                Inserisci il tuo indirizzo email e ti invieremo le istruzioni per reimpostare la password.
+                {{ $t('auth.forgotPasswordDescription') }}
               </p>
             </div>
           </div>
@@ -29,7 +29,7 @@
           <CheckCircleIcon class="h-5 w-5 text-green-400" />
           <div class="ml-3">
             <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
-              Email inviata!
+              {{ $t('auth.emailSentTitle') }}
             </h3>
             <div class="mt-2 text-sm text-green-700 dark:text-green-300">
               <p>{{ successMessage }}</p>
@@ -41,7 +41,7 @@
       <!-- Email Input -->
       <div v-if="!isSuccess">
         <label for="reset-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Indirizzo Email *
+          {{ $t('auth.email') }} <span class="text-red-500">*</span>
         </label>
         <input
           id="reset-email"
@@ -50,7 +50,7 @@
           autocomplete="email"
           autofocus
           :disabled="isLoading"
-          placeholder="inserisci@tuaemail.com"
+          :placeholder="$t('auth.emailPlaceholder')"
           class="input w-full"
           :class="{ 'input-error': errors.email }"
           @input="validateField('email')"
@@ -67,7 +67,7 @@
           <ExclamationTriangleIcon class="h-5 w-5 text-red-400" />
           <div class="ml-3">
             <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-              Errore
+              {{ $t('auth.errorTitle') }}
             </h3>
             <div class="mt-2 text-sm text-red-700 dark:text-red-300">
               <p>{{ generalError }}</p>
@@ -84,7 +84,7 @@
           :disabled="isLoading"
           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
-          {{ isSuccess ? 'Chiudi' : 'Annulla' }}
+          {{ isSuccess ? $t('common.close') : $t('common.cancel') }}
         </button>
 
         <button
@@ -95,7 +95,7 @@
           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
           <div v-if="isLoading" class="loading-spinner mr-2"></div>
-          {{ isLoading ? 'Invio in corso...' : 'Invia Email' }}
+          {{ isLoading ? $t('auth.sending') : $t('auth.sendEmail') }}
         </button>
       </div>
     </div>
@@ -104,6 +104,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/Common/Modal.vue'
 import { authApi } from '@/services/authApi'
@@ -121,6 +122,9 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+// Composables
+const { t } = useI18n()
 
 // Form state
 const form = ref<ForgotPasswordFormData>({
@@ -186,11 +190,11 @@ const submitForm = async () => {
       successMessage.value = response.message
       emit('success')
     } else {
-      generalError.value = response.message || 'Errore durante l\'invio dell\'email'
+      generalError.value = response.message || t('auth.forgotPasswordError')
     }
   } catch (error: any) {
     console.error('Forgot password error:', error)
-    generalError.value = error.response?.data?.message || error.message || 'Errore durante l\'invio dell\'email'
+    generalError.value = error.response?.data?.message || error.message || t('auth.forgotPasswordError')
   } finally {
     isLoading.value = false
   }
