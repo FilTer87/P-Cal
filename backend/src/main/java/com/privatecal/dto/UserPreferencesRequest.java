@@ -21,6 +21,7 @@ public class UserPreferencesRequest {
     @Pattern(regexp = "^(light|dark|system)$", message = "Theme must be 'light', 'dark', or 'system'")
     private String theme;
 
+    @Pattern(regexp = "^[a-z]{2}-[A-Z]{2}$", message = "Language must be in BCP 47 format (e.g., it-IT, en-US)")
     private String language;
 
     private String timezone;

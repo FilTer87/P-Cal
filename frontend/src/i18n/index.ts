@@ -10,8 +10,8 @@ export type MessageSchema = typeof itIT
 export const AVAILABLE_LOCALES = ['it-IT', 'en-US'] as const
 export type Locale = typeof AVAILABLE_LOCALES[number]
 
-// Default locale
-export const DEFAULT_LOCALE: Locale = 'it-IT'
+// Default locale (fallback when browser locale is not supported)
+export const DEFAULT_LOCALE: Locale = 'en-US'
 
 // Detect browser locale
 export function getBrowserLocale(): Locale {
@@ -33,7 +33,7 @@ export function getBrowserLocale(): Locale {
 export const i18n: I18n = createI18n({
   legacy: false, // Use Composition API (no eval, CSP-safe)
   locale: DEFAULT_LOCALE,
-  fallbackLocale: DEFAULT_LOCALE,
+  fallbackLocale: 'en-US',
   globalInjection: true,
   messages: {
     'it-IT': itIT,
