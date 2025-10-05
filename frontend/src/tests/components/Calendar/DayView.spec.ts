@@ -92,7 +92,7 @@ describe('DayView.vue', () => {
       })
 
       expect(wrapper.text()).toContain('Future')
-      expect(wrapper.text()).toContain('Attività completate (1)')
+      expect(wrapper.text()).toContain('1 Attività completata')
     })
 
     it('should show separator when past tasks exist', () => {
@@ -109,7 +109,7 @@ describe('DayView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate (1)')
+      expect(wrapper.text()).toContain('1 Attività completata')
       const separator = wrapper.find('.flex.items-center.my-4')
       expect(separator.exists()).toBe(true)
     })
@@ -130,7 +130,7 @@ describe('DayView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate (3)')
+      expect(wrapper.text()).toContain('3 Attività completate')
     })
   })
 
@@ -384,7 +384,7 @@ describe('DayView.vue', () => {
       })
 
       // Should show past tasks separator but NOT show empty state
-      expect(wrapper.text()).toContain('Attività completate (2)')
+      expect(wrapper.text()).toContain('2 Attività completate')
       // Empty state should NOT be shown when there are past tasks
       expect(wrapper.text()).not.toContain('Nessuna attività programmata')
     })
@@ -405,7 +405,7 @@ describe('DayView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate (2)')
+      expect(wrapper.text()).toContain('2 Attività completate')
       expect(wrapper.text()).not.toContain('Nessuna attività programmata')
     })
   })

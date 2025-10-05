@@ -41,7 +41,7 @@
           @click.stop="handleMoreClick(day.date)"
           class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1 hover:underline transition-colors"
         >
-          {{ t('calendar.moreActivities', { count: day.tasks.length - maxVisibleTasks }) }}
+          {{ t('calendar.moreActivities', day.tasks.length - maxVisibleTasks) }}
         </button>
       </div>
     </div>

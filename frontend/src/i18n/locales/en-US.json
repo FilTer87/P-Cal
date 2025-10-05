@@ -352,7 +352,7 @@
     "locationLabel": "Location",
     "colorLabel": "Color",
     "statusLabel": "Status",
-    "remindersCount": "Reminders ({count})",
+    "remindersCount": "{count} Reminder | {count} Reminders",
     "reminderSent": "Sent",
     "reminderPending": "Pending",
     "created": "Created",
@@ -401,7 +401,7 @@
     "noActivities": "No activities in this period",
     "noActivitiesToday": "No activities scheduled for today",
     "createFirstActivity": "Create the first activity",
-    "completedActivities": "Completed activities ({count})",
+    "completedActivities": "{count} Completed activity | {count} Completed activities",
     "completedActivitiesShort": "Completed activities",
     "moreActivities": "+{count} more",
     "agendaDescription": "View activities for the next {days} days",
@@ -431,7 +431,7 @@
       "newActivity": "New Activity",
       "newActivityShortcut": "New activity (Ctrl + N)",
       "noTime": "No time",
-      "showMoreActivities": "Show {count} more activities",
+      "showMoreActivities": "Show {count} more activity | Show {count} more activities",
       "deletedActivity": "Deleted activity"
     }
   },
@@ -532,8 +532,8 @@
       "reminderSet": "Reminder set for {time}",
       "reminderUpdated": "Reminder updated successfully!",
       "reminderDeleted": "Reminder deleted successfully!",
-      "remindersCreated": "{count} reminders created successfully!",
-      "remindersDeleted": "{count} reminders deleted successfully!",
+      "remindersCreated": "{count} reminder created successfully! | {count} reminders created successfully!",
+      "remindersDeleted": "{count} reminder deleted successfully! | {count} reminders deleted successfully!",
       "reminderSnoozed": "Reminder snoozed for {minutes} minutes",
       "errors": {
         "loadReminders": "Error loading reminders",

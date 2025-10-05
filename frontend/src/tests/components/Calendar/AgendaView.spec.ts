@@ -132,7 +132,7 @@ describe('AgendaView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate')
+      expect(wrapper.text()).toContain('Attività completata')
     })
 
     it('should display past task count for today', () => {
@@ -151,7 +151,7 @@ describe('AgendaView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate (2)')
+      expect(wrapper.text()).toContain('2 Attività completate')
     })
 
     it('should not show separator for today with only current tasks', () => {
@@ -399,7 +399,7 @@ describe('AgendaView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('Attività completate (1)')
+      expect(wrapper.text()).toContain('1 Attività completata')
     })
 
     it('should handle date far in the past', () => {

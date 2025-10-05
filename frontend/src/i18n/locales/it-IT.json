@@ -352,7 +352,7 @@
     "locationLabel": "Luogo",
     "colorLabel": "Colore",
     "statusLabel": "Stato",
-    "remindersCount": "Promemoria ({count})",
+    "remindersCount": "{count} Promemoria | {count} Promemoria",
     "reminderSent": "Inviato",
     "reminderPending": "In attesa",
     "created": "Creata",
@@ -401,9 +401,9 @@
     "noActivities": "Nessuna attività in questo periodo",
     "noActivitiesToday": "Nessuna attività programmata per oggi",
     "createFirstActivity": "Crea la prima attività",
-    "completedActivities": "Attività completate ({count})",
+    "completedActivities": "{count} Attività completata | {count} Attività completate",
     "completedActivitiesShort": "Attività completate",
-    "moreActivities": "+{count} altro/i",
+    "moreActivities": "+{count} altra | +{count} altre",
     "agendaDescription": "Visualizza le attività dei prossimi {days} giorni",
     "today": "Oggi",
     "navigation": {
@@ -431,7 +431,7 @@
       "newActivity": "Nuova Attività",
       "newActivityShortcut": "Nuova attività (Ctrl + N)",
       "noTime": "Nessuna ora",
-      "showMoreActivities": "Mostra altre {count} attività",
+      "showMoreActivities": "Mostra {count} altra attività | Mostra {count} altre attività",
       "deletedActivity": "Attività eliminata"
     }
   },
@@ -532,8 +532,8 @@
       "reminderSet": "Promemoria impostato per {time}",
       "reminderUpdated": "Promemoria aggiornato con successo!",
       "reminderDeleted": "Promemoria eliminato con successo!",
-      "remindersCreated": "{count} promemoria creati con successo!",
-      "remindersDeleted": "{count} promemoria eliminati con successo!",
+      "remindersCreated": "{count} promemoria creato con successo! | {count} promemoria creati con successo!",
+      "remindersDeleted": "{count} promemoria eliminato con successo! | {count} promemoria eliminati con successo!",
       "reminderSnoozed": "Promemoria posticipato di {minutes} minuti",
       "errors": {
         "loadReminders": "Errore nel caricamento dei promemoria",

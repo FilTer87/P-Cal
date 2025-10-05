@@ -143,7 +143,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 19H6a2 2 0 01-2-2V7a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z" />
             </svg>
             <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              {{ t('tasks.remindersCount', { count: task.reminders.length }) }}
+              {{ t('tasks.remindersCount', task.reminders.length) }}
             </h4>
           </div>
           <div class="space-y-2">

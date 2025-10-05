@@ -47,7 +47,7 @@
           >
             <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
             <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
-              {{ t('calendar.completedActivities', { count: getTodayPastTasks(dayTasks).length }) }}
+              {{ t('calendar.completedActivities', getTodayPastTasks(dayTasks).length) }}
               <svg
                 class="h-4 w-4 transition-transform duration-200"
                 :class="{ 'rotate-180': showPastTasks }"

@@ -138,7 +138,7 @@ describe('MonthView.vue', () => {
         }
       })
 
-      expect(wrapper.text()).toContain('+2 altro/i')
+      expect(wrapper.text()).toContain('+2 altre')
     })
 
     it('should not show "altro/i" button when tasks <= maxVisibleTasks', () => {
@@ -370,7 +370,7 @@ describe('MonthView.vue', () => {
 
       const taskElements = wrapper.findAll('.calendar-day .space-y-1 > div:not(button)')
       expect(taskElements.length).toBe(5)
-      expect(wrapper.text()).toContain('+5 altro/i')
+      expect(wrapper.text()).toContain('+5 altre')
     })
 
     it('should default maxVisibleTasks to 3', () => {
@@ -383,7 +383,7 @@ describe('MonthView.vue', () => {
 
       const taskElements = wrapper.findAll('.calendar-day .space-y-1 > div:not(button)')
       expect(taskElements.length).toBe(3)
-      expect(wrapper.text()).toContain('+2 altro/i')
+      expect(wrapper.text()).toContain('+2 altre')
     })
 
     it('should handle empty calendarDays', () => {
