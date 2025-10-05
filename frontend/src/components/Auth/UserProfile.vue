@@ -151,6 +151,7 @@
               <ProfilePreferences
                 :is-loading="isLoading"
                 :theme="preferencesForm.theme"
+                :language="preferencesForm.language"
                 :time-format="preferencesForm.timeFormat"
                 :calendar-view="preferencesForm.calendarView"
                 :timezone="preferencesForm.timezone"
@@ -158,6 +159,7 @@
                 :email-notifications="preferencesForm.emailNotifications"
                 :reminder-notifications="preferencesForm.reminderNotifications"
                 @update-theme="updateTheme"
+                @update-language="updateLanguage"
                 @update-time-format="updateTimeFormat"
                 @update-calendar-view="updateCalendarView"
                 @update-timezone="updateTimezone"
@@ -214,6 +216,7 @@
           <ProfilePreferences
             :is-loading="isLoading"
             :theme="preferencesForm.theme"
+            :language="preferencesForm.language"
             :time-format="preferencesForm.timeFormat"
             :calendar-view="preferencesForm.calendarView"
             :timezone="preferencesForm.timezone"
@@ -221,6 +224,7 @@
             :email-notifications="preferencesForm.emailNotifications"
             :reminder-notifications="preferencesForm.reminderNotifications"
             @update-theme="updateTheme"
+            @update-language="updateLanguage"
             @update-time-format="updateTimeFormat"
             @update-calendar-view="updateCalendarView"
             @update-timezone="updateTimezone"
@@ -264,6 +268,7 @@ import { useCustomToast } from '@/composables/useCustomToast'
 import { useTheme } from '@/composables/useTheme'
 import { useSettingsStore } from '@/stores/settings'
 import { authApi } from '@/services/authApi'
+import { setLocale, type Locale } from '@/i18n'
 import TwoFactorSetupModal from '@/components/Auth/TwoFactorSetupModal.vue'
 import TwoFactorDisableModal from '@/components/Auth/TwoFactorDisableModal.vue'
 import ProfileDangerZone from '@/components/Auth/ProfileDangerZone.vue'
@@ -396,6 +401,9 @@ const savePreference = async (updates: Partial<typeof preferencesForm>) => {
       setThemeMode(updates.theme as 'light' | 'dark' | 'system')
       settingsStore.updateTheme(updates.theme)
     }
+    if (updates.language) {
+      setLocale(updates.language as Locale)
+    }
     if (updates.timeFormat) {
       settingsStore.updateTimeFormat(updates.timeFormat)
     }
@@ -418,6 +426,11 @@ const savePreference = async (updates: Partial<typeof preferencesForm>) => {
 const updateTheme = (theme: 'light' | 'dark' | 'system') => {
   preferencesForm.theme = theme
   savePreference({ theme })
+}
+
+const updateLanguage = (language: string) => {
+  preferencesForm.language = language
+  savePreference({ language })
 }
 
 const updateTimeFormat = (timeFormat: '12h' | '24h') => {
@@ -530,6 +543,7 @@ const loadPreferences = async () => {
   try {
     const preferences = await authApi.getPreferences()
     preferencesForm.theme = preferences.theme || 'system'
+    preferencesForm.language = preferences.language || null
     preferencesForm.timezone = preferences.timezone || 'Europe/Rome'
     preferencesForm.timeFormat = preferences.timeFormat || '24h'
     preferencesForm.calendarView = preferences.calendarView || 'week'
@@ -542,6 +556,11 @@ const loadPreferences = async () => {
     settingsStore.updateTimeFormat(preferencesForm.timeFormat)
     settingsStore.updateCalendarView(preferencesForm.calendarView)
     settingsStore.updateWeekStartDay(preferencesForm.weekStartDay)
+
+    // If user has a locale preference, use it. Otherwise keep browser/localStorage locale
+    if (preferencesForm.language) {
+      setLocale(preferencesForm.language as Locale)
+    }
   } catch (error) {
     console.error('Failed to load preferences:', error)
     // Load defaults from settings store

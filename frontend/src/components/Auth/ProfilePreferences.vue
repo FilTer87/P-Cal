@@ -41,6 +41,27 @@
         {{ t('profile.appPreferences') }}
       </h3>
       <div class="space-y-6">
+        <!-- Language -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('profile.languageLabel') }}
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {{ t('profile.languageDescription') }}
+            </p>
+          </div>
+          <select
+            v-model="preferences.language"
+            @change="handleLanguageChange"
+            :disabled="isLoading"
+            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="it-IT">🇮🇹 {{ t('profile.languageItalian') }}</option>
+            <option value="en-US">🇺🇸 {{ t('profile.languageEnglish') }}</option>
+          </select>
+        </div>
+
         <!-- Time Format -->
         <div class="flex items-center justify-between">
           <div>
@@ -191,6 +212,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { i18n } from '@/i18n'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
 import * as ct from 'countries-and-timezones'
@@ -289,6 +311,7 @@ const timezoneGroups = computed(() => {
 interface Props {
   isLoading?: boolean
   theme: 'light' | 'dark' | 'system'
+  language?: string | null
   timeFormat: '12h' | '24h'
   calendarView: 'month' | 'week' | 'day' | 'agenda'
   timezone: string
@@ -300,6 +323,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   theme: 'system',
+  language: null,
   timeFormat: '24h',
   calendarView: 'week',
   timezone: 'Europe/Rome',
@@ -311,6 +335,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   updateTheme: [theme: 'light' | 'dark' | 'system']
+  updateLanguage: [language: string]
   updateTimeFormat: [timeFormat: '12h' | '24h']
   updateCalendarView: [calendarView: 'month' | 'week' | 'day' | 'agenda']
   updateTimezone: [timezone: string]
@@ -322,6 +347,7 @@ const emit = defineEmits<{
 // Local preferences (reactive copy of props for v-model binding)
 const preferences = reactive({
   theme: props.theme,
+  language: props.language || i18n.global.locale.value,
   timeFormat: props.timeFormat,
   calendarView: props.calendarView,
   timezone: props.timezone,
@@ -352,6 +378,10 @@ const themeOptions = computed(() => [
 const handleThemeChange = (theme: string) => {
   preferences.theme = theme as 'light' | 'dark' | 'system'
   emit('updateTheme', preferences.theme)
+}
+
+const handleLanguageChange = () => {
+  emit('updateLanguage', preferences.language)
 }
 
 const handleTimeFormatChange = () => {

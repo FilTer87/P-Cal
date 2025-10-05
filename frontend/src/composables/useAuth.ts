@@ -45,6 +45,8 @@ export function useAuth() {
     try {
       const success = await authStore.login(credentials)
       if (success) {
+        // Check if user needs locale auto-detection (first login or locale not set)
+        await autoDetectAndSaveLocale()
         await redirectAfterLogin()
       }
       return success
@@ -65,6 +67,8 @@ export function useAuth() {
     try {
       const success = await authStore.register(credentials)
       if (success) {
+        // Auto-detect and save locale for new users
+        await autoDetectAndSaveLocale()
         await redirectAfterLogin()
       }
       return success
@@ -112,6 +116,33 @@ export function useAuth() {
     } catch (error) {
       console.error('Token verification failed:', error)
       return false
+    }
+  }
+
+  // Locale auto-detection helper
+  const autoDetectAndSaveLocale = async () => {
+    try {
+      // Get user preferences to check if locale is set
+      const { authApi } = await import('../services/authApi')
+      const preferences = await authApi.getPreferences()
+
+      // If locale is not set (NULL in DB), auto-detect and save it
+      if (!preferences.language) {
+        const { getBrowserLocale } = await import('../i18n')
+        const browserLocale = getBrowserLocale()
+
+        console.log('🌍 Auto-detecting locale for first-time user:', browserLocale)
+
+        // Save the detected locale to user preferences
+        await authApi.updatePreferences({ language: browserLocale })
+
+        // Update the app locale
+        const { setLocale } = await import('../i18n')
+        setLocale(browserLocale)
+      }
+    } catch (error) {
+      console.error('Failed to auto-detect and save locale:', error)
+      // Non-blocking error, continue with login flow
     }
   }
 
