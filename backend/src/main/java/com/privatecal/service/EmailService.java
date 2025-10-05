@@ -28,6 +28,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final EmailConfig emailConfig;
+    private final EmailTemplateBuilder emailTemplateBuilder;
 
     /**
      * Send a simple HTML email
@@ -101,7 +102,7 @@ public class EmailService {
     }
 
     /**
-     * Send task reminder email
+     * Send task reminder email (multilingual)
      */
     public boolean sendTaskReminderEmail(User user, String taskTitle, String taskDescription,
                                        String taskStartTime, String taskLocation) {
@@ -110,20 +111,16 @@ public class EmailService {
             return false;
         }
 
-        String subject = "📅 Task Reminder: " + taskTitle;
-        String htmlContent = createTaskReminderEmailTemplate(
-            user.getFullName(),
-            taskTitle,
-            taskDescription,
-            taskStartTime,
-            taskLocation
+        String subject = emailTemplateBuilder.getTaskReminderSubject(user, taskTitle);
+        String htmlContent = emailTemplateBuilder.buildTaskReminderEmail(
+            user, taskTitle, taskDescription, taskStartTime, taskLocation
         );
 
         return sendEmail(user.getEmail(), user.getFullName(), subject, htmlContent);
     }
 
     /**
-     * Send welcome email to new users
+     * Send welcome email to new users (multilingual)
      */
     public boolean sendWelcomeEmail(User user) {
         if (user == null || !StringUtils.hasText(user.getEmail())) {
@@ -131,18 +128,25 @@ public class EmailService {
             return false;
         }
 
-        String subject = "Welcome to P-Cal! 🎉";
-        String htmlContent = createWelcomeEmailTemplate(user.getFullName());
+        String subject = emailTemplateBuilder.getWelcomeSubject(user);
+        String htmlContent = emailTemplateBuilder.buildWelcomeEmail(user);
 
         return sendEmail(user.getEmail(), user.getFullName(), subject, htmlContent);
     }
 
     /**
-     * Send test email
+     * Send test email (multilingual)
      */
     public boolean sendTestEmail(String to, String message) {
-        String subject = "P-Cal Test Email ✅";
-        String htmlContent = createTestEmailTemplate(message);
+        return sendTestEmail(to, message, "en-US");
+    }
+
+    /**
+     * Send test email with specific locale (multilingual)
+     */
+    public boolean sendTestEmail(String to, String message, String userLocale) {
+        String subject = emailTemplateBuilder.getTestEmailSubject(userLocale);
+        String htmlContent = emailTemplateBuilder.buildTestEmail(message, userLocale);
 
         return sendEmail(to, null, subject, htmlContent);
     }

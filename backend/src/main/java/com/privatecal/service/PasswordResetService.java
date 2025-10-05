@@ -179,10 +179,10 @@ public class PasswordResetService {
     private boolean sendPasswordResetEmail(User user, String token) {
         try {
             String resetUrl = buildPasswordResetUrl(token);
-            String subject = "P-Cal - Reset Password";
+            String subject = templateBuilder.getPasswordResetSubject(user);
             String htmlBody = templateBuilder.buildPasswordResetEmail(user, resetUrl);
 
-            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+            boolean emailSent = emailService.sendEmail(user.getEmail(), user.getFullName(), subject, htmlBody);
             if (emailSent) {
                 logger.info("Password reset email sent to: {}", user.getEmail());
             } else {
@@ -201,10 +201,10 @@ public class PasswordResetService {
      */
     private void sendPasswordResetConfirmationEmail(User user) {
         try {
-            String subject = "P-Cal - Password Reset Confermato";
+            String subject = templateBuilder.getPasswordResetConfirmationSubject(user);
             String htmlBody = templateBuilder.buildPasswordResetConfirmationEmail(user);
 
-            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+            boolean emailSent = emailService.sendEmail(user.getEmail(), user.getFullName(), subject, htmlBody);
             if (!emailSent) {
                 logger.warn("Failed to send password reset confirmation email to: {}", user.getEmail());
                 // Don't throw exception for confirmation email as password reset was successful
