@@ -117,6 +117,7 @@ import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
+import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
 
 // i18n
@@ -155,10 +156,11 @@ const settings = useSettingsStore()
 const getWeekDays = calendar.getWeekDays
 
 const getWeekDayName = (date: Date, short = false) => {
+  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
   if (short) {
-    return date.toLocaleDateString('it-IT', { weekday: 'short' })
+    return date.toLocaleDateString(locale, { weekday: 'short' })
   }
-  return date.toLocaleDateString('it-IT', { weekday: 'long' })
+  return date.toLocaleDateString(locale, { weekday: 'long' })
 }
 
 // Task filtering and splitting logic

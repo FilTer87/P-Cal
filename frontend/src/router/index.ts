@@ -1,15 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { i18n } from '../i18n'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
     component: () => import('../views/LoginView.vue'),
-    meta: { 
+    meta: {
       requiresGuest: true,
-      title: 'Accesso - P-Cal'
+      titleKey: 'router.titles.login'
     }
   },
   {
@@ -18,7 +19,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/RegisterView.vue'),
     meta: {
       requiresGuest: true,
-      title: 'Registrazione - P-Cal'
+      titleKey: 'router.titles.register'
     }
   },
   {
@@ -27,7 +28,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/ResetPasswordView.vue'),
     meta: {
       requiresGuest: true,
-      title: 'Reimposta Password - P-Cal'
+      titleKey: 'router.titles.resetPassword'
     }
   },
   {
@@ -36,16 +37,16 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/EmailVerificationView.vue'),
     meta: {
       requiresGuest: true,
-      title: 'Verifica Email - P-Cal'
+      titleKey: 'router.titles.verifyEmail'
     }
   },
   {
     path: '/',
     name: 'Calendar',
     component: () => import('../views/CalendarView.vue'),
-    meta: { 
+    meta: {
       requiresAuth: true,
-      title: 'Calendario - P-Cal'
+      titleKey: 'router.titles.calendar'
     }
   },
   {
@@ -56,9 +57,9 @@ const routes: Array<RouteRecordRaw> = [
     path: '/profile',
     name: 'Profile',
     component: () => import('../components/Auth/UserProfile.vue'),
-    meta: { 
+    meta: {
       requiresAuth: true,
-      title: 'Profilo Utente - P-Cal'
+      titleKey: 'router.titles.profile'
     }
   },
   {
@@ -81,10 +82,10 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
-  // Set page title
-  if (to.meta.title) {
-    document.title = to.meta.title as string
+
+  // Set page title from i18n
+  if (to.meta.titleKey) {
+    document.title = i18n.global.t(to.meta.titleKey as string)
   }
   
   // Initialize auth state if not already done

@@ -31,8 +31,8 @@
                 class="px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded transition-colors" :class="{
                   'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm': viewMode === view.value,
                   'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white': viewMode !== view.value
-                }" :title="`${view.label} (${view.shortcut})`">
-                {{ view.label }}
+                }" :title="`${t(view.labelKey)} (${view.shortcut})`">
+                {{ t(view.labelKey) }}
               </button>
             </div>
 
@@ -41,7 +41,7 @@
               <select :value="viewMode" @change="setViewMode($event.target.value)"
                 class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 text-sm rounded-md border-0 focus:ring-2 focus:ring-blue-500">
                 <option v-for="view in CALENDAR_VIEWS" :key="view.value" :value="view.value">
-                  {{ view.label }}
+                  {{ t(view.labelKey) }}
                 </option>
               </select>
             </div>

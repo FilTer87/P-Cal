@@ -1,27 +1,28 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
   startOfDay,
   endOfDay,
-  addMonths, 
-  addWeeks, 
-  addDays, 
+  addMonths,
+  addWeeks,
+  addDays,
   isSameDay,
   isSameMonth,
   isToday,
   isWeekend,
   format
 } from 'date-fns'
-import { it } from 'date-fns/locale'
-import type { 
-  CalendarView, 
-  CalendarState, 
-  CalendarDate, 
-  CalendarWeek, 
+import { it, enUS } from 'date-fns/locale'
+import { i18n } from '../i18n'
+import type {
+  CalendarView,
+  CalendarState,
+  CalendarDate,
+  CalendarWeek,
   CalendarMonth,
   DateRange
 } from '../types/calendar'
@@ -45,9 +46,10 @@ export const useCalendarStore = defineStore('calendar', () => {
   // Getters
   const currentYear = computed(() => currentDate.value.getFullYear())
   const currentMonth = computed(() => currentDate.value.getMonth())
-  const currentMonthName = computed(() => 
-    format(currentDate.value, 'MMMM yyyy', { locale: it })
-  )
+  const currentMonthName = computed(() => {
+    const locale = i18n.global.locale.value === 'en-US' ? enUS : it
+    return format(currentDate.value, 'MMMM yyyy', { locale })
+  })
 
   const isCurrentMonth = computed(() => 
     isSameMonth(currentDate.value, new Date())
@@ -261,18 +263,21 @@ export const useCalendarStore = defineStore('calendar', () => {
   })
 
   const formatDisplayDate = (date: Date): string => {
+    const locale = i18n.global.locale.value === 'en-US' ? enUS : it
+    const weekStartsOn = settingsStore.weekStartDay
+
     switch (viewMode.value) {
       case 'day':
-        return format(date, 'EEEE, d MMMM yyyy', { locale: it })
+        return format(date, 'EEEE, d MMMM yyyy', { locale })
       case 'week':
-        const weekStart = startOfWeek(date, { weekStartsOn: 1 })
-        const weekEnd = endOfWeek(date, { weekStartsOn: 1 })
-        return `${format(weekStart, 'd MMM', { locale: it })} - ${format(weekEnd, 'd MMM yyyy', { locale: it })}`
+        const weekStart = startOfWeek(date, { weekStartsOn })
+        const weekEnd = endOfWeek(date, { weekStartsOn })
+        return `${format(weekStart, 'd MMM', { locale })} - ${format(weekEnd, 'd MMM yyyy', { locale })}`
       case 'month':
       case 'agenda':
-        return format(date, 'MMMM yyyy', { locale: it })
+        return format(date, 'MMMM yyyy', { locale })
       default:
-        return format(date, 'd MMMM yyyy', { locale: it })
+        return format(date, 'd MMMM yyyy', { locale })
     }
   }
 

@@ -5,7 +5,6 @@ import type {
   UpdateTaskRequest, 
   TaskFilters,
   TaskStats,
-  TaskPriority
 } from '../types/task'
 import type { PaginatedResponse, PaginationParams } from '../types/api'
 import { API_ENDPOINTS } from '../types/api'

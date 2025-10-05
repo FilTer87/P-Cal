@@ -96,25 +96,18 @@
             :disabled="isLoading"
             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
           >
-            <optgroup label="Italia">
-              <option value="Europe/Rome">Roma (UTC+1)</option>
-            </optgroup>
-            <optgroup label="Europa">
-              <option value="Europe/London">Londra (UTC+0)</option>
-              <option value="Europe/Berlin">Berlino (UTC+1)</option>
-              <option value="Europe/Paris">Parigi (UTC+1)</option>
-              <option value="Europe/Madrid">Madrid (UTC+1)</option>
-              <option value="Europe/Amsterdam">Amsterdam (UTC+1)</option>
-            </optgroup>
-            <optgroup label="Americhe">
-              <option value="America/New_York">New York (UTC-5)</option>
-              <option value="America/Los_Angeles">Los Angeles (UTC-8)</option>
-              <option value="America/Chicago">Chicago (UTC-6)</option>
-            </optgroup>
-            <optgroup label="Asia">
-              <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
-              <option value="Asia/Shanghai">Shanghai (UTC+8)</option>
-              <option value="Asia/Dubai">Dubai (UTC+4)</option>
+            <optgroup
+              v-for="group in timezoneGroups"
+              :key="group.continent"
+              :label="group.label"
+            >
+              <option
+                v-for="zone in group.zones"
+                :key="zone.value"
+                :value="zone.value"
+              >
+                {{ zone.label }} ({{ zone.offset }})
+              </option>
             </optgroup>
           </select>
         </div>
@@ -200,9 +193,97 @@ import { reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
+import * as ct from 'countries-and-timezones'
 
 // Composables
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// Get timezone offset with DST information using countries-and-timezones library
+const getTimezoneOffset = (timezone: string): string => {
+  try {
+    const tzData = ct.getTimezone(timezone)
+
+    if (!tzData) {
+      return 'UTC'
+    }
+
+    const standardOffset = tzData.utcOffsetStr
+    const dstOffset = tzData.dstOffsetStr
+
+    // Check if timezone has DST (different standard and DST offsets)
+    if (standardOffset !== dstOffset) {
+      return `UTC${standardOffset}, DST: ${dstOffset}`
+    } else {
+      return `UTC${standardOffset}`
+    }
+  } catch (error) {
+    console.error('Error getting timezone offset:', error)
+    return 'UTC'
+  }
+}
+
+const formatTimezoneName = (timezone: string): string => {
+  // Extract city name from IANA timezone (e.g., "America/New_York" -> "New York")
+  const parts = timezone.split('/')
+  const city = parts[parts.length - 1].replace(/_/g, ' ')
+  return city
+}
+
+// Group timezones by continent with translated labels
+const timezoneGroups = computed(() => {
+  // Get all IANA timezones supported by the browser
+  const allTimezones = Intl.supportedValuesOf('timeZone')
+
+  // Translation mapping for continent names
+  const continentTranslations: Record<string, string> = {
+    'Africa': t('profile.timezones.continents.africa'),
+    'America': t('profile.timezones.continents.america'),
+    'Antarctica': t('profile.timezones.continents.antarctica'),
+    'Arctic': t('profile.timezones.continents.arctic'),
+    'Asia': t('profile.timezones.continents.asia'),
+    'Atlantic': t('profile.timezones.continents.atlantic'),
+    'Australia': t('profile.timezones.continents.australia'),
+    'Europe': t('profile.timezones.continents.europe'),
+    'Indian': t('profile.timezones.continents.indian'),
+    'Pacific': t('profile.timezones.continents.pacific')
+  }
+
+  // Group timezones by continent
+  const grouped: Record<string, Array<{ value: string, label: string, offset: string }>> = {}
+
+  allTimezones.forEach(tz => {
+    // Skip deprecated and special timezones
+    if (tz.startsWith('Etc/') || tz === 'Factory') return
+
+    const parts = tz.split('/')
+    if (parts.length < 2) return
+
+    const continent = parts[0]
+    if (!grouped[continent]) {
+      grouped[continent] = []
+    }
+
+    grouped[continent].push({
+      value: tz,
+      label: formatTimezoneName(tz),
+      offset: getTimezoneOffset(tz)
+    })
+  })
+
+  // Sort each group by label
+  Object.keys(grouped).forEach(continent => {
+    grouped[continent].sort((a, b) => a.label.localeCompare(b.label))
+  })
+
+  // Convert to array format for template
+  return Object.entries(grouped)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([continent, zones]) => ({
+      continent,
+      label: continentTranslations[continent] || continent,
+      zones
+    }))
+})
 
 // Props
 interface Props {

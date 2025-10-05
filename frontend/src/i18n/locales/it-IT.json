@@ -139,6 +139,20 @@
     "calendarViewDay": "Giorno",
     "calendarViewAgenda": "Agenda",
     "timezoneLabel": "Fuso Orario",
+    "timezones": {
+      "continents": {
+        "africa": "Africa",
+        "america": "America",
+        "antarctica": "Antartide",
+        "arctic": "Artico",
+        "asia": "Asia",
+        "atlantic": "Atlantico",
+        "australia": "Australia",
+        "europe": "Europa",
+        "indian": "Oceano Indiano",
+        "pacific": "Pacifico"
+      }
+    },
     "weekStartLabel": "Inizio Settimana",
     "weekStartMonday": "Lunedì",
     "weekStartSunday": "Domenica",
@@ -165,6 +179,25 @@
     "deleteAccountPasswordPlaceholder": "Inserisci la tua password",
     "profileUpdateSuccess": "Informazioni personali aggiornate con successo!",
     "profileUpdateError": "Errore durante l'aggiornamento del profilo",
+    "tabs": {
+      "personal": "Informazioni Personali",
+      "security": "Sicurezza",
+      "preferences": "Preferenze",
+      "danger": "Area Pericolo"
+    },
+    "messages": {
+      "personalInfoUpdated": "Informazioni personali aggiornate con successo!",
+      "profileUpdateError": "Errore durante l'aggiornamento del profilo",
+      "passwordChanged": "Password cambiata con successo!",
+      "currentPasswordWrong": "Password attuale non corretta",
+      "passwordChangeError": "Errore durante il cambio password",
+      "preferenceSaveError": "Errore durante il salvataggio della preferenza",
+      "dataExported": "Dati esportati con successo!",
+      "dataExportError": "Errore durante l'esportazione dei dati",
+      "accountDeleted": "Account eliminato con successo",
+      "passwordWrong": "Password non corretta",
+      "accountDeleteError": "Errore durante l'eliminazione dell'account"
+    },
     "passwordChangeSuccess": "Password cambiata con successo!",
     "passwordChangeError": "Errore durante il cambio password",
     "passwordIncorrect": "Password attuale non corretta",
@@ -415,8 +448,19 @@
     "ntfyServerReadonly": "Server NTFY configurato dal sistema (sola lettura)",
     "personalTopic": "Topic Personale",
     "topicPlaceholder": "Topic generato automaticamente",
+    "topicDescription": "Topic univoco per le tue notifiche (generato automaticamente)",
     "generateNewTopic": "Genera nuovo topic",
     "serverPlaceholder": "Server configurato dal sistema",
+    "configureNtfy": "Configura l'app NTFY",
+    "configureNtfyDesc": "Scannerizza il codice QR o aggiungi manualmente il topic",
+    "showQR": "Mostra QR",
+    "hideQR": "Nascondi QR",
+    "copyUrl": "Copia URL",
+    "copied": "Copiato!",
+    "testNotifications": "Test Notifiche",
+    "testBrowser": "Test Browser",
+    "testNtfy": "Test NTFY",
+    "reset": "Reset",
     "requestPermission": "Richiedi Permesso",
     "saveSettings": "Salva Impostazioni",
     "permissionGranted": "Concesso",
@@ -437,6 +481,142 @@
       "hours": "Ore",
       "days": "Giorni",
       "weeks": "Settimane"
+    }
+  },
+  "stores": {
+    "auth": {
+      "loginSuccess": "Accesso effettuato con successo!",
+      "loginError": "Errore durante l'accesso",
+      "registerSuccess": "Registrazione completata con successo!",
+      "registerError": "Errore durante la registrazione",
+      "logoutSuccess": "Disconnesso con successo!",
+      "profileUpdateSuccess": "Profilo aggiornato con successo!",
+      "profileUpdateError": "Errore durante l'aggiornamento del profilo"
+    },
+    "tasks": {
+      "loadError": "Errore nel caricamento delle attività"
+    },
+    "settings": {
+      "weekStart": {
+        "monday": "Lunedì",
+        "sunday": "Domenica",
+        "startsMonday": "La settimana inizia di lunedì",
+        "startsSunday": "La settimana inizia di domenica"
+      }
+    }
+  },
+  "composables": {
+    "useTasks": {
+      "taskCompleted": "Attività \"{title}\" completata!",
+      "taskCreated": "Attività \"{title}\" creata con successo!",
+      "taskUpdated": "Attività aggiornata con successo!",
+      "taskDeleted": "Attività eliminata con successo!",
+      "validation": {
+        "titleRequired": "Il titolo è obbligatorio",
+        "titleTooLong": "Il titolo non può superare i 255 caratteri",
+        "descriptionTooLong": "La descrizione non può superare i 1000 caratteri",
+        "startDateRequired": "La data di inizio è obbligatoria",
+        "startDateInvalid": "Data di inizio non valida",
+        "startTimeInvalid": "Ora di inizio non valida (formato HH:MM)",
+        "endDateRequired": "La data di fine è obbligatoria",
+        "endDateInvalid": "Data di fine non valida",
+        "endTimeInvalid": "Ora di fine non valida (formato HH:MM)",
+        "datesInvalid": "Date non valide",
+        "endBeforeStart": "La data/ora di fine deve essere successiva alla data/ora di inizio",
+        "colorInvalid": "Colore non valido (deve essere in formato #RRGGBB)",
+        "locationTooLong": "Il luogo non può superare i 200 caratteri",
+        "reminderInvalid": "Il tempo del promemoria deve essere positivo"
+      }
+    },
+    "useReminders": {
+      "reminderSet": "Promemoria impostato per {time}",
+      "reminderUpdated": "Promemoria aggiornato con successo!",
+      "reminderDeleted": "Promemoria eliminato con successo!",
+      "remindersCreated": "{count} promemoria creati con successo!",
+      "remindersDeleted": "{count} promemoria eliminati con successo!",
+      "reminderSnoozed": "Promemoria posticipato di {minutes} minuti",
+      "errors": {
+        "loadReminders": "Errore nel caricamento dei promemoria",
+        "loadTaskReminders": "Errore nel caricamento dei promemoria per l'attività",
+        "loadUpcomingReminders": "Errore nel caricamento dei promemoria imminenti",
+        "createReminder": "Errore nella creazione del promemoria",
+        "updateReminder": "Errore nell'aggiornamento del promemoria",
+        "deleteReminder": "Errore nell'eliminazione del promemoria",
+        "markReminderSent": "Errore nel segnare il promemoria come inviato",
+        "snoozeReminder": "Errore nel posticipare il promemoria",
+        "createMultiple": "Errore nella creazione dei promemoria",
+        "deleteMultiple": "Errore nell'eliminazione dei promemoria"
+      },
+      "presets": {
+        "15min": "15 minuti prima",
+        "30min": "30 minuti prima",
+        "1hour": "1 ora prima",
+        "2hours": "2 ore prima",
+        "1day": "1 giorno prima",
+        "1week": "1 settimana prima"
+      },
+      "timeFormat": {
+        "today": "Oggi alle {time}",
+        "overdue": "Scaduto",
+        "minutes": "{count} minuti",
+        "hour": "ora",
+        "hours": "ore",
+        "day": "giorno",
+        "days": "giorni"
+      }
+    },
+    "useNotificationPermissions": {
+      "errors": {
+        "notSupported": "Le notifiche non sono supportate da questo browser",
+        "requesting": "Richiesta permessi già in corso",
+        "permissionDenied": "Permesso negato dall'utente",
+        "requestError": "Errore nella richiesta permessi",
+        "notAuthorized": "Notifiche non autorizzate o non supportate",
+        "sendError": "Errore nell'invio della notifica"
+      },
+      "permissionLabels": {
+        "granted": "Autorizzato",
+        "denied": "Negato",
+        "default": "Non richiesto",
+        "unknown": "Sconosciuto"
+      },
+      "permissionDescriptions": {
+        "granted": "Le notifiche sono autorizzate e funzioneranno correttamente.",
+        "denied": "Le notifiche sono state negate. Puoi abilitarle nelle impostazioni del browser.",
+        "default": "Le notifiche non sono ancora state richieste. Clicca per autorizzarle.",
+        "unknown": "Stato delle notifiche sconosciuto."
+      },
+      "testNotification": {
+        "title": "Test Notifica P-Cal",
+        "body": "Questa è una notifica di test per verificare che tutto funzioni correttamente."
+      },
+      "guide": {
+        "chrome": {
+          "step1": "Clicca sull'icona del lucchetto nella barra degli indirizzi",
+          "step2": "Seleziona \"Notifiche\" e scegli \"Consenti\"",
+          "step3": "Ricarica la pagina per applicare le modifiche"
+        },
+        "firefox": {
+          "step1": "Clicca sull'icona dello scudo nella barra degli indirizzi",
+          "step2": "Seleziona \"Notifiche\" e scegli \"Consenti\"",
+          "step3": "Ricarica la pagina per applicare le modifiche"
+        },
+        "safari": {
+          "step1": "Vai in Safari > Preferenze > Siti web",
+          "step2": "Seleziona \"Notifiche\" nella barra laterale sinistra",
+          "step3": "Trova questo sito e scegli \"Consenti\""
+        },
+        "edge": {
+          "step1": "Clicca sull'icona del lucchetto nella barra degli indirizzi",
+          "step2": "Seleziona \"Notifiche\" e scegli \"Consenti\"",
+          "step3": "Ricarica la pagina per applicare le modifiche"
+        },
+        "default": {
+          "step1": "Cerca l'icona delle impostazioni nella barra degli indirizzi",
+          "step2": "Trova le impostazioni per le notifiche",
+          "step3": "Autorizza le notifiche per questo sito"
+        }
+      }
     }
   },
   "dateTime": {
@@ -461,6 +641,26 @@
       "hours": "ore",
       "day": "giorno",
       "days": "giorni"
+    },
+    "weekdays": {
+      "short": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Gio",
+        "fri": "Ven",
+        "sat": "Sab"
+      },
+      "full": {
+        "sunday": "Domenica",
+        "monday": "Lunedì",
+        "tuesday": "Martedì",
+        "wednesday": "Mercoledì",
+        "thursday": "Giovedì",
+        "friday": "Venerdì",
+        "saturday": "Sabato"
+      }
     }
   },
   "errors": {
@@ -469,6 +669,27 @@
     "unauthorized": "Non autorizzato",
     "invalidDate": "Data non valida",
     "invalidTime": "Ora non valida"
+  },
+  "api": {
+    "errors": {
+      "unexpected": "Si è verificato un errore imprevisto",
+      "networkError": "Errore di connessione. Verifica la tua connessione internet.",
+      "configError": "Errore nella configurazione della richiesta",
+      "status": {
+        "400": "Richiesta non valida",
+        "401": "Non autorizzato. Effettua l'accesso.",
+        "403": "Accesso negato",
+        "404": "Risorsa non trovata",
+        "409": "Conflitto - La risorsa esiste già",
+        "422": "Dati non validi",
+        "429": "Troppe richieste. Riprova più tardi.",
+        "500": "Errore interno del server",
+        "502": "Gateway non disponibile",
+        "503": "Servizio non disponibile",
+        "504": "Timeout del gateway",
+        "default": "Errore {status}"
+      }
+    }
   },
   "formatters": {
     "fieldNames": {
@@ -487,6 +708,16 @@
       "dueDate": "Scadenza"
     },
     "listConjunction": "e"
+  },
+  "router": {
+    "titles": {
+      "login": "Accesso - P-Cal",
+      "register": "Registrazione - P-Cal",
+      "resetPassword": "Reimposta Password - P-Cal",
+      "verifyEmail": "Verifica Email - P-Cal",
+      "calendar": "Calendario - P-Cal",
+      "profile": "Profilo Utente - P-Cal"
+    }
   },
   "password": {
     "checkPasswordStrength": "Sicurezza password",

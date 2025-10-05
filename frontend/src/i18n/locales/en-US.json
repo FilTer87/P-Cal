@@ -139,6 +139,20 @@
     "calendarViewDay": "Day",
     "calendarViewAgenda": "Agenda",
     "timezoneLabel": "Timezone",
+    "timezones": {
+      "continents": {
+        "africa": "Africa",
+        "america": "America",
+        "antarctica": "Antarctica",
+        "arctic": "Arctic",
+        "asia": "Asia",
+        "atlantic": "Atlantic",
+        "australia": "Australia",
+        "europe": "Europe",
+        "indian": "Indian Ocean",
+        "pacific": "Pacific"
+      }
+    },
     "weekStartLabel": "Week Start",
     "weekStartMonday": "Monday",
     "weekStartSunday": "Sunday",
@@ -165,6 +179,25 @@
     "deleteAccountPasswordPlaceholder": "Enter your password",
     "profileUpdateSuccess": "Personal information updated successfully!",
     "profileUpdateError": "Error updating profile",
+    "tabs": {
+      "personal": "Personal Information",
+      "security": "Security",
+      "preferences": "Preferences",
+      "danger": "Danger Zone"
+    },
+    "messages": {
+      "personalInfoUpdated": "Personal information updated successfully!",
+      "profileUpdateError": "Error updating profile",
+      "passwordChanged": "Password changed successfully!",
+      "currentPasswordWrong": "Current password is incorrect",
+      "passwordChangeError": "Error changing password",
+      "preferenceSaveError": "Error saving preference",
+      "dataExported": "Data exported successfully!",
+      "dataExportError": "Error exporting data",
+      "accountDeleted": "Account deleted successfully",
+      "passwordWrong": "Password is incorrect",
+      "accountDeleteError": "Error deleting account"
+    },
     "passwordChangeSuccess": "Password changed successfully!",
     "passwordChangeError": "Error changing password",
     "passwordIncorrect": "Current password incorrect",
@@ -415,8 +448,19 @@
     "ntfyServerReadonly": "NTFY server configured by system (read-only)",
     "personalTopic": "Personal Topic",
     "topicPlaceholder": "Automatically generated topic",
+    "topicDescription": "Unique topic for your notifications (automatically generated)",
     "generateNewTopic": "Generate new topic",
     "serverPlaceholder": "System configured server",
+    "configureNtfy": "Configure NTFY App",
+    "configureNtfyDesc": "Scan the QR code or add the topic manually",
+    "showQR": "Show QR",
+    "hideQR": "Hide QR",
+    "copyUrl": "Copy URL",
+    "copied": "Copied!",
+    "testNotifications": "Test Notifications",
+    "testBrowser": "Test Browser",
+    "testNtfy": "Test NTFY",
+    "reset": "Reset",
     "requestPermission": "Request Permission",
     "saveSettings": "Save Settings",
     "permissionGranted": "Granted",
@@ -437,6 +481,142 @@
       "hours": "Hours",
       "days": "Days",
       "weeks": "Weeks"
+    }
+  },
+  "stores": {
+    "auth": {
+      "loginSuccess": "Login successful!",
+      "loginError": "Error during login",
+      "registerSuccess": "Registration completed successfully!",
+      "registerError": "Error during registration",
+      "logoutSuccess": "Logged out successfully!",
+      "profileUpdateSuccess": "Profile updated successfully!",
+      "profileUpdateError": "Error updating profile"
+    },
+    "tasks": {
+      "loadError": "Error loading tasks"
+    },
+    "settings": {
+      "weekStart": {
+        "monday": "Monday",
+        "sunday": "Sunday",
+        "startsMonday": "Week starts on Monday",
+        "startsSunday": "Week starts on Sunday"
+      }
+    }
+  },
+  "composables": {
+    "useTasks": {
+      "taskCompleted": "Task \"{title}\" completed!",
+      "taskCreated": "Task \"{title}\" created successfully!",
+      "taskUpdated": "Task updated successfully!",
+      "taskDeleted": "Task deleted successfully!",
+      "validation": {
+        "titleRequired": "Title is required",
+        "titleTooLong": "Title cannot exceed 255 characters",
+        "descriptionTooLong": "Description cannot exceed 1000 characters",
+        "startDateRequired": "Start date is required",
+        "startDateInvalid": "Invalid start date",
+        "startTimeInvalid": "Invalid start time (format HH:MM)",
+        "endDateRequired": "End date is required",
+        "endDateInvalid": "Invalid end date",
+        "endTimeInvalid": "Invalid end time (format HH:MM)",
+        "datesInvalid": "Invalid dates",
+        "endBeforeStart": "End date/time must be after start date/time",
+        "colorInvalid": "Invalid color (must be in #RRGGBB format)",
+        "locationTooLong": "Location cannot exceed 200 characters",
+        "reminderInvalid": "Reminder time must be positive"
+      }
+    },
+    "useReminders": {
+      "reminderSet": "Reminder set for {time}",
+      "reminderUpdated": "Reminder updated successfully!",
+      "reminderDeleted": "Reminder deleted successfully!",
+      "remindersCreated": "{count} reminders created successfully!",
+      "remindersDeleted": "{count} reminders deleted successfully!",
+      "reminderSnoozed": "Reminder snoozed for {minutes} minutes",
+      "errors": {
+        "loadReminders": "Error loading reminders",
+        "loadTaskReminders": "Error loading task reminders",
+        "loadUpcomingReminders": "Error loading upcoming reminders",
+        "createReminder": "Error creating reminder",
+        "updateReminder": "Error updating reminder",
+        "deleteReminder": "Error deleting reminder",
+        "markReminderSent": "Error marking reminder as sent",
+        "snoozeReminder": "Error snoozing reminder",
+        "createMultiple": "Error creating reminders",
+        "deleteMultiple": "Error deleting reminders"
+      },
+      "presets": {
+        "15min": "15 minutes before",
+        "30min": "30 minutes before",
+        "1hour": "1 hour before",
+        "2hours": "2 hours before",
+        "1day": "1 day before",
+        "1week": "1 week before"
+      },
+      "timeFormat": {
+        "today": "Today at {time}",
+        "overdue": "Overdue",
+        "minutes": "{count} minutes",
+        "hour": "hour",
+        "hours": "hours",
+        "day": "day",
+        "days": "days"
+      }
+    },
+    "useNotificationPermissions": {
+      "errors": {
+        "notSupported": "Notifications are not supported by this browser",
+        "requesting": "Permission request already in progress",
+        "permissionDenied": "Permission denied by user",
+        "requestError": "Error requesting permissions",
+        "notAuthorized": "Notifications not authorized or not supported",
+        "sendError": "Error sending notification"
+      },
+      "permissionLabels": {
+        "granted": "Granted",
+        "denied": "Denied",
+        "default": "Not requested",
+        "unknown": "Unknown"
+      },
+      "permissionDescriptions": {
+        "granted": "Notifications are authorized and will work correctly.",
+        "denied": "Notifications have been denied. You can enable them in browser settings.",
+        "default": "Notifications have not been requested yet. Click to authorize them.",
+        "unknown": "Unknown notification status."
+      },
+      "testNotification": {
+        "title": "P-Cal Test Notification",
+        "body": "This is a test notification to verify that everything works correctly."
+      },
+      "guide": {
+        "chrome": {
+          "step1": "Click on the lock icon in the address bar",
+          "step2": "Select \"Notifications\" and choose \"Allow\"",
+          "step3": "Reload the page to apply changes"
+        },
+        "firefox": {
+          "step1": "Click on the shield icon in the address bar",
+          "step2": "Select \"Notifications\" and choose \"Allow\"",
+          "step3": "Reload the page to apply changes"
+        },
+        "safari": {
+          "step1": "Go to Safari > Preferences > Websites",
+          "step2": "Select \"Notifications\" in the left sidebar",
+          "step3": "Find this site and choose \"Allow\""
+        },
+        "edge": {
+          "step1": "Click on the lock icon in the address bar",
+          "step2": "Select \"Notifications\" and choose \"Allow\"",
+          "step3": "Reload the page to apply changes"
+        },
+        "default": {
+          "step1": "Look for the settings icon in the address bar",
+          "step2": "Find the notification settings",
+          "step3": "Authorize notifications for this site"
+        }
+      }
     }
   },
   "dateTime": {
@@ -461,6 +641,26 @@
       "hours": "hours",
       "day": "day",
       "days": "days"
+    },
+    "weekdays": {
+      "short": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "full": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      }
     }
   },
   "errors": {
@@ -469,6 +669,27 @@
     "unauthorized": "Unauthorized",
     "invalidDate": "Invalid date",
     "invalidTime": "Invalid time"
+  },
+  "api": {
+    "errors": {
+      "unexpected": "An unexpected error occurred",
+      "networkError": "Connection error. Check your internet connection.",
+      "configError": "Request configuration error",
+      "status": {
+        "400": "Bad request",
+        "401": "Unauthorized. Please log in.",
+        "403": "Access denied",
+        "404": "Resource not found",
+        "409": "Conflict - Resource already exists",
+        "422": "Invalid data",
+        "429": "Too many requests. Try again later.",
+        "500": "Internal server error",
+        "502": "Gateway unavailable",
+        "503": "Service unavailable",
+        "504": "Gateway timeout",
+        "default": "Error {status}"
+      }
+    }
   },
   "formatters": {
     "fieldNames": {
@@ -487,6 +708,16 @@
       "dueDate": "Due date"
     },
     "listConjunction": "and"
+  },
+  "router": {
+    "titles": {
+      "login": "Login - P-Cal",
+      "register": "Register - P-Cal",
+      "resetPassword": "Reset Password - P-Cal",
+      "verifyEmail": "Verify Email - P-Cal",
+      "calendar": "Calendar - P-Cal",
+      "profile": "User Profile - P-Cal"
+    }
   },
   "password": {
     "checkPasswordStrength": "Password strength",

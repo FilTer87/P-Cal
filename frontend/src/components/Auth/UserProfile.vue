@@ -257,7 +257,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useCustomToast } from '@/composables/useCustomToast'
 import { useTheme } from '@/composables/useTheme'
@@ -271,6 +272,9 @@ import ProfilePersonalInfo from '@/components/Auth/ProfilePersonalInfo.vue'
 import ProfileSecurity from '@/components/Auth/ProfileSecurity.vue'
 import { UserIcon, ShieldCheckIcon, Cog6ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/types/auth'
+
+// i18n
+const { t } = useI18n()
 
 // Composables
 const { user, userFullName, userInitials, updateProfile, logout, isLoading } = useAuth()
@@ -330,12 +334,12 @@ const preferencesForm = reactive({
 })
 
 // Tabs configuration
-const tabs = [
-  { id: 'personal', name: 'Informazioni Personali', icon: PersonIcon },
-  { id: 'security', name: 'Sicurezza', icon: SecurityIcon },
-  { id: 'preferences', name: 'Preferenze', icon: SettingsIcon },
-  { id: 'danger', name: 'Area Pericolo', icon: DangerIcon }
-]
+const tabs = computed(() => [
+  { id: 'personal', name: t('profile.tabs.personal'), icon: PersonIcon },
+  { id: 'security', name: t('profile.tabs.security'), icon: SecurityIcon },
+  { id: 'preferences', name: t('profile.tabs.preferences'), icon: SettingsIcon },
+  { id: 'danger', name: t('profile.tabs.danger'), icon: DangerIcon }
+])
 
 // Form submission handlers
 const handlePersonalInfoSave = async (updateData: { email?: string; firstName?: string; lastName?: string }) => {
@@ -343,7 +347,7 @@ const handlePersonalInfoSave = async (updateData: { email?: string; firstName?: 
     const success = await updateProfile(updateData as Partial<User>)
     if (success) {
       personalInfoRef.value?.closeEdit()
-      showSuccess('Informazioni personali aggiornate con successo!')
+      showSuccess(t('profile.messages.personalInfoUpdated'))
     }
   } catch (error: any) {
     console.error('Profile update failed:', error)
@@ -352,7 +356,7 @@ const handlePersonalInfoSave = async (updateData: { email?: string; firstName?: 
     if (error.response?.data?.field === 'email') {
       personalInfoRef.value?.setEmailError(error.response.data.message)
     } else {
-      showError('Errore durante l\'aggiornamento del profilo')
+      showError(t('profile.messages.profileUpdateError'))
     }
   }
 }
@@ -366,14 +370,14 @@ const handlePasswordChange = async (data: { currentPassword: string; newPassword
     await authApi.changePassword(data.currentPassword, data.newPassword)
 
     securityRef.value?.closeEdit()
-    showSuccess('Password cambiata con successo!')
+    showSuccess(t('profile.messages.passwordChanged'))
   } catch (error: any) {
     console.error('Password change failed:', error)
 
     if (error.response?.status === 401) {
-      securityRef.value?.setCurrentPasswordError('Password attuale non corretta')
+      securityRef.value?.setCurrentPasswordError(t('profile.messages.currentPasswordWrong'))
     } else {
-      showError('Errore durante il cambio password')
+      showError(t('profile.messages.passwordChangeError'))
     }
   }
 }
@@ -406,7 +410,7 @@ const savePreference = async (updates: Partial<typeof preferencesForm>) => {
 
   } catch (error) {
     console.error('Preference save failed:', error)
-    showError('Errore durante il salvataggio della preferenza')
+    showError(t('profile.messages.preferenceSaveError'))
   }
 }
 
@@ -493,10 +497,10 @@ const exportData = async () => {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
 
-    showSuccess('Dati esportati con successo!')
+    showSuccess(t('profile.messages.dataExported'))
   } catch (error) {
     console.error('Data export failed:', error)
-    showError('Errore durante l\'esportazione dei dati')
+    showError(t('profile.messages.dataExportError'))
   }
 }
 
@@ -505,7 +509,7 @@ const handleDeleteAccount = async (password: string) => {
   try {
     await authApi.deleteAccount(password)
 
-    showSuccess('Account eliminato con successo')
+    showSuccess(t('profile.messages.accountDeleted'))
 
     // Close modal and logout
     dangerZoneRef.value?.closeModal()
@@ -514,9 +518,9 @@ const handleDeleteAccount = async (password: string) => {
     console.error('Account deletion failed:', error)
 
     if (error.response?.status === 401) {
-      dangerZoneRef.value?.setDeleteError('Password non corretta')
+      dangerZoneRef.value?.setDeleteError(t('profile.messages.passwordWrong'))
     } else {
-      dangerZoneRef.value?.setDeleteError('Errore durante l\'eliminazione dell\'account')
+      dangerZoneRef.value?.setDeleteError(t('profile.messages.accountDeleteError'))
     }
   }
 }

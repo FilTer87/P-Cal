@@ -200,33 +200,36 @@ export const getDateDescription = (date: Date | string): string => {
 }
 
 /**
- * Get day name in Italian
+ * Get day name with locale support
  */
 export const getDayName = (date: Date | string, short = false): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Giorno non valido'
-  
-  return format(dateObj, short ? 'EEE' : 'EEEE', { locale: it })
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  return format(dateObj, short ? 'EEE' : 'EEEE', { locale: getDateFnsLocale() })
 }
 
 /**
- * Get month name in Italian
+ * Get month name with locale support
  */
 export const getMonthName = (date: Date | string, short = false): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Mese non valido'
-  
-  return format(dateObj, short ? 'MMM' : 'MMMM', { locale: it })
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  return format(dateObj, short ? 'MMM' : 'MMMM', { locale: getDateFnsLocale() })
 }
 
 /**
- * Get month and year string
+ * Get month and year string with locale support
  */
 export const getMonthYear = (date: Date | string): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
-  return format(dateObj, 'MMMM yyyy', { locale: it })
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  return format(dateObj, 'MMMM yyyy', { locale: getDateFnsLocale() })
 }
 
 /**
@@ -430,10 +433,12 @@ export const getTimezone = (): string => {
 }
 
 export const formatInTimezone = (date: Date | string, timezone: string, pattern = 'yyyy-MM-dd HH:mm'): string => {
+  const { t } = i18n.global
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  if (!isValid(dateObj)) return 'Data non valida'
-  
-  return new Intl.DateTimeFormat('it-IT', {
+  if (!isValid(dateObj)) return t('errors.invalidDate')
+
+  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
+  return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
     year: 'numeric',
     month: '2-digit',

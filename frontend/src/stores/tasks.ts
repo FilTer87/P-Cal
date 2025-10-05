@@ -1,16 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { format, isAfter, isBefore, isToday, startOfDay, endOfDay } from 'date-fns'
-import type { 
-  Task, 
-  CreateTaskRequest, 
-  UpdateTaskRequest, 
-  TaskFilters, 
+import type {
+  Task,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskFilters,
   TaskStats,
   DailyTasks
 } from '../types/task'
 import { taskApi } from '../services/taskApi'
 import { useCustomToast } from '../composables/useCustomToast'
+import { i18n } from '../i18n'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -148,7 +149,7 @@ export const useTasksStore = defineStore('tasks', () => {
       tasks.value = response
       isInitialized.value = true
     } catch (err: any) {
-      error.value = err.message || 'Errore nel caricamento delle attività'
+      error.value = err.message || i18n.global.t('stores.tasks.loadError')
     } finally {
       isLoading.value = false
     }

@@ -149,7 +149,7 @@
               </button>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Topic univoco per le tue notifiche (generato automaticamente)
+              {{ t('notifications.topicDescription') }}
             </p>
           </div>
 
@@ -157,17 +157,17 @@
           <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div class="flex-1">
               <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Configura l'app NTFY
+                {{ t('notifications.configureNtfy') }}
               </p>
               <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                Scannerizza il codice QR o aggiungi manualmente il topic
+                {{ t('notifications.configureNtfyDesc') }}
               </p>
             </div>
             <button
               @click="showQRCode = !showQRCode"
               class="px-3 py-1 text-xs font-medium text-blue-600 bg-white dark:bg-blue-900 rounded-md hover:bg-blue-50 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             >
-              {{ showQRCode ? 'Nascondi QR' : 'Mostra QR' }}
+              {{ showQRCode ? t('notifications.hideQR') : t('notifications.showQR') }}
             </button>
           </div>
 
@@ -184,7 +184,7 @@
                 @click="copyTopicUrl"
                 class="mt-2 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               >
-                {{ copied ? 'Copiato!' : 'Copia URL' }}
+                {{ copied ? t('notifications.copied') : t('notifications.copyUrl') }}
               </button>
             </div>
           </div>
@@ -194,7 +194,7 @@
       <!-- Test Notifications -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-          Test Notifiche
+          {{ t('notifications.testNotifications') }}
         </h4>
         <div class="flex space-x-3">
           <button
@@ -203,7 +203,7 @@
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <LoadingSpinner v-if="isTesting === 'browser'" size="small" class="mr-2" />
-            Test Browser
+            {{ t('notifications.testBrowser') }}
           </button>
           <button
             @click="testNTFYNotification"
@@ -211,7 +211,7 @@
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <LoadingSpinner v-if="isTesting === 'ntfy'" size="small" class="mr-2" />
-            Test NTFY
+            {{ t('notifications.testNtfy') }}
           </button>
         </div>
       </div>
@@ -222,7 +222,7 @@
           @click="resetSettings"
           class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
         >
-          Reset
+          {{ t('notifications.reset') }}
         </button>
         <button
           @click="saveSettings"

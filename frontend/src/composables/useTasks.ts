@@ -1,30 +1,31 @@
 import { ref, computed } from 'vue'
 import { useTasksStore } from '../stores/tasks'
 import { useCustomToast } from './useCustomToast'
-import type { 
-  Task, 
-  CreateTaskRequest, 
-  UpdateTaskRequest, 
+import type {
+  Task,
+  CreateTaskRequest,
+  UpdateTaskRequest,
   TaskFormData,
   ReminderFormData
 } from '../types/task'
 import { format, addMinutes, parseISO } from 'date-fns'
-import { 
-  transformTaskForCreation, 
+import {
+  transformTaskForCreation,
   transformTaskForUpdate,
   transformTaskToFormData
 } from '../services/taskDateService'
+import { i18n } from '../i18n'
 
 export function useTasks() {
   const tasksStore = useTasksStore()
   const { showSuccess, showError } = useCustomToast()
 
   const showTaskCompleted = (taskTitle: string) => {
-    showSuccess(`Attività "${taskTitle}" completata!`)
+    showSuccess(i18n.global.t('composables.useTasks.taskCompleted', { title: taskTitle }))
   }
 
   const showTaskCreated = (taskTitle: string) => {
-    showSuccess(`Attività "${taskTitle}" creata con successo!`)
+    showSuccess(i18n.global.t('composables.useTasks.taskCreated', { title: taskTitle }))
   }
 
   // Form state
@@ -86,7 +87,7 @@ export function useTasks() {
     try {
       const task = await tasksStore.updateTask(taskId, taskData)
       if (task) {
-        showSuccess('Attività aggiornata con successo!')
+        showSuccess(i18n.global.t('composables.useTasks.taskUpdated'))
         return task
       }
       return null
@@ -103,7 +104,7 @@ export function useTasks() {
     try {
       const success = await tasksStore.deleteTask(taskId)
       if (success) {
-        showSuccess('Attività eliminata con successo!')
+        showSuccess(i18n.global.t('composables.useTasks.taskDeleted'))
       }
       return success
     } catch (error: any) {
@@ -152,43 +153,44 @@ export function useTasks() {
     errors: Record<string, string>
   } => {
     const errors: Record<string, string> = {}
+    const t = i18n.global.t
 
     if (!formData.title.trim()) {
-      errors.title = 'Il titolo è obbligatorio'
+      errors.title = t('composables.useTasks.validation.titleRequired')
     } else if (formData.title.trim().length > 255) {
-      errors.title = 'Il titolo non può superare i 255 caratteri'
+      errors.title = t('composables.useTasks.validation.titleTooLong')
     }
 
     if (formData.description && formData.description.length > 1000) {
-      errors.description = 'La descrizione non può superare i 1000 caratteri'
+      errors.description = t('composables.useTasks.validation.descriptionTooLong')
     }
 
     // Validate start date/time
     if (!formData.startDate) {
-      errors.startDate = 'La data di inizio è obbligatoria'
+      errors.startDate = t('composables.useTasks.validation.startDateRequired')
     } else {
       const startDate = new Date(formData.startDate)
       if (isNaN(startDate.getTime())) {
-        errors.startDate = 'Data di inizio non valida'
+        errors.startDate = t('composables.useTasks.validation.startDateInvalid')
       }
     }
-    
+
     if (formData.startTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.startTime)) {
-      errors.startTime = 'Ora di inizio non valida (formato HH:MM)'
+      errors.startTime = t('composables.useTasks.validation.startTimeInvalid')
     }
-    
+
     // Validate end date/time
     if (!formData.endDate) {
-      errors.endDate = 'La data di fine è obbligatoria'
+      errors.endDate = t('composables.useTasks.validation.endDateRequired')
     } else {
       const endDate = new Date(formData.endDate)
       if (isNaN(endDate.getTime())) {
-        errors.endDate = 'Data di fine non valida'
+        errors.endDate = t('composables.useTasks.validation.endDateInvalid')
       }
     }
-    
+
     if (formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
-      errors.endTime = 'Ora di fine non valida (formato HH:MM)'
+      errors.endTime = t('composables.useTasks.validation.endTimeInvalid')
     }
     
     // Validate that end is after start
@@ -212,26 +214,26 @@ export function useTasks() {
       
       // Check if dates are valid
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        errors.endDate = 'Date non valide'
+        errors.endDate = t('composables.useTasks.validation.datesInvalid')
       } else if (end <= start) {
-        errors.endDate = 'La data/ora di fine deve essere successiva alla data/ora di inizio'
+        errors.endDate = t('composables.useTasks.validation.endBeforeStart')
       }
     }
-    
+
     // Validate color format
     if (formData.color && !/^#[0-9A-Fa-f]{6}$/.test(formData.color)) {
-      errors.color = 'Colore non valido (deve essere in formato #RRGGBB)'
+      errors.color = t('composables.useTasks.validation.colorInvalid')
     }
-    
+
     // Validate location length
     if (formData.location && formData.location.length > 200) {
-      errors.location = 'Il luogo non può superare i 200 caratteri'
+      errors.location = t('composables.useTasks.validation.locationTooLong')
     }
 
     // Validate reminders
     formData.reminders.forEach((reminder, index) => {
       if (reminder.offsetMinutes < 0) {
-        errors[`reminder_${index}`] = 'Il tempo del promemoria deve essere positivo'
+        errors[`reminder_${index}`] = t('composables.useTasks.validation.reminderInvalid')
       }
     })
 

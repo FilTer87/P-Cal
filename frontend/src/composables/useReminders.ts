@@ -1,19 +1,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useCustomToast } from './useCustomToast'
 import { reminderApi } from '../services/reminderApi'
-import type { 
-  Reminder, 
-  CreateReminderRequest, 
+import type {
+  Reminder,
+  CreateReminderRequest,
   UpdateReminderRequest,
   ReminderFormData
 } from '../types/task'
 import { format, addMinutes, subMinutes, parseISO } from 'date-fns'
+import { i18n } from '../i18n'
 
 export function useReminders() {
   const { showSuccess, showError } = useCustomToast()
 
   const showReminderSet = (reminderTime: string) => {
-    showSuccess(`Promemoria impostato per ${reminderTime}`)
+    showSuccess(i18n.global.t('composables.useReminders.reminderSet', { time: reminderTime }))
   }
 
   // State
@@ -67,8 +68,8 @@ export function useReminders() {
     try {
       reminders.value = await reminderApi.getAllReminders()
     } catch (err: any) {
-      error.value = err.message || 'Errore nel caricamento dei promemoria'
-      showError('Errore nel caricamento dei promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.loadReminders')
+      showError(i18n.global.t('composables.useReminders.errors.loadReminders'))
     } finally {
       isLoading.value = false
     }
@@ -87,8 +88,8 @@ export function useReminders() {
       ]
       return taskReminders
     } catch (err: any) {
-      error.value = err.message || 'Errore nel caricamento dei promemoria'
-      showError('Errore nel caricamento dei promemoria per l\'attività')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.loadTaskReminders')
+      showError(i18n.global.t('composables.useReminders.errors.loadTaskReminders'))
       return []
     } finally {
       isLoading.value = false
@@ -103,8 +104,8 @@ export function useReminders() {
       const upcoming = await reminderApi.getUpcomingReminders(hours)
       return upcoming
     } catch (err: any) {
-      error.value = err.message || 'Errore nel caricamento dei promemoria imminenti'
-      showError('Errore nel caricamento dei promemoria imminenti')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.loadUpcomingReminders')
+      showError(i18n.global.t('composables.useReminders.errors.loadUpcomingReminders'))
       return []
     } finally {
       isLoading.value = false
@@ -124,8 +125,8 @@ export function useReminders() {
       
       return reminder
     } catch (err: any) {
-      error.value = err.message || 'Errore nella creazione del promemoria'
-      showError('Errore nella creazione del promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.createReminder')
+      showError(i18n.global.t('composables.useReminders.errors.createReminder'))
       return null
     } finally {
       isLoading.value = false
@@ -138,17 +139,17 @@ export function useReminders() {
 
     try {
       const updatedReminder = await reminderApi.updateReminder(reminderId, reminderData)
-      
+
       const index = (reminders.value || []).findIndex(r => r.id === reminderId)
       if (index !== -1 && reminders.value) {
         reminders.value[index] = updatedReminder
       }
-      
-      showSuccess('Promemoria aggiornato con successo!')
+
+      showSuccess(i18n.global.t('composables.useReminders.reminderUpdated'))
       return updatedReminder
     } catch (err: any) {
-      error.value = err.message || 'Errore nell\'aggiornamento del promemoria'
-      showError('Errore nell\'aggiornamento del promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.updateReminder')
+      showError(i18n.global.t('composables.useReminders.errors.updateReminder'))
       return null
     } finally {
       isLoading.value = false
@@ -161,13 +162,13 @@ export function useReminders() {
 
     try {
       await reminderApi.deleteReminder(reminderId)
-      
+
       reminders.value = (reminders.value || []).filter(r => r.id !== reminderId)
-      showSuccess('Promemoria eliminato con successo!')
+      showSuccess(i18n.global.t('composables.useReminders.reminderDeleted'))
       return true
     } catch (err: any) {
-      error.value = err.message || 'Errore nell\'eliminazione del promemoria'
-      showError('Errore nell\'eliminazione del promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.deleteReminder')
+      showError(i18n.global.t('composables.useReminders.errors.deleteReminder'))
       return false
     } finally {
       isLoading.value = false
@@ -185,7 +186,7 @@ export function useReminders() {
       
       return true
     } catch (err: any) {
-      error.value = err.message || 'Errore nel segnare il promemoria come inviato'
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.markReminderSent')
       return false
     }
   }
@@ -193,17 +194,17 @@ export function useReminders() {
   const snoozeReminder = async (reminderId: number, minutes: number): Promise<boolean> => {
     try {
       const updatedReminder = await reminderApi.snoozeReminder(reminderId, minutes)
-      
+
       const index = (reminders.value || []).findIndex(r => r.id === reminderId)
       if (index !== -1 && reminders.value) {
         reminders.value[index] = updatedReminder
       }
-      
-      showSuccess(`Promemoria posticipato di ${minutes} minuti`)
+
+      showSuccess(i18n.global.t('composables.useReminders.reminderSnoozed', { minutes }))
       return true
     } catch (err: any) {
-      error.value = err.message || 'Errore nel posticipare il promemoria'
-      showError('Errore nel posticipare il promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.snoozeReminder')
+      showError(i18n.global.t('composables.useReminders.errors.snoozeReminder'))
       return false
     }
   }
@@ -216,12 +217,12 @@ export function useReminders() {
     try {
       const newReminders = await reminderApi.bulkCreateReminders(taskId, reminderDataArray)
       reminders.value.push(...newReminders)
-      
-      showSuccess(`${newReminders.length} promemoria creati con successo!`)
+
+      showSuccess(i18n.global.t('composables.useReminders.remindersCreated', { count: newReminders.length }))
       return newReminders
     } catch (err: any) {
-      error.value = err.message || 'Errore nella creazione dei promemoria'
-      showError('Errore nella creazione dei promemoria')
+      error.value = err.message || i18n.global.t('composables.useReminders.errors.createMultiple')
+      showError(i18n.global.t('composables.useReminders.errors.createMultiple'))
       return []
     } finally {
       isLoading.value = false
@@ -233,12 +234,12 @@ export function useReminders() {
 
     try {
       await reminderApi.bulkDeleteReminders(reminderIds)
-      
+
       reminders.value = (reminders.value || []).filter(r => !reminderIds.includes(r.id))
-      showSuccess(`${reminderIds.length} promemoria eliminati con successo!`)
+      showSuccess(i18n.global.t('composables.useReminders.remindersDeleted', { count: reminderIds.length }))
       return true
     } catch (err: any) {
-      showError('Errore nell\'eliminazione dei promemoria')
+      showError(i18n.global.t('composables.useReminders.errors.deleteMultiple'))
       return false
     } finally {
       isLoading.value = false
@@ -266,14 +267,17 @@ export function useReminders() {
   }
 
   // Reminder presets
-  const getReminderPresets = () => [
-    { id: '15min', name: '15 minuti prima', offsetMinutes: 15 },
-    { id: '30min', name: '30 minuti prima', offsetMinutes: 30 },
-    { id: '1hour', name: '1 ora prima', offsetMinutes: 60 },
-    { id: '2hours', name: '2 ore prima', offsetMinutes: 120 },
-    { id: '1day', name: '1 giorno prima', offsetMinutes: 1440 },
-    { id: '1week', name: '1 settimana prima', offsetMinutes: 10080 }
-  ]
+  const getReminderPresets = () => {
+    const t = i18n.global.t
+    return [
+      { id: '15min', name: t('composables.useReminders.presets.15min'), offsetMinutes: 15 },
+      { id: '30min', name: t('composables.useReminders.presets.30min'), offsetMinutes: 30 },
+      { id: '1hour', name: t('composables.useReminders.presets.1hour'), offsetMinutes: 60 },
+      { id: '2hours', name: t('composables.useReminders.presets.2hours'), offsetMinutes: 120 },
+      { id: '1day', name: t('composables.useReminders.presets.1day'), offsetMinutes: 1440 },
+      { id: '1week', name: t('composables.useReminders.presets.1week'), offsetMinutes: 10080 }
+    ]
+  }
 
   const createReminderFromPreset = (dueDate: string, presetId: string): CreateReminderRequest | null => {
     const preset = getReminderPresets().find(p => p.id === presetId)
@@ -317,11 +321,12 @@ export function useReminders() {
     const now = new Date()
     const today = format(now, 'yyyy-MM-dd')
     const reminderDay = format(reminderDate, 'yyyy-MM-dd')
-    
+
     if (reminderDay === today) {
-      return `Oggi alle ${format(reminderDate, 'HH:mm')}`
+      const time = format(reminderDate, 'HH:mm')
+      return i18n.global.t('composables.useReminders.timeFormat.today', { time })
     }
-    
+
     return format(reminderDate, 'dd/MM HH:mm')
   }
 
@@ -329,17 +334,18 @@ export function useReminders() {
     const reminderDate = new Date(reminder.reminderDateTime)
     const now = new Date()
     const diffMinutes = Math.floor((reminderDate.getTime() - now.getTime()) / (1000 * 60))
-    
+    const t = i18n.global.t
+
     if (diffMinutes < 0) {
-      return 'Scaduto'
+      return t('composables.useReminders.timeFormat.overdue')
     } else if (diffMinutes < 60) {
-      return `${diffMinutes} minuti`
+      return t('composables.useReminders.timeFormat.minutes', { count: diffMinutes })
     } else if (diffMinutes < 1440) {
       const hours = Math.floor(diffMinutes / 60)
-      return `${hours} ${hours === 1 ? 'ora' : 'ore'}`
+      return `${hours} ${hours === 1 ? t('composables.useReminders.timeFormat.hour') : t('composables.useReminders.timeFormat.hours')}`
     } else {
       const days = Math.floor(diffMinutes / 1440)
-      return `${days} ${days === 1 ? 'giorno' : 'giorni'}`
+      return `${days} ${days === 1 ? t('composables.useReminders.timeFormat.day') : t('composables.useReminders.timeFormat.days')}`
     }
   }
 
