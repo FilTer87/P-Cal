@@ -63,6 +63,8 @@ class EmailVerificationServiceTest {
 
         // Configure mocks (lenient to avoid unnecessary stubbing warnings)
         lenient().when(emailConfig.getBaseUrl()).thenReturn("http://localhost:3000");
+        lenient().when(templateBuilder.getEmailVerificationSubject(any(User.class)))
+            .thenReturn("Email Verification - P-Cal");
         lenient().when(templateBuilder.buildEmailVerificationEmail(any(User.class), anyString()))
             .thenReturn("<html>Email Verification</html>");
     }
@@ -72,7 +74,7 @@ class EmailVerificationServiceTest {
         // Given
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
         boolean result = emailVerificationService.sendVerificationEmail(testUser);
@@ -81,7 +83,7 @@ class EmailVerificationServiceTest {
         assertTrue(result);
         verify(emailVerificationTokenRepository).markAllUserTokensAsUsed(testUser);
         verify(emailVerificationTokenRepository).save(any(EmailVerificationToken.class));
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -89,7 +91,7 @@ class EmailVerificationServiceTest {
         // Given
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(false);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(false);
 
         // When
         boolean result = emailVerificationService.sendVerificationEmail(testUser);
@@ -98,7 +100,7 @@ class EmailVerificationServiceTest {
         assertFalse(result);
         verify(emailVerificationTokenRepository).markAllUserTokensAsUsed(testUser);
         verify(emailVerificationTokenRepository).save(any(EmailVerificationToken.class));
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -192,7 +194,7 @@ class EmailVerificationServiceTest {
             .thenReturn(2L); // Under the rate limit of 5
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
         PasswordResetResponse response = emailVerificationService.resendVerificationEmail(TEST_EMAIL);
@@ -205,7 +207,7 @@ class EmailVerificationServiceTest {
         verify(userRepository).findByEmail(TEST_EMAIL);
         verify(emailVerificationTokenRepository).countRecentTokensByUser(eq(testUser), any(LocalDateTime.class));
         verify(emailVerificationTokenRepository).save(any(EmailVerificationToken.class));
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -277,7 +279,7 @@ class EmailVerificationServiceTest {
             .thenReturn(2L);
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(false);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(false);
 
         // When
         PasswordResetResponse response = emailVerificationService.resendVerificationEmail(TEST_EMAIL);
