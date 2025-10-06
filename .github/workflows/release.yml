@@ -1,0 +1,46 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # attiva il workflow solo per i tag che iniziano con 'v' (es. v1.0.0)
+
+permissions:
+  contents: write  # serve per creare la release su GitHub
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # necessario per leggere i tag e il changelog completo
+
+      - name: Get tag name
+        id: vars
+        run: echo "tag=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes from changelog
+        id: changelog
+        run: |
+          TAG=${{ steps.vars.outputs.tag }}
+          # Estrae la sezione dal CHANGELOG.md corrispondente al tag corrente
+          # Usa awk per prendere solo le righe fino alla prossima sezione
+          awk "/## \\[?${TAG#v}\\]?/{flag=1; next} /^## /{flag=0} flag" CHANGELOG.md > body.md
+
+          # Se non trova nulla (es. versione non documentata), fallback a tutto il changelog
+          if [ ! -s body.md ]; then
+            echo "⚠️ Nessuna sezione trovata per ${TAG}, uso CHANGELOG completo."
+            cp CHANGELOG.md body.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Release ${{ steps.vars.outputs.tag }}
+          body_path: body.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
