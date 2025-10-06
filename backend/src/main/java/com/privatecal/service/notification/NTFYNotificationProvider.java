@@ -15,11 +15,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.privatecal.dto.NotificationMessage;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
 import com.privatecal.repository.UserRepository;
-import com.privatecal.util.TimezoneUtils;
 
 /**
  * NTFY notification provider implementation
@@ -39,18 +39,22 @@ public class NTFYNotificationProvider implements NotificationProvider {
     @Value("${app.ntfy.auth-token:}")
     private String ntfyAuthToken;
 
-    @Value("${app.email.base-url:http://localhost:3000}")
-    private String appBaseURl;
-
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
+    private final NotificationMessageBuilder messageBuilder;
+    private final NtfyFormatter ntfyFormatter;
 
-    public NTFYNotificationProvider(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository) {
+    public NTFYNotificationProvider(RestTemplateBuilder restTemplateBuilder,
+                                    UserRepository userRepository,
+                                    NotificationMessageBuilder messageBuilder,
+                                    NtfyFormatter ntfyFormatter) {
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(java.time.Duration.ofSeconds(10))
                 .setReadTimeout(java.time.Duration.ofSeconds(30))
                 .build();
         this.userRepository = userRepository;
+        this.messageBuilder = messageBuilder;
+        this.ntfyFormatter = ntfyFormatter;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class NTFYNotificationProvider implements NotificationProvider {
         }
 
         try {
+            User user = reminder.getTask().getUser();
             NotificationData data = NotificationData.fromReminder(reminder);
 
             if (data.getUserNtfyTopic() == null || data.getUserNtfyTopic().trim().isEmpty()) {
@@ -70,24 +75,33 @@ public class NTFYNotificationProvider implements NotificationProvider {
 
             String ntfyUrl = ntfyServerUrl + "/" + data.getUserNtfyTopic();
 
-            // Create notification content
-            String title = "📅 Task Reminder";
-            String message = createReminderMessage(data);
-            String priority = determinePriority(data);
+            // Build localized notification message
+            NotificationMessage message = messageBuilder.buildTaskReminder(user, data);
 
-            // Create NTFY payload using text/plain format (more reliable)
+            // Format for NTFY
+            String title = ntfyFormatter.formatTitle(message);
+            String body = ntfyFormatter.formatBody(message);
+            String priority = ntfyFormatter.formatPriority(message.getPriority());
+
+            // Create NTFY headers
             HttpHeaders headers = createNtfyHeaders();
             headers.set("X-Title", title);
             headers.set("X-Priority", priority);
-            headers.set("X-Tags", "calendar,reminder,⏰");
+            headers.set("X-Tags", "calendar,reminder," + message.getIconEmoji());
 
-            // Add action buttons for better UX
-            if (data.getTaskId() != null) {
-                headers.set("X-Actions", createActionButtons(data));
+            // Enable Markdown if message uses it
+            if (ntfyFormatter.shouldEnableMarkdown(message)) {
+                headers.set("X-Markdown", "true");
             }
 
-            // Create request entity with message as body
-            HttpEntity<String> requestEntity = new HttpEntity<>(message, headers);
+            // Add action buttons
+            String actions = ntfyFormatter.formatActions(message);
+            if (actions != null) {
+                headers.set("X-Actions", actions);
+            }
+
+            // Create request entity with message body
+            HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 
             // Send notification
             ResponseEntity<String> response = restTemplate.exchange(
@@ -98,8 +112,8 @@ public class NTFYNotificationProvider implements NotificationProvider {
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("NTFY reminder notification sent successfully for task: {} to user: {}",
-                        data.getTaskTitle(), data.getUserId());
+                logger.info("NTFY reminder notification sent successfully for task: {} to user: {} (locale: {})",
+                        data.getTaskTitle(), data.getUserId(), user.getLocale());
                 return true;
             } else {
                 logger.warn("Failed to send NTFY notification. Status: {}", response.getStatusCode());
@@ -118,7 +132,7 @@ public class NTFYNotificationProvider implements NotificationProvider {
     }
 
     @Override
-    public boolean sendTestNotification(Long userId, String message) {
+    public boolean sendTestNotification(Long userId, String customMessage) {
         if (!isEnabled()) {
             logger.debug("NTFY provider is disabled - cannot send test notification");
             return false;
@@ -140,19 +154,22 @@ public class NTFYNotificationProvider implements NotificationProvider {
 
             String ntfyUrl = ntfyServerUrl + "/" + user.getNtfyTopic();
 
-            // Create test notification content
-            String title = "🧪 P-Cal Test Notification";
-            String testMessage = message != null ? message :
-                "This is a test notification from P-Cal. If you receive this, your notification setup is working correctly! 🎉";
+            // Build localized test notification
+            NotificationMessage message = messageBuilder.buildTestNotification(user, customMessage);
 
-            // Create NTFY payload using text/plain format
+            // Format for NTFY
+            String title = ntfyFormatter.formatTitle(message);
+            String body = ntfyFormatter.formatBody(message);
+            String priority = ntfyFormatter.formatPriority(message.getPriority());
+
+            // Create NTFY headers
             HttpHeaders headers = createNtfyHeaders();
             headers.set("X-Title", title);
-            headers.set("X-Priority", "default");
-            headers.set("X-Tags", "test,calendar,✅");
+            headers.set("X-Priority", priority);
+            headers.set("X-Tags", "test,calendar," + message.getIconEmoji());
 
-            // Create request entity with message as body
-            HttpEntity<String> requestEntity = new HttpEntity<>(testMessage, headers);
+            // Create request entity with message body
+            HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 
             // Send test notification
             ResponseEntity<String> response = restTemplate.exchange(
@@ -163,7 +180,8 @@ public class NTFYNotificationProvider implements NotificationProvider {
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("NTFY test notification sent successfully to user: {}", userId);
+                logger.info("NTFY test notification sent successfully to user: {} (locale: {})",
+                        userId, user.getLocale());
                 return true;
             } else {
                 logger.warn("Failed to send NTFY test notification. Status: {}", response.getStatusCode());
@@ -221,73 +239,5 @@ public class NTFYNotificationProvider implements NotificationProvider {
         }
 
         return headers;
-    }
-
-    /**
-     * Create formatted reminder message
-     */
-    private String createReminderMessage(NotificationData data) {
-        StringBuilder message = new StringBuilder();
-        message.append("Reminder: ").append(data.getTaskTitle());
-
-        if (data.getTaskStartTime() != null) {
-            // Format time in user's timezone
-            String startTime = TimezoneUtils.formatInstantInTimezone(
-                data.getTaskStartTime(),
-                data.getUserTimezone()
-            );
-            message.append("\n\n📅 Scheduled for: ").append(startTime);
-        }
-
-        if (data.getTaskLocation() != null && !data.getTaskLocation().trim().isEmpty()) {
-            message.append("\n📍 Location: ").append(data.getTaskLocation());
-        }
-
-        if (data.getTaskDescription() != null && !data.getTaskDescription().trim().isEmpty()) {
-            String description = data.getTaskDescription();
-            if (description.length() > 100) {
-                description = description.substring(0, 100) + "...";
-            }
-            message.append("\n💭 Description: ").append(description);
-        }
-
-        long minutesUntil = data.getMinutesUntilTaskStart();
-        if (minutesUntil > 0) {
-            message.append("\n\n⏰ Starts in ").append(data.getFormattedTimeUntilStart());
-        } else if (minutesUntil == 0) {
-            message.append("\n\n🚀 Starting now!");
-        } else {
-            message.append("\n\n⚠️ Task has already started");
-        }
-
-        return message.toString();
-    }
-
-    /**
-     * Determine notification priority based on urgency
-     */
-    private String determinePriority(NotificationData data) {
-        long minutesUntil = data.getMinutesUntilTaskStart();
-
-        if (minutesUntil <= 0) {
-            return "urgent"; // Task is starting now or overdue
-        } else if (minutesUntil <= 5) {
-            return "high"; // Very soon
-        } else if (minutesUntil <= 15) {
-            return "default"; // Soon
-        } else if (minutesUntil <= 60) {
-            return "low"; // Within an hour
-        } else {
-            return "min"; // More than an hour
-        }
-    }
-
-    /**
-     * Create action buttons for the notification
-     */
-    private String createActionButtons(NotificationData data) {
-        // Format: action=view, label=View Task, url=https://example.com/tasks/123
-        return String.format("action=view, label=View Task, url=%s/tasks/%d",
-                appBaseURl, data.getTaskId());
     }
 }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { DEFAULT_SETTINGS, LOCALE_STRINGS } from '../utils/constants'
+import { DEFAULT_SETTINGS } from '../utils/constants'
+import { setLocale, type Locale, i18n } from '../i18n'
 
 export type WeekStartDay = 0 | 1 // 0 = Sunday, 1 = Monday
 
@@ -9,6 +10,7 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   calendarView: 'month' | 'week' | 'day' | 'agenda'
   timeFormat: '12h' | '24h'
+  locale: Locale
   notifications: boolean
   reminderSound: boolean
 }
@@ -20,6 +22,7 @@ export const useSettingsStore = defineStore('settings', () => {
     theme: DEFAULT_SETTINGS.theme,
     calendarView: DEFAULT_SETTINGS.calendarView,
     timeFormat: DEFAULT_SETTINGS.timeFormat,
+    locale: 'it-IT',
     notifications: DEFAULT_SETTINGS.notifications,
     reminderSound: DEFAULT_SETTINGS.reminderSound
   })
@@ -29,22 +32,56 @@ export const useSettingsStore = defineStore('settings', () => {
   const timeFormat = computed(() => settings.value.timeFormat)
   
   const weekdaysShort = computed(() => {
+    const t = i18n.global.t
     if (settings.value.weekStartDay === 0) {
-      // Sunday first: Dom, Lun, Mar, Mer, Gio, Ven, Sab
-      return ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+      // Sunday first: Sun, Mon, Tue, Wed, Thu, Fri, Sat
+      return [
+        t('dateTime.weekdays.short.sun'),
+        t('dateTime.weekdays.short.mon'),
+        t('dateTime.weekdays.short.tue'),
+        t('dateTime.weekdays.short.wed'),
+        t('dateTime.weekdays.short.thu'),
+        t('dateTime.weekdays.short.fri'),
+        t('dateTime.weekdays.short.sat')
+      ]
     } else {
-      // Monday first: Lun, Mar, Mer, Gio, Ven, Sab, Dom  
-      return ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
+      // Monday first: Mon, Tue, Wed, Thu, Fri, Sat, Sun
+      return [
+        t('dateTime.weekdays.short.mon'),
+        t('dateTime.weekdays.short.tue'),
+        t('dateTime.weekdays.short.wed'),
+        t('dateTime.weekdays.short.thu'),
+        t('dateTime.weekdays.short.fri'),
+        t('dateTime.weekdays.short.sat'),
+        t('dateTime.weekdays.short.sun')
+      ]
     }
   })
 
   const weekdaysFull = computed(() => {
+    const t = i18n.global.t
     if (settings.value.weekStartDay === 0) {
       // Sunday first
-      return ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
+      return [
+        t('dateTime.weekdays.full.sunday'),
+        t('dateTime.weekdays.full.monday'),
+        t('dateTime.weekdays.full.tuesday'),
+        t('dateTime.weekdays.full.wednesday'),
+        t('dateTime.weekdays.full.thursday'),
+        t('dateTime.weekdays.full.friday'),
+        t('dateTime.weekdays.full.saturday')
+      ]
     } else {
       // Monday first
-      return ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+      return [
+        t('dateTime.weekdays.full.monday'),
+        t('dateTime.weekdays.full.tuesday'),
+        t('dateTime.weekdays.full.wednesday'),
+        t('dateTime.weekdays.full.thursday'),
+        t('dateTime.weekdays.full.friday'),
+        t('dateTime.weekdays.full.saturday'),
+        t('dateTime.weekdays.full.sunday')
+      ]
     }
   })
 
@@ -87,13 +124,19 @@ export const useSettingsStore = defineStore('settings', () => {
       const stored = sessionStorage.getItem('app-settings')
       if (stored) {
         const parsedSettings = JSON.parse(stored) as Partial<AppSettings>
-        
+
+        // Validate and sanitize weekStartDay
+        if (parsedSettings.weekStartDay !== undefined) {
+          const day = Number(parsedSettings.weekStartDay)
+          parsedSettings.weekStartDay = (day === 0 || day === 1) ? day as WeekStartDay : 1
+        }
+
         // Merge with defaults to ensure all properties exist
         settings.value = {
           ...settings.value,
           ...parsedSettings
         }
-        
+
         console.debug('⚙️ Settings loaded from sessionStorage:', settings.value)
       } else {
         console.debug('⚙️ No stored settings found, using defaults:', settings.value)
@@ -144,12 +187,20 @@ export const useSettingsStore = defineStore('settings', () => {
     saveSettings()
   }
 
+  const updateLocale = (locale: Locale) => {
+    settings.value.locale = locale
+    setLocale(locale)
+    saveSettings()
+    console.debug('🌐 Locale updated to:', locale)
+  }
+
   const resetSettings = () => {
     settings.value = {
       weekStartDay: DEFAULT_SETTINGS.startOfWeek as WeekStartDay,
       theme: DEFAULT_SETTINGS.theme,
       calendarView: DEFAULT_SETTINGS.calendarView,
       timeFormat: DEFAULT_SETTINGS.timeFormat,
+      locale: 'it-IT',
       notifications: DEFAULT_SETTINGS.notifications,
       reminderSound: DEFAULT_SETTINGS.reminderSound
     }
@@ -158,27 +209,30 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // Week start day options for UI
-  const weekStartOptions = [
-    { value: 1, label: 'Lunedì', description: 'La settimana inizia di lunedì' },
-    { value: 0, label: 'Domenica', description: 'La settimana inizia di domenica' }
-  ] as const
+  const weekStartOptions = computed(() => {
+    const t = i18n.global.t
+    return [
+      { value: 1, label: t('stores.settings.weekStart.monday'), description: t('stores.settings.weekStart.startsMonday') },
+      { value: 0, label: t('stores.settings.weekStart.sunday'), description: t('stores.settings.weekStart.startsSunday') }
+    ]
+  })
 
   return {
     // State
     settings,
-    
+
     // Computed
     weekStartDay,
     timeFormat,
     weekdaysShort,
     weekdaysFull,
     weekStartOptions,
-    
+
     // Time formatting utilities
     formatTime,
     formatHourLabel,
     getTimeInputStep,
-    
+
     // Actions
     loadSettings,
     saveSettings,
@@ -186,6 +240,7 @@ export const useSettingsStore = defineStore('settings', () => {
     updateTheme,
     updateCalendarView,
     updateTimeFormat,
+    updateLocale,
     updateNotifications,
     updateReminderSound,
     resetSettings

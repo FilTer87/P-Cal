@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" title="Disabilita Autenticazione a Due Fattori" :persistent="true">
+  <Modal v-model="isOpen" :title="$t('twoFactor.disableTitle')" :persistent="true">
     <div class="space-y-4">
       <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
         <div class="flex">
@@ -8,12 +8,11 @@
           </svg>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-              Attenzione
+              {{ $t('twoFactor.disableWarningTitle') }}
             </h3>
             <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
               <p>
-                Disabilitare l'autenticazione a due fattori renderà il tuo account meno sicuro.
-                Dovrai inserire solo la password per accedere.
+                {{ $t('twoFactor.disableWarningMessage') }}
               </p>
             </div>
           </div>
@@ -21,12 +20,12 @@
       </div>
 
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Per disabilitare l'autenticazione a due fattori, inserisci la tua password attuale:
+        {{ $t('twoFactor.disableConfirmMessage') }}
       </p>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Password Attuale *
+          {{ $t('twoFactor.currentPasswordLabel') }} *
         </label>
         <input
           v-model="password"
@@ -34,7 +33,7 @@
           required
           :disabled="isLoading"
           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
-          placeholder="Inserisci la tua password"
+          :placeholder="$t('twoFactor.currentPasswordPlaceholder')"
         />
         <p v-if="error" class="mt-2 text-sm text-red-600 dark:text-red-400">
           {{ error }}
@@ -48,7 +47,7 @@
           :disabled="isLoading"
           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          Annulla
+          {{ $t('common.cancel') }}
         </button>
         <button
           type="button"
@@ -57,7 +56,7 @@
           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
         >
           <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-          {{ isLoading ? 'Disabilitando...' : 'Disabilita 2FA' }}
+          {{ isLoading ? $t('twoFactor.disabling') : $t('twoFactor.disable2FA') }}
         </button>
       </div>
     </div>
@@ -66,6 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { authApi } from '@/services/authApi'
 import { useCustomToast } from '@/composables/useCustomToast'
 import Modal from '@/components/Common/Modal.vue'
@@ -80,6 +80,7 @@ const emit = defineEmits<{
   'success': []
 }>()
 
+const { t } = useI18n()
 const { showError, showSuccess } = useCustomToast()
 
 const isOpen = computed({
@@ -100,14 +101,14 @@ const disableTwoFactor = async () => {
 
     if (response.success) {
       emit('success')
-      showSuccess('2FA disabilitato con successo')
+      showSuccess(t('twoFactor.disableSuccess'))
       closeModal()
     } else {
-      error.value = response.message || 'Errore durante la disabilitazione 2FA'
+      error.value = response.message || t('twoFactor.disableError')
     }
   } catch (err: any) {
     console.error('2FA disable error:', err)
-    error.value = err.response?.data?.message || 'Password non corretta'
+    error.value = err.response?.data?.message || t('twoFactor.passwordIncorrect')
   } finally {
     isLoading.value = false
   }

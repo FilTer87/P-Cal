@@ -83,6 +83,10 @@ public class User {
     @Column(name = "ntfy_topic", unique = true, length = 100)
     private String ntfyTopic;
 
+    @Size(max = 10)
+    @Column(length = 10)
+    private String locale;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
     
@@ -279,6 +283,14 @@ public class User {
 
     public void setNtfyTopic(String ntfyTopic) {
         this.ntfyTopic = ntfyTopic;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     @Override

@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" title="Configura Autenticazione a Due Fattori" :persistent="true" size="large">
+  <Modal v-model="isOpen" :title="$t('twoFactor.setupTitle')" :persistent="true" size="large">
     <div class="space-y-6">
       <!-- Step 1: Setup Instructions -->
       <div v-if="step === 1" class="space-y-4">
@@ -10,14 +10,14 @@
             </svg>
             <div class="ml-3">
               <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Come funziona l'autenticazione a due fattori
+                {{ $t('twoFactor.howItWorksTitle') }}
               </h3>
               <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
                 <ul class="list-disc pl-5 space-y-1">
-                  <li>Scarica un'app di autenticazione (Google Authenticator, Authy, etc.)</li>
-                  <li>Scansiona il QR code con l'app</li>
-                  <li>Inserisci il codice a 6 cifre generato dall'app</li>
-                  <li>Ad ogni login ti verrà richiesto il codice oltre alla password</li>
+                  <li>{{ $t('twoFactor.howItWorksStep1') }}</li>
+                  <li>{{ $t('twoFactor.howItWorksStep2') }}</li>
+                  <li>{{ $t('twoFactor.howItWorksStep3') }}</li>
+                  <li>{{ $t('twoFactor.howItWorksStep4') }}</li>
                 </ul>
               </div>
             </div>
@@ -31,7 +31,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Annulla
+            {{ $t('common.cancel') }}
           </button>
           <button
             type="button"
@@ -40,7 +40,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-            {{ isLoading ? 'Generazione...' : 'Continua' }}
+            {{ isLoading ? $t('twoFactor.generating') : $t('twoFactor.continue') }}
           </button>
         </div>
       </div>
@@ -49,7 +49,7 @@
       <div v-else-if="step === 2" class="space-y-4">
         <div class="text-center">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Scansiona il QR Code
+            {{ $t('twoFactor.scanQRCode') }}
           </h3>
 
           <!-- QR Code -->
@@ -60,7 +60,7 @@
           <!-- Manual Entry Key -->
           <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Oppure inserisci manualmente questo codice:
+              {{ $t('twoFactor.manualEntryLabel') }}
             </p>
             <div class="flex items-center justify-center space-x-2">
               <code class="text-lg font-mono font-bold text-gray-900 dark:text-white">
@@ -70,7 +70,7 @@
                 type="button"
                 @click="copyToClipboard(manualEntryKey)"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Copia"
+                :title="$t('twoFactor.copy')"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -87,7 +87,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Indietro
+            {{ $t('common.back') }}
           </button>
           <button
             type="button"
@@ -95,7 +95,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Continua
+            {{ $t('twoFactor.continue') }}
           </button>
         </div>
       </div>
@@ -104,16 +104,16 @@
       <div v-else-if="step === 3" class="space-y-4">
         <div>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Verifica il codice
+            {{ $t('twoFactor.verifyCodeTitle') }}
           </h3>
 
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Inserisci il codice a 6 cifre generato dalla tua app di autenticazione
+            {{ $t('twoFactor.verifyCodeDescription') }}
           </p>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Codice di verifica *
+              {{ $t('twoFactor.verificationCodeLabel') }} *
             </label>
             <input
               v-model="verificationCode"
@@ -121,7 +121,7 @@
               inputmode="numeric"
               pattern="[0-9]*"
               maxlength="6"
-              placeholder="000000"
+              :placeholder="$t('twoFactor.verificationCodePlaceholder')"
               :disabled="isLoading"
               class="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
               @input="validateCode"
@@ -139,7 +139,7 @@
             :disabled="isLoading"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Indietro
+            {{ $t('common.back') }}
           </button>
           <button
             type="button"
@@ -148,7 +148,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-            {{ isLoading ? 'Verificando...' : 'Abilita 2FA' }}
+            {{ isLoading ? $t('twoFactor.verifying') : $t('twoFactor.enable2FA') }}
           </button>
         </div>
       </div>
@@ -162,11 +162,10 @@
             </svg>
           </div>
           <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-            2FA Abilitato con Successo!
+            {{ $t('twoFactor.successTitle') }}
           </h3>
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            L'autenticazione a due fattori è ora attiva sul tuo account.
-            Al prossimo login ti verrà richiesto il codice dall'app.
+            {{ $t('twoFactor.successMessage') }}
           </p>
         </div>
 
@@ -176,7 +175,7 @@
             @click="closeModal"
             class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Chiudi
+            {{ $t('common.close') }}
           </button>
         </div>
       </div>
@@ -186,6 +185,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { authApi } from '@/services/authApi'
 import { useCustomToast } from '@/composables/useCustomToast'
 import Modal from '@/components/Common/Modal.vue'
@@ -200,6 +200,7 @@ const emit = defineEmits<{
   'success': []
 }>()
 
+const { t } = useI18n()
 const { showError, showSuccess } = useCustomToast()
 
 const isOpen = computed({
@@ -226,11 +227,11 @@ const generateQRCode = async () => {
       manualEntryKey.value = response.manualEntryKey
       step.value = 2
     } else {
-      showError('Errore durante la generazione del codice QR')
+      showError(t('twoFactor.qrCodeGenerationError'))
     }
   } catch (error: any) {
     console.error('2FA setup error:', error)
-    showError(error.response?.data?.message || 'Errore durante la configurazione 2FA')
+    showError(error.response?.data?.message || t('twoFactor.setupError'))
   } finally {
     isLoading.value = false
   }
@@ -251,13 +252,13 @@ const verifyAndEnable = async () => {
     if (response.success) {
       step.value = 4
       emit('success')
-      showSuccess('2FA abilitato con successo!')
+      showSuccess(t('twoFactor.enableSuccess'))
     } else {
-      verificationError.value = response.message || 'Codice non valido'
+      verificationError.value = response.message || t('twoFactor.invalidCode')
     }
   } catch (error: any) {
     console.error('2FA verification error:', error)
-    verificationError.value = error.response?.data?.message || 'Codice di verifica non valido'
+    verificationError.value = error.response?.data?.message || t('twoFactor.verificationError')
   } finally {
     isLoading.value = false
   }
@@ -266,10 +267,10 @@ const verifyAndEnable = async () => {
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
-    showSuccess('Codice copiato negli appunti')
+    showSuccess(t('twoFactor.copiedToClipboard'))
   } catch (error) {
     console.error('Copy failed:', error)
-    showError('Impossibile copiare negli appunti')
+    showError(t('twoFactor.copyError'))
   }
 }
 

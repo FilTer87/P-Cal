@@ -10,7 +10,7 @@
             :style="{ backgroundColor: task.color || '#3788d8' }"
           ></div>
           <h3 class="text-base font-medium text-gray-900 dark:text-white truncate">
-            Dettagli Attività
+            {{ t('tasks.taskDetails') }}
           </h3>
         </div>
         <div class="flex items-center space-x-2">
@@ -20,7 +20,7 @@
             <svg class="h-4 w-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Modifica
+            {{ t('tasks.editButton') }}
           </button>
           <!-- Close Button -->
           <button @click="closeModal"
@@ -40,7 +40,7 @@
             <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a2 2 0 012-2z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Titolo</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.taskTitle') }}</h4>
           </div>
           <p class="text-base font-semibold text-gray-900 dark:text-white">{{ task.title }}</p>
         </div>
@@ -51,7 +51,7 @@
             <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Descrizione</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.description') }}</h4>
           </div>
           <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ task.description }}</p>
         </div>
@@ -62,25 +62,25 @@
             <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Orario</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.schedule') }}</h4>
           </div>
           <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
             <div class="flex items-center space-x-4 text-sm">
               <div class="flex items-center space-x-2">
-                <span class="text-gray-500 dark:text-gray-400">Inizio:</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t('tasks.start') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
                   {{ formatDateTime(task.startDatetime) }}
                 </span>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-gray-500 dark:text-gray-400">Fine:</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t('tasks.end') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
                   {{ formatDateTime(task.endDatetime) }}
                 </span>
               </div>
             </div>
             <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Durata: {{ getTaskDuration(task) }}
+              {{ t('tasks.duration') }}: {{ getTaskDuration(task) }}
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Luogo:</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.locationLabel') }}:</h4>
             <span class="text-sm text-gray-700 dark:text-gray-300">{{ task.location }}</span>
           </div>
         </div>
@@ -103,7 +103,7 @@
             <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4 4 4 0 004-4V5z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Colore:</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.colorLabel') }}:</h4>
             <div class="flex items-center space-x-2">
               <div
                 class="w-5 h-5 rounded border border-gray-200 dark:border-gray-600 flex-shrink-0"
@@ -121,7 +121,7 @@
             <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Stato:</h4>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.statusLabel') }}:</h4>
             <div class="flex items-center space-x-3">
               <span
                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
@@ -143,7 +143,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 19H6a2 2 0 01-2-2V7a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z" />
             </svg>
             <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Promemoria ({{ task.reminders.length }})
+              {{ t('tasks.remindersCount', task.reminders.length) }}
             </h4>
           </div>
           <div class="space-y-2">
@@ -174,7 +174,7 @@
                     ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                     : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'"
                 >
-                  {{ reminder.isSent ? 'Inviato' : 'In attesa' }}
+                  {{ reminder.isSent ? t('tasks.reminderSent') : t('tasks.reminderPending') }}
                 </span>
               </div>
             </div>
@@ -185,11 +185,11 @@
         <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400">
             <div>
-              <span class="font-medium">Creata:</span>
+              <span class="font-medium">{{ t('tasks.created') }}:</span>
               {{ formatDateTime(task.createdAt) }}
             </div>
             <div>
-              <span class="font-medium">Aggiornata:</span>
+              <span class="font-medium">{{ t('tasks.updated') }}:</span>
               {{ formatDateTime(task.updatedAt) }}
             </div>
           </div>
@@ -204,21 +204,21 @@
           <svg class="h-3 w-3 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
-          Elimina
+          {{ t('tasks.deleteTask') }}
         </button>
 
         <!-- Main Action Buttons (Right) -->
         <div class="flex space-x-3">
           <button @click="closeModal"
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-            Chiudi
+            {{ t('tasks.closeButton') }}
           </button>
           <button @click="handleEdit"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
             <svg class="h-4 w-4 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Modifica Attività
+            {{ t('tasks.editTask') }}
           </button>
         </div>
       </div>
@@ -228,12 +228,12 @@
   <!-- Delete Confirmation Dialog -->
   <ConfirmDialog
     v-model="showDeleteConfirm"
-    title="Elimina Attività"
-    :message="`Sei sicuro di voler eliminare l'attività '${task?.title}'?`"
-    details="Questa azione non può essere annullata. L'attività e tutti i suoi promemoria saranno eliminati definitivamente."
+    :title="t('tasks.deleteConfirmTitle')"
+    :message="t('tasks.deleteConfirmMessage', { title: task?.title })"
+    :details="t('tasks.deleteConfirmDetails')"
     variant="danger"
-    confirm-text="Elimina"
-    cancel-text="Annulla"
+    :confirm-text="t('tasks.deleteTask')"
+    :cancel-text="t('common.cancel')"
     @confirm="confirmDelete"
     @cancel="cancelDelete"
   />
@@ -241,11 +241,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Task, NotificationType } from '../types/task'
 import { NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS } from '../types/task'
 import { formatDate, formatDateTime, formatTime } from '../utils/dateHelpers'
 import ConfirmDialog from './Common/ConfirmDialog.vue'
 import { useTasks } from '../composables/useTasks'
+
+// Composables
+const { t } = useI18n()
 
 interface Props {
   show: boolean
@@ -313,31 +317,34 @@ const getTaskDuration = (task: Task) => {
   const remainingMinutes = minutes % 60
 
   if (hours === 0) {
-    return `${minutes} minuti`
+    return `${minutes} ${t('tasks.time.minutes')}`
   } else if (remainingMinutes === 0) {
-    return `${hours} ${hours === 1 ? 'ora' : 'ore'}`
+    return `${hours} ${hours === 1 ? t('tasks.time.hour') : t('tasks.time.hours')}`
   } else {
     return `${hours}h ${remainingMinutes}m`
   }
 }
 
 const getColorName = (color?: string) => {
-  if (!color) return 'Blu (default)'
+  if (!color) return t('tasks.colorNames.default')
 
   const colorConfig = CALENDAR_COLORS.find(c => c.value === color)
-  return colorConfig ? colorConfig.name : 'Personalizzato'
+  return colorConfig ? colorConfig.name : t('tasks.colorNames.custom')
 }
 
 const getReminderDescription = (offsetMinutes: number) => {
-  if (offsetMinutes === 0) return 'Al momento dell\'inizio'
-  if (offsetMinutes < 60) return `${offsetMinutes} minuti prima`
+  if (offsetMinutes === 0) return t('tasks.time.atStart')
+  if (offsetMinutes < 60) return t('tasks.time.minutesBefore', { minutes: offsetMinutes })
 
   const hours = Math.floor(offsetMinutes / 60)
   const remainingMinutes = offsetMinutes % 60
 
   if (hours < 24) {
     if (remainingMinutes === 0) {
-      return `${hours} ${hours === 1 ? 'ora' : 'ore'} prima`
+      return t('tasks.time.hoursBefore', {
+        hours,
+        unit: hours === 1 ? t('tasks.time.hour') : t('tasks.time.hours')
+      })
     } else {
       return `${hours}h ${remainingMinutes}m prima`
     }
@@ -346,7 +353,10 @@ const getReminderDescription = (offsetMinutes: number) => {
     const remainingHours = hours % 24
 
     if (remainingHours === 0) {
-      return `${days} ${days === 1 ? 'giorno' : 'giorni'} prima`
+      return t('tasks.time.daysBefore', {
+        days,
+        unit: days === 1 ? t('tasks.time.day') : t('tasks.time.days')
+      })
     } else {
       return `${days}g ${remainingHours}h prima`
     }
@@ -362,18 +372,18 @@ const getNotificationTypeLabel = (type: NotificationType) => {
 }
 
 const getTaskStatus = () => {
-  if (!props.task) return 'Sconosciuto'
+  if (!props.task) return t('tasks.status.unknown')
 
   const now = new Date()
   const start = new Date(props.task.startDatetime)
   const end = new Date(props.task.endDatetime)
 
   if (now < start) {
-    return 'Programmata'
+    return t('tasks.status.scheduled')
   } else if (now >= start && now <= end) {
-    return 'In corso'
+    return t('tasks.status.inProgress')
   } else {
-    return 'Completata'
+    return t('tasks.status.completed')
   }
 }
 
@@ -405,36 +415,46 @@ const getTaskTimeUntil = () => {
     const minutesUntilStart = Math.floor(msUntilStart / (1000 * 60))
 
     if (minutesUntilStart < 60) {
-      return `Inizia tra ${minutesUntilStart} minuti`
+      return t('tasks.time.startsIn', { time: `${minutesUntilStart} ${t('tasks.time.minutes')}` })
     } else if (minutesUntilStart < 24 * 60) {
       const hours = Math.floor(minutesUntilStart / 60)
-      return `Inizia tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`
+      return t('tasks.time.startsIn', {
+        time: `${hours} ${hours === 1 ? t('tasks.time.hour') : t('tasks.time.hours')}`
+      })
     } else {
       const days = Math.floor(minutesUntilStart / (24 * 60))
-      return `Inizia tra ${days} ${days === 1 ? 'giorno' : 'giorni'}`
+      return t('tasks.time.startsIn', {
+        time: `${days} ${days === 1 ? t('tasks.time.day') : t('tasks.time.days')}`
+      })
     }
   } else if (now >= start && now <= end) {
     const msUntilEnd = end.getTime() - now.getTime()
     const minutesUntilEnd = Math.floor(msUntilEnd / (1000 * 60))
 
     if (minutesUntilEnd < 60) {
-      return `Termina tra ${minutesUntilEnd} minuti`
+      return t('tasks.time.endsIn', { time: `${minutesUntilEnd} ${t('tasks.time.minutes')}` })
     } else {
       const hours = Math.floor(minutesUntilEnd / 60)
-      return `Termina tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`
+      return t('tasks.time.endsIn', {
+        time: `${hours} ${hours === 1 ? t('tasks.time.hour') : t('tasks.time.hours')}`
+      })
     }
   } else {
     const msAgo = now.getTime() - end.getTime()
     const minutesAgo = Math.floor(msAgo / (1000 * 60))
 
     if (minutesAgo < 60) {
-      return `Terminata ${minutesAgo} minuti fa`
+      return t('tasks.time.endedAgo', { time: `${minutesAgo} ${t('tasks.time.minutes')}` })
     } else if (minutesAgo < 24 * 60) {
       const hours = Math.floor(minutesAgo / 60)
-      return `Terminata ${hours} ${hours === 1 ? 'ora' : 'ore'} fa`
+      return t('tasks.time.endedAgo', {
+        time: `${hours} ${hours === 1 ? t('tasks.time.hour') : t('tasks.time.hours')}`
+      })
     } else {
       const days = Math.floor(minutesAgo / (24 * 60))
-      return `Terminata ${days} ${days === 1 ? 'giorno' : 'giorni'} fa`
+      return t('tasks.time.endedAgo', {
+        time: `${days} ${days === 1 ? t('tasks.time.day') : t('tasks.time.days')}`
+      })
     }
   }
 }

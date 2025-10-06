@@ -4,11 +4,12 @@
  */
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { 
-  notificationService, 
+import {
+  notificationService,
   sendBrowserNotification,
-  type NotificationOptions 
+  type NotificationOptions
 } from '../services/notificationService'
+import { i18n } from '../i18n'
 
 export function useNotificationPermissions() {
   // Reactive state
@@ -24,30 +25,32 @@ export function useNotificationPermissions() {
   const canRequest = computed(() => isSupported.value && isDefault.value)
   const isEnabled = computed(() => isSupported.value && isGranted.value)
 
-  // Permission status labels (Italian)
+  // Permission status labels
   const permissionLabel = computed(() => {
+    const t = i18n.global.t
     switch (permission.value) {
       case 'granted':
-        return 'Autorizzato'
+        return t('composables.useNotificationPermissions.permissionLabels.granted')
       case 'denied':
-        return 'Negato'
+        return t('composables.useNotificationPermissions.permissionLabels.denied')
       case 'default':
-        return 'Non richiesto'
+        return t('composables.useNotificationPermissions.permissionLabels.default')
       default:
-        return 'Sconosciuto'
+        return t('composables.useNotificationPermissions.permissionLabels.unknown')
     }
   })
 
   const permissionDescription = computed(() => {
+    const t = i18n.global.t
     switch (permission.value) {
       case 'granted':
-        return 'Le notifiche sono autorizzate e funzioneranno correttamente.'
+        return t('composables.useNotificationPermissions.permissionDescriptions.granted')
       case 'denied':
-        return 'Le notifiche sono state negate. Puoi abilitarle nelle impostazioni del browser.'
+        return t('composables.useNotificationPermissions.permissionDescriptions.denied')
       case 'default':
-        return 'Le notifiche non sono ancora state richieste. Clicca per autorizzarle.'
+        return t('composables.useNotificationPermissions.permissionDescriptions.default')
       default:
-        return 'Stato delle notifiche sconosciuto.'
+        return t('composables.useNotificationPermissions.permissionDescriptions.unknown')
     }
   })
 
@@ -59,14 +62,15 @@ export function useNotificationPermissions() {
   }
 
   const requestPermission = async (): Promise<NotificationPermission> => {
+    const t = i18n.global.t
     if (!isSupported.value) {
-      const error = 'Le notifiche non sono supportate da questo browser'
+      const error = t('composables.useNotificationPermissions.errors.notSupported')
       lastError.value = error
       throw new Error(error)
     }
 
     if (isRequesting.value) {
-      throw new Error('Richiesta permessi già in corso')
+      throw new Error(t('composables.useNotificationPermissions.errors.requesting'))
     }
 
     if (isGranted.value) {
@@ -79,17 +83,17 @@ export function useNotificationPermissions() {
     try {
       const result = await notificationService.requestPermission()
       permission.value = result
-      
+
       if (result === 'denied') {
-        lastError.value = 'Permesso negato dall\'utente'
+        lastError.value = t('composables.useNotificationPermissions.errors.permissionDenied')
       } else if (result === 'granted') {
         // Process any queued notifications
         await notificationService.processQueuedNotifications()
       }
-      
+
       return result
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore nella richiesta permessi'
+      const errorMessage = error instanceof Error ? error.message : t('composables.useNotificationPermissions.errors.requestError')
       lastError.value = errorMessage
       console.error('Error requesting notification permission:', error)
       throw error
@@ -99,27 +103,28 @@ export function useNotificationPermissions() {
   }
 
   const sendBrowserNotification = async (
-    title: string, 
+    title: string,
     options?: NotificationOptions
   ): Promise<Notification | void> => {
     if (!isEnabled.value) {
-      throw new Error('Notifiche non autorizzate o non supportate')
+      throw new Error(i18n.global.t('composables.useNotificationPermissions.errors.notAuthorized'))
     }
 
     try {
       return await notificationService.sendNotification(title, options)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore nell\'invio della notifica'
+      const errorMessage = error instanceof Error ? error.message : i18n.global.t('composables.useNotificationPermissions.errors.sendError')
       lastError.value = errorMessage
       throw error
     }
   }
 
   const sendTestNotification = async (): Promise<void> => {
+    const t = i18n.global.t
     await sendBrowserNotification(
-      'Test Notifica P-Cal',
+      t('composables.useNotificationPermissions.testNotification.title'),
       {
-        body: 'Questa è una notifica di test per verificare che tutto funzioni correttamente.',
+        body: t('composables.useNotificationPermissions.testNotification.body'),
         icon: '/favicon.ico',
         tag: 'test-notification',
         requireInteraction: false
@@ -134,41 +139,42 @@ export function useNotificationPermissions() {
   // Browser-specific permission guides
   const getPermissionGuide = () => {
     const userAgent = navigator.userAgent.toLowerCase()
-    
+    const t = i18n.global.t
+
     if (userAgent.includes('chrome')) {
       return {
         browser: 'Chrome',
         steps: [
-          'Clicca sull\'icona del lucchetto nella barra degli indirizzi',
-          'Seleziona "Notifiche" e scegli "Consenti"',
-          'Ricarica la pagina per applicare le modifiche'
+          t('composables.useNotificationPermissions.guide.chrome.step1'),
+          t('composables.useNotificationPermissions.guide.chrome.step2'),
+          t('composables.useNotificationPermissions.guide.chrome.step3')
         ]
       }
     } else if (userAgent.includes('firefox')) {
       return {
         browser: 'Firefox',
         steps: [
-          'Clicca sull\'icona dello scudo nella barra degli indirizzi',
-          'Seleziona "Notifiche" e scegli "Consenti"',
-          'Ricarica la pagina per applicare le modifiche'
+          t('composables.useNotificationPermissions.guide.firefox.step1'),
+          t('composables.useNotificationPermissions.guide.firefox.step2'),
+          t('composables.useNotificationPermissions.guide.firefox.step3')
         ]
       }
     } else if (userAgent.includes('safari')) {
       return {
         browser: 'Safari',
         steps: [
-          'Vai in Safari > Preferenze > Siti web',
-          'Seleziona "Notifiche" nella barra laterale sinistra',
-          'Trova questo sito e scegli "Consenti"'
+          t('composables.useNotificationPermissions.guide.safari.step1'),
+          t('composables.useNotificationPermissions.guide.safari.step2'),
+          t('composables.useNotificationPermissions.guide.safari.step3')
         ]
       }
     } else if (userAgent.includes('edge')) {
       return {
         browser: 'Edge',
         steps: [
-          'Clicca sull\'icona del lucchetto nella barra degli indirizzi',
-          'Seleziona "Notifiche" e scegli "Consenti"',
-          'Ricarica la pagina per applicare le modifiche'
+          t('composables.useNotificationPermissions.guide.edge.step1'),
+          t('composables.useNotificationPermissions.guide.edge.step2'),
+          t('composables.useNotificationPermissions.guide.edge.step3')
         ]
       }
     }
@@ -176,9 +182,9 @@ export function useNotificationPermissions() {
     return {
       browser: 'Browser',
       steps: [
-        'Cerca l\'icona delle impostazioni nella barra degli indirizzi',
-        'Trova le impostazioni per le notifiche',
-        'Autorizza le notifiche per questo sito'
+        t('composables.useNotificationPermissions.guide.default.step1'),
+        t('composables.useNotificationPermissions.guide.default.step2'),
+        t('composables.useNotificationPermissions.guide.default.step3')
       ]
     }
   }

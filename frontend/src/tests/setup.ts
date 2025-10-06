@@ -1,7 +1,16 @@
 import { beforeAll, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/vue'
+import { config } from '@vue/test-utils'
+import { createMockI18n } from './i18n-test-helper'
+import { i18n } from '../i18n'
 
 beforeAll(() => {
+  // Set global i18n locale to Italian for tests (maintains compatibility with existing tests)
+  i18n.global.locale.value = 'it-IT'
+
+  // Setup global i18n plugin for all component tests
+  config.global.plugins = [createMockI18n('it-IT')]
+
   // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

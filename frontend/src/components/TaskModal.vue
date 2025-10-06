@@ -4,7 +4,7 @@
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-          {{ isEditing ? 'Modifica Attività' : 'Nuova Attività' }}
+          {{ isEditing ? t('tasks.editTask') : t('tasks.createNew') }}
         </h3>
         <button @click="closeModal" 
           class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
@@ -19,7 +19,7 @@
         <!-- Title -->
         <div>
           <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Titolo <span class="text-red-500">*</span>
+            {{ t('tasks.taskTitle') }} <span class="text-red-500">*</span>
           </label>
           <input
             id="title"
@@ -28,7 +28,7 @@
             :disabled="isFormLoading"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.title }"
-            placeholder="Inserisci il titolo dell'attività"
+            :placeholder="t('tasks.taskTitlePlaceholder')"
           />
           <p v-if="formErrors.title" class="mt-1 text-sm text-red-500">{{ formErrors.title }}</p>
         </div>
@@ -36,7 +36,7 @@
         <!-- Description -->
         <div>
           <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Descrizione
+            {{ t('tasks.description') }}
           </label>
           <textarea
             id="description"
@@ -45,7 +45,7 @@
             rows="3"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.description }"
-            placeholder="Aggiungi una descrizione (opzionale)"
+            :placeholder="t('tasks.descriptionPlaceholder')"
           />
           <p v-if="formErrors.description" class="mt-1 text-sm text-red-500">{{ formErrors.description }}</p>
         </div>
@@ -54,7 +54,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Data di inizio <span class="text-red-500">*</span>
+              {{ t('tasks.startDate') }} <span class="text-red-500">*</span>
             </label>
             <input
               id="startDate"
@@ -69,7 +69,7 @@
           
           <div>
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di inizio
+              {{ t('tasks.startTime') }}
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
                 ({{ settings.timeFormat === '24h' ? '24h: 15:30' : '12h: 3:30 PM' }})
               </span>
@@ -90,7 +90,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Data di fine <span class="text-red-500">*</span>
+              {{ t('tasks.endDate') }} <span class="text-red-500">*</span>
             </label>
             <input
               id="endDate"
@@ -105,7 +105,7 @@
           
           <div>
             <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ora di fine
+              {{ t('tasks.endTime') }}
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
                 ({{ settings.timeFormat === '24h' ? '24h: 16:00' : '12h: 4:00 PM' }})
               </span>
@@ -125,7 +125,7 @@
         <!-- Location -->
         <div>
           <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Luogo
+            {{ t('tasks.location') }}
           </label>
           <input
             id="location"
@@ -134,7 +134,7 @@
             :disabled="isFormLoading"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.location }"
-            placeholder="Inserisci il luogo (opzionale)"
+            :placeholder="t('tasks.locationPlaceholder')"
           />
           <p v-if="formErrors.location" class="mt-1 text-sm text-red-500">{{ formErrors.location }}</p>
         </div>
@@ -142,7 +142,7 @@
         <!-- Color -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Colore
+            {{ t('tasks.color') }}
           </label>
           <div class="flex flex-wrap gap-2">
             <button
@@ -170,7 +170,7 @@
         <div>
           <div class="flex items-center justify-between mb-3">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Promemoria
+              {{ t('tasks.reminders') }}
             </label>
             <button
               type="button"
@@ -181,7 +181,7 @@
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Aggiungi Promemoria
+              {{ t('tasks.addReminder') }}
             </button>
           </div>
 
@@ -192,22 +192,22 @@
                 <!-- Notification Type -->
                 <div>
                   <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tipologia
+                    {{ t('tasks.reminderType') }}
                   </label>
                   <select
                     v-model="reminder.notificationType"
                     :disabled="isFormLoading"
                     class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="PUSH">Notifica</option>
-                    <option value="EMAIL">Email</option>
+                    <option value="PUSH">{{ t('tasks.reminderTypeNotification') }}</option>
+                    <option value="EMAIL">{{ t('tasks.reminderTypeEmail') }}</option>
                   </select>
                 </div>
 
                 <!-- Offset Value -->
                 <div>
                   <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Valore
+                    {{ t('tasks.reminderValue') }}
                   </label>
                   <input
                     v-model.number="reminder.offsetValue"
@@ -221,16 +221,16 @@
                 <!-- Time Unit -->
                 <div>
                   <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Unità
+                    {{ t('tasks.reminderUnit') }}
                   </label>
                   <select
                     v-model="reminder.offsetUnit"
                     :disabled="isFormLoading"
                     class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="minutes">Minuti</option>
-                    <option value="hours">Ore</option>
-                    <option value="days">Giorni</option>
+                    <option value="minutes">{{ t('tasks.reminderUnitMinutes') }}</option>
+                    <option value="hours">{{ t('tasks.reminderUnitHours') }}</option>
+                    <option value="days">{{ t('tasks.reminderUnitDays') }}</option>
                   </select>
                 </div>
 
@@ -242,7 +242,7 @@
                     :disabled="isFormLoading"
                     class="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Rimuovi
+                    {{ t('tasks.removeReminder') }}
                   </button>
                 </div>
               </div>
@@ -267,9 +267,9 @@
             :disabled="isFormLoading"
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Annulla
+            {{ t('common.cancel') }}
           </button>
-          
+
           <button
             v-if="isEditing"
             type="button"
@@ -281,9 +281,9 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Elimina
+            {{ t('tasks.deleteTask') }}
           </button>
-          
+
           <button
             type="submit"
             :disabled="isFormLoading || !isFormValid"
@@ -293,7 +293,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ isEditing ? 'Aggiorna' : 'Crea' }} Attività
+            {{ isEditing ? t('tasks.updateTask') : t('tasks.createNew') }}
           </button>
         </div>
       </form>
@@ -303,11 +303,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
 import { useSettingsStore } from '../stores/settings'
 import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
+
+// Composables
+const { t } = useI18n()
 
 interface Props {
   show: boolean
@@ -463,9 +467,9 @@ const handleSubmit = async () => {
 
 const handleDelete = () => {
   if (!props.task) return
-  
+
   showConfirmation(
-    `Sei sicuro di voler eliminare l'attività "${props.task.title}"?`,
+    t('tasks.deleteConfirm', { title: props.task.title }),
     async () => {
       const success = await deleteTask(props.task!.id)
       if (success) {

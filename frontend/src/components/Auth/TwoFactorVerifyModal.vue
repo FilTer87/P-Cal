@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" title="Verifica Autenticazione a Due Fattori" :persistent="true">
+  <Modal v-model="isOpen" :title="$t('twoFactor.verifyTitle')" :persistent="true">
     <div class="space-y-4">
       <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
         <div class="flex">
@@ -8,11 +8,11 @@
           </svg>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-              Autenticazione a due fattori richiesta
+              {{ $t('twoFactor.verifyRequired') }}
             </h3>
             <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
               <p>
-                Inserisci il codice a 6 cifre dalla tua app di autenticazione per completare l'accesso.
+                {{ $t('twoFactor.verifyDescription') }}
               </p>
             </div>
           </div>
@@ -21,7 +21,7 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Codice di verifica *
+          {{ $t('twoFactor.verificationCodeLabel') }} *
         </label>
         <input
           v-model="code"
@@ -30,7 +30,7 @@
           pattern="[0-9]*"
           maxlength="6"
           autofocus
-          placeholder="000000"
+          :placeholder="$t('twoFactor.verificationCodePlaceholder')"
           :disabled="isLoading"
           class="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-colors"
           @input="validateCode"
@@ -48,7 +48,7 @@
           :disabled="isLoading"
           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          Annulla
+          {{ $t('common.cancel') }}
         </button>
         <button
           type="button"
@@ -57,7 +57,7 @@
           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <LoadingSpinner v-if="isLoading" class="w-4 h-4 mr-2" />
-          {{ isLoading ? 'Verificando...' : 'Verifica' }}
+          {{ isLoading ? $t('twoFactor.verifying') : $t('twoFactor.verify') }}
         </button>
       </div>
     </div>

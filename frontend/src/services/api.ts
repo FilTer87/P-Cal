@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import type { ApiResponse, ApiError } from '../types/api'
+import { i18n } from '../i18n'
 
 // Extended config for API requests with notification control
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
@@ -217,15 +218,16 @@ class ApiClient {
   }
 
   private handleError(error: any, showNotification = true): ApiError {
+    const t = i18n.global.t
     const apiError: ApiError = {
-      message: 'Si è verificato un errore imprevisto',
+      message: t('api.errors.unexpected'),
       timestamp: new Date().toISOString()
     }
 
     if (error.response) {
       // Server responded with error status
       const { data, status } = error.response
-      
+
       apiError.status = status
       apiError.message = data?.message || this.getStatusMessage(status)
       apiError.error = data?.error
@@ -238,10 +240,10 @@ class ApiClient {
       }
     } else if (error.request) {
       // Network error
-      apiError.message = 'Errore di connessione. Verifica la tua connessione internet.'
+      apiError.message = t('api.errors.networkError')
     } else {
       // Request configuration error
-      apiError.message = error.message || 'Errore nella configurazione della richiesta'
+      apiError.message = error.message || t('api.errors.configError')
     }
 
     // Show notification automatically (unless disabled)
@@ -256,21 +258,16 @@ class ApiClient {
   }
 
   private getStatusMessage(status: number): string {
-    const messages: Record<number, string> = {
-      400: 'Richiesta non valida',
-      401: 'Non autorizzato. Effettua l\'accesso.',
-      403: 'Accesso negato',
-      404: 'Risorsa non trovata',
-      409: 'Conflitto - La risorsa esiste già',
-      422: 'Dati non validi',
-      429: 'Troppe richieste. Riprova più tardi.',
-      500: 'Errore interno del server',
-      502: 'Gateway non disponibile',
-      503: 'Servizio non disponibile',
-      504: 'Timeout del gateway'
+    const t = i18n.global.t
+    const statusKey = `api.errors.status.${status}`
+
+    // Check if translation exists for this specific status
+    if (i18n.global.te(statusKey)) {
+      return t(statusKey)
     }
 
-    return messages[status] || `Errore ${status}`
+    // Return default error message with status code
+    return t('api.errors.status.default', { status })
   }
 
   // HTTP Methods

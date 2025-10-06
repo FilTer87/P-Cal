@@ -47,9 +47,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 - adapted tests to new implementations
 
 ### Security
-Content Security Policy fix using unplugin-vue-i18n (prevent 'eval()')
-
----
+Content Security Policy fix with unplugin-vue-i18n (prevent 'eval()')
 
 ## [0.10.1-beta] - 2025-10-07
 

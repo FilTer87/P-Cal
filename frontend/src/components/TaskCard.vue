@@ -8,10 +8,10 @@
     <div class="flex items-center justify-between">
       <div class="flex-1 min-w-0">
         <!-- Title and Description in one line -->
-        <p class="text-sm text-gray-900 dark:text-white truncate">
-          <p class="font-bold">{{ task.title }}</p>
-          <p v-if="task.description"><span class="text-gray-600 dark:text-gray-500">{{ task.description }}</span></p>
-        </p>
+        <div class="text-sm text-gray-900 dark:text-white">
+          <p class="font-bold truncate">{{ task.title }}</p>
+          <p v-if="task.description" class="text-gray-600 dark:text-gray-500 truncate text-xs">{{ task.description }}</p>
+        </div>
 
         <!-- Time range -->
         <div class="flex items-center justify-between mt-1">
@@ -23,7 +23,7 @@
           <BellIcon
             v-if="hasReminders"
             class="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
-            title="Ha promemoria"
+            :title="t('tasks.hasReminders')"
           />
         </div>
       </div>
@@ -33,9 +33,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BellIcon } from '@heroicons/vue/24/outline'
 import type { Task } from '../types/task'
 import { formatTime } from '../utils/dateHelpers'
+
+// Composables
+const { t } = useI18n()
 
 // Props
 interface Props {

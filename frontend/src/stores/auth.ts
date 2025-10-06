@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { 
-  User, 
-  AuthState, 
-  LoginCredentials, 
-  RegisterCredentials, 
-  AuthResponse 
+import type {
+  User,
+  AuthState,
+  LoginCredentials,
+  RegisterCredentials,
+  AuthResponse
 } from '../types/auth'
 import { authApi } from '../services/authApi'
 import { useCustomToast } from '../composables/useCustomToast'
+import { i18n } from '../i18n'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -144,7 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       setAuthData(response)
-      showSuccess('Accesso effettuato con successo!')
+      showSuccess(i18n.global.t('stores.auth.loginSuccess'))
       return true
     } catch (error: any) {
       // Check if this is a 2FA requirement (status 202)
@@ -154,7 +155,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw error
       }
 
-      const errorMessage = error.response?.data?.message || 'Errore durante l\'accesso'
+      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.loginError')
       showError(errorMessage)
       return false
     } finally {
@@ -181,7 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       setAuthData(response)
-      showSuccess('Registrazione completata con successo!')
+      showSuccess(i18n.global.t('stores.auth.registerSuccess'))
       return true
     } catch (error: any) {
       // Re-throw email verification required to be handled by the register component
@@ -189,7 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw error
       }
 
-      const errorMessage = error.response?.data?.message || 'Errore durante la registrazione'
+      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.registerError')
       showError(errorMessage)
       return false
     } finally {
@@ -206,7 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('Error during logout:', error)
     } finally {
       clearAuthData()
-      showSuccess('Disconnesso con successo!')
+      showSuccess(i18n.global.t('stores.auth.logoutSuccess'))
     }
   }
 
@@ -271,11 +272,11 @@ export const useAuthStore = defineStore('auth', () => {
       
       user.value = updatedUser
       localStorage.setItem('user', JSON.stringify(updatedUser))
-      
-      showSuccess('Profilo aggiornato con successo!')
+
+      showSuccess(i18n.global.t('stores.auth.profileUpdateSuccess'))
       return true
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Errore durante l\'aggiornamento del profilo'
+      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.profileUpdateError')
       showError(errorMessage)
       return false
     } finally {

@@ -83,7 +83,7 @@
                   'inline-flex rounded-md p-1 hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2',
                   closeButtonClasses[type]
                 ]"
-                aria-label="Chiudi notifica"
+                :aria-label="t('common.closeNotification')"
               >
                 <XMarkIcon class="h-4 w-4" />
               </button>
@@ -96,6 +96,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -104,6 +105,9 @@ import {
   BellIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'reminder'
 

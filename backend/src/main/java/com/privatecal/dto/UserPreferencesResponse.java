@@ -26,7 +26,7 @@ public class UserPreferencesResponse {
     // Constructor from User entity
     public UserPreferencesResponse(User user) {
         this.theme = user.getTheme();
-        this.language = "it"; // Default language, can be extended later
+        this.language = user.getLocale(); // User's locale preference (e.g., it-IT, en-US)
         this.timezone = user.getTimezone();
         this.timeFormat = user.getTimeFormat();
         this.calendarView = user.getCalendarView();

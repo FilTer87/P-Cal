@@ -74,8 +74,12 @@ class PasswordResetServiceTest {
         lenient().when(emailConfig.getBaseUrl()).thenReturn("http://localhost:3000");
 
         // Configure EmailTemplateBuilder mock (lenient to avoid unnecessary stubbing warnings)
+        lenient().when(templateBuilder.getPasswordResetSubject(any(User.class)))
+            .thenReturn("Password Reset - P-Cal");
         lenient().when(templateBuilder.buildPasswordResetEmail(any(User.class), anyString()))
             .thenReturn("<html>Password Reset Email</html>");
+        lenient().when(templateBuilder.getPasswordResetConfirmationSubject(any(User.class)))
+            .thenReturn("Password Reset Completed - P-Cal");
         lenient().when(templateBuilder.buildPasswordResetConfirmationEmail(any(User.class)))
             .thenReturn("<html>Password Reset Confirmation</html>");
     }
@@ -87,7 +91,7 @@ class PasswordResetServiceTest {
         when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
         when(passwordResetTokenRepository.save(any(PasswordResetToken.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
         PasswordResetResponse response = passwordResetService.forgotPassword(request);
@@ -100,7 +104,7 @@ class PasswordResetServiceTest {
         verify(userRepository).findByEmail(TEST_EMAIL);
         verify(passwordResetTokenRepository).markAllUserTokensAsUsed(testUser);
         verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -139,7 +143,7 @@ class PasswordResetServiceTest {
         when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn("newHashedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
-        when(emailService.sendEmail(anyString(), anyString(), anyString())).thenReturn(true);
+        when(emailService.sendEmail(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
         // When
         PasswordResetResponse response = passwordResetService.resetPassword(request);
@@ -153,7 +157,7 @@ class PasswordResetServiceTest {
         verify(passwordEncoder).encode(NEW_PASSWORD);
         verify(userRepository).save(testUser);
         verify(passwordResetTokenRepository).save(token);
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
 
         assertTrue(token.isUsed());
     }
@@ -216,6 +220,6 @@ class PasswordResetServiceTest {
         verify(userRepository).findByEmail(TEST_EMAIL);
         verify(passwordResetTokenRepository).markAllUserTokensAsUsed(testUser);
         verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
-        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString());
+        verify(emailService).sendEmail(eq(TEST_EMAIL), anyString(), anyString(), anyString());
     }
 }

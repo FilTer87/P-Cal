@@ -69,7 +69,7 @@
                   v-if="showCloseButton"
                   @click="close"
                   class="ml-4 inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
-                  aria-label="Chiudi"
+                  :aria-label="t('common.closeModal')"
                 >
                   <XMarkIcon class="h-5 w-5" />
                 </button>
@@ -103,7 +103,11 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted, onUnmounted, useSlots } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 

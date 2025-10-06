@@ -5,10 +5,10 @@
       <div class="flex items-center justify-between mb-6">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Impostazioni Notifiche
+            {{ t('notifications.title') }}
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Configura come ricevere i promemoria per le tue attività
+            {{ t('notifications.subtitle') }}
           </p>
         </div>
         <BellIcon class="h-6 w-6 text-gray-400" />
@@ -19,10 +19,10 @@
         <div class="flex items-center justify-between">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Abilita Notifiche
+              {{ t('notifications.enableNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Attiva o disattiva tutte le notifiche per i promemoria
+              {{ t('notifications.enableNotificationsDesc') }}
             </p>
           </div>
           <button
@@ -47,10 +47,10 @@
         <div class="flex items-center justify-between mb-3">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Notifiche Browser
+              {{ t('notifications.browserNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Mostra notifiche nel browser quando è aperto
+              {{ t('notifications.browserNotificationsDesc') }}
             </p>
           </div>
           <div class="flex items-center space-x-2">
@@ -73,7 +73,7 @@
               class="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors duration-200"
             >
               <LoadingSpinner v-if="isRequestingPermissions" size="small" class="mr-1" />
-              Richiedi Permesso
+              {{ t('notifications.requestPermission') }}
             </button>
           </div>
         </div>
@@ -84,10 +84,10 @@
         <div class="flex items-center justify-between mb-3">
           <div>
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Notifiche Push (NTFY)
+              {{ t('notifications.pushNotifications') }}
             </h4>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Ricevi notifiche anche quando il browser è chiuso
+              {{ t('notifications.pushNotificationsDesc') }}
             </p>
           </div>
           <button
@@ -110,31 +110,31 @@
         <div v-if="settings.ntfyEnabled" class="space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <div>
             <label for="ntfy-server" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Server NTFY
+              {{ t('notifications.ntfyServer') }}
             </label>
             <input
               id="ntfy-server"
               v-model="settings.ntfyServer"
               type="url"
-              placeholder="Server configurato dal sistema"
+              :placeholder="t('notifications.serverPlaceholder')"
               readonly
               class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Server NTFY configurato dal sistema (sola lettura)
+              {{ t('notifications.ntfyServerReadonly') }}
             </p>
           </div>
 
           <div>
             <label for="ntfy-topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Topic Personale
+              {{ t('notifications.personalTopic') }}
             </label>
             <div class="flex space-x-2">
               <input
                 id="ntfy-topic"
                 v-model="settings.ntfyTopic"
                 type="text"
-                placeholder="Topic generato automaticamente"
+                :placeholder="t('notifications.topicPlaceholder')"
                 class="flex-1 block rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm sm:text-sm cursor-not-allowed"
                 readonly
               />
@@ -142,14 +142,14 @@
                 @click="generateNewTopic"
                 :disabled="isUpdatingTopic || !notificationConfig"
                 class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Genera nuovo topic"
+                :title="t('notifications.generateNewTopic')"
               >
                 <LoadingSpinner v-if="isUpdatingTopic" size="small" class="h-4 w-4" />
                 <ArrowPathIcon v-else class="h-4 w-4" />
               </button>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Topic univoco per le tue notifiche (generato automaticamente)
+              {{ t('notifications.topicDescription') }}
             </p>
           </div>
 
@@ -157,17 +157,17 @@
           <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div class="flex-1">
               <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Configura l'app NTFY
+                {{ t('notifications.configureNtfy') }}
               </p>
               <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                Scannerizza il codice QR o aggiungi manualmente il topic
+                {{ t('notifications.configureNtfyDesc') }}
               </p>
             </div>
             <button
               @click="showQRCode = !showQRCode"
               class="px-3 py-1 text-xs font-medium text-blue-600 bg-white dark:bg-blue-900 rounded-md hover:bg-blue-50 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             >
-              {{ showQRCode ? 'Nascondi QR' : 'Mostra QR' }}
+              {{ showQRCode ? t('notifications.hideQR') : t('notifications.showQR') }}
             </button>
           </div>
 
@@ -184,7 +184,7 @@
                 @click="copyTopicUrl"
                 class="mt-2 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               >
-                {{ copied ? 'Copiato!' : 'Copia URL' }}
+                {{ copied ? t('notifications.copied') : t('notifications.copyUrl') }}
               </button>
             </div>
           </div>
@@ -194,7 +194,7 @@
       <!-- Test Notifications -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-          Test Notifiche
+          {{ t('notifications.testNotifications') }}
         </h4>
         <div class="flex space-x-3">
           <button
@@ -203,7 +203,7 @@
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <LoadingSpinner v-if="isTesting === 'browser'" size="small" class="mr-2" />
-            Test Browser
+            {{ t('notifications.testBrowser') }}
           </button>
           <button
             @click="testNTFYNotification"
@@ -211,7 +211,7 @@
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <LoadingSpinner v-if="isTesting === 'ntfy'" size="small" class="mr-2" />
-            Test NTFY
+            {{ t('notifications.testNtfy') }}
           </button>
         </div>
       </div>
@@ -222,7 +222,7 @@
           @click="resetSettings"
           class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
         >
-          Reset
+          {{ t('notifications.reset') }}
         </button>
         <button
           @click="saveSettings"
@@ -230,7 +230,7 @@
           class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           <LoadingSpinner v-if="isSaving" size="small" class="mr-2" />
-          Salva Impostazioni
+          {{ t('notifications.saveSettings') }}
         </button>
       </div>
     </div>
@@ -239,6 +239,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '../../composables/useAuth'
 import { useCustomToast } from '../../composables/useCustomToast'
 import { useNotificationPermissions } from '../../composables/useNotificationPermissions'
@@ -248,6 +249,9 @@ import {
   QrCodeIcon,
   ArrowPathIcon
 } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 interface NotificationSettings {
   enabled: boolean
@@ -321,7 +325,7 @@ const fetchNotificationConfig = async () => {
     }
   } catch (error) {
     console.error('Error fetching notification config:', error)
-    showError('Errore nel caricamento della configurazione notifiche')
+    showError(t('notifications.errorLoadingConfig'))
   } finally {
     isLoadingConfig.value = false
   }
@@ -361,15 +365,15 @@ const updateNtfyTopic = async (newTopic: string) => {
     if (data.success) {
       settings.value.ntfyTopic = data.topic
       await fetchSubscriptionUrl() // Refresh subscription URL
-      showSuccess('Topic NTFY aggiornato con successo!')
+      showSuccess(t('notifications.topicUpdatedSuccess'))
       return true
     } else {
-      showError(data.error || 'Errore nell\'aggiornamento del topic')
+      showError(data.error || t('notifications.errorUpdatingTopic'))
       return false
     }
   } catch (error) {
     console.error('Error updating NTFY topic:', error)
-    showError('Errore nell\'aggiornamento del topic')
+    showError(t('notifications.errorUpdatingTopic'))
     return false
   } finally {
     isUpdatingTopic.value = false
@@ -391,10 +395,10 @@ const generateNewTopic = async () => {
 
 const getBrowserPermissionLabel = (permission: NotificationPermission): string => {
   switch (permission) {
-    case 'granted': return 'Autorizzato'
-    case 'denied': return 'Negato'
-    case 'default': return 'Non richiesto'
-    default: return 'Sconosciuto'
+    case 'granted': return t('notifications.permissionGranted')
+    case 'denied': return t('notifications.permissionDenied')
+    case 'default': return t('notifications.permissionDefault')
+    default: return t('notifications.permissionDefault')
   }
 }
 
@@ -407,12 +411,12 @@ const requestBrowserPermissions = async () => {
   try {
     await requestPermission()
     if (browserPermission.value === 'granted') {
-      showSuccess('Permessi browser autorizzati!')
+      showSuccess(t('notifications.permissionGrantedSuccess'))
     } else {
-      showError('Permessi browser non autorizzati')
+      showError(t('notifications.permissionDeniedError'))
     }
   } catch (error) {
-    showError('Errore nella richiesta permessi browser')
+    showError(t('notifications.errorRequestingPermission'))
   } finally {
     isRequestingPermissions.value = false
   }
@@ -420,23 +424,23 @@ const requestBrowserPermissions = async () => {
 
 const testBrowserNotification = async () => {
   if (browserPermission.value !== 'granted') {
-    showError('Permessi browser non autorizzati')
+    showError(t('notifications.permissionDeniedError'))
     return
   }
 
   isTesting.value = 'browser'
   try {
     await sendBrowserNotification(
-      'Test Notifica Browser',
-      'Questo è un test delle notifiche browser per P-Cal',
+      t('notifications.testBrowserNotificationTitle'),
       {
+        body: t('notifications.testBrowserNotificationBody'),
         icon: '/favicon.ico',
         tag: 'test-notification'
       }
     )
-    showSuccess('Notifica browser inviata!')
+    showSuccess(t('notifications.browserNotificationSent'))
   } catch (error) {
-    showError('Errore nell\'invio della notifica browser')
+    showError(t('notifications.errorSendingBrowserNotification'))
   } finally {
     isTesting.value = null
   }
@@ -444,7 +448,7 @@ const testBrowserNotification = async () => {
 
 const testNTFYNotification = async () => {
   if (!canTestNTFY.value) {
-    showError('Configurazione NTFY non disponibile')
+    showError(t('notifications.ntfyConfigNotAvailable'))
     return
   }
 
@@ -457,20 +461,20 @@ const testNTFYNotification = async () => {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       },
       body: JSON.stringify({
-        type: 'PUSH',
-        message: 'Questo è un test delle notifiche NTFY per P-Cal! 🧪'
+        type: 'PUSH'
+        // No custom message - let backend use localized default
       })
     })
 
     const data = await response.json()
     if (data.success) {
-      showSuccess('Notifica NTFY inviata con successo!')
+      showSuccess(t('notifications.ntfyNotificationSentSuccess'))
     } else {
-      showError(data.error || 'Errore nell\'invio della notifica NTFY')
+      showError(data.error || t('notifications.errorSendingNtfyNotification'))
     }
   } catch (error) {
     console.error('NTFY test error:', error)
-    showError('Errore nell\'invio della notifica NTFY')
+    showError(t('notifications.errorSendingNtfyNotification'))
   } finally {
     isTesting.value = null
   }
@@ -480,12 +484,12 @@ const copyTopicUrl = async () => {
   try {
     await navigator.clipboard.writeText(ntfySubscriptionUrl.value)
     copied.value = true
-    showSuccess('URL copiato negli appunti!')
+    showSuccess(t('notifications.urlCopiedSuccess'))
     setTimeout(() => {
       copied.value = false
     }, 3000)
   } catch (error) {
-    showError('Errore nella copia dell\'URL')
+    showError(t('notifications.errorCopyingUrl'))
   }
 }
 
@@ -498,9 +502,9 @@ const saveSettings = async () => {
       browserEnabled: settings.value.browserEnabled
     }
     localStorage.setItem('notificationSettings', JSON.stringify(browserSettings))
-    showSuccess('Impostazioni salvate con successo!')
+    showSuccess(t('notifications.settingsSavedSuccess'))
   } catch (error) {
-    showError('Errore nel salvataggio delle impostazioni')
+    showError(t('notifications.errorSavingSettings'))
   } finally {
     isSaving.value = false
   }
@@ -535,7 +539,7 @@ const resetSettings = async () => {
 
   localStorage.removeItem('notificationSettings')
   await loadSettings()
-  showSuccess('Impostazioni ripristinate')
+  showSuccess(t('notifications.settingsReset'))
 }
 
 // Lifecycle

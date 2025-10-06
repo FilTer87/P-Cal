@@ -1,7 +1,7 @@
 <template>
   <div v-if="password" class="mt-2">
     <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">
-      Sicurezza password:
+      {{ $t('password.checkPasswordStrength') }}:
     </div>
     <div class="flex space-x-1">
       <div

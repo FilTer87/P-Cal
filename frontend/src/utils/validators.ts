@@ -1,4 +1,5 @@
 import { isValidDate, isValidDateString, isValidTimeString } from './dateHelpers'
+import { i18n } from '../i18n'
 
 export interface ValidationResult {
   isValid: boolean
@@ -11,57 +12,79 @@ export interface FormValidationResult {
 }
 
 /**
- * Basic validation rules
+ * Basic validation rules with i18n support
  */
 export const rules = {
-  required: (value: any): ValidationResult => ({
-    isValid: value !== null && value !== undefined && value !== '',
-    message: 'Questo campo è obbligatorio'
-  }),
+  required: (value: any): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value !== null && value !== undefined && value !== '',
+      message: t('validation.required')
+    }
+  },
 
   email: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return {
       isValid: emailRegex.test(value),
-      message: 'Inserisci un indirizzo email valido'
+      message: t('validation.email')
     }
   },
 
-  minLength: (length: number) => (value: string): ValidationResult => ({
-    isValid: !value || value.length >= length,
-    message: `Deve contenere almeno ${length} caratteri`
-  }),
+  minLength: (length: number) => (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || value.length >= length,
+      message: t('validation.minLength', { length })
+    }
+  },
 
-  maxLength: (length: number) => (value: string): ValidationResult => ({
-    isValid: !value || value.length <= length,
-    message: `Non può superare i ${length} caratteri`
-  }),
+  maxLength: (length: number) => (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || value.length <= length,
+      message: t('validation.maxLength', { length })
+    }
+  },
 
   pattern: (regex: RegExp, message: string) => (value: string): ValidationResult => ({
     isValid: !value || regex.test(value),
     message
   }),
 
-  numeric: (value: string): ValidationResult => ({
-    isValid: !value || /^\d+$/.test(value),
-    message: 'Deve contenere solo numeri'
-  }),
+  numeric: (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || /^\d+$/.test(value),
+      message: t('validation.numeric')
+    }
+  },
 
-  alphanumeric: (value: string): ValidationResult => ({
-    isValid: !value || /^[a-zA-Z0-9]+$/.test(value),
-    message: 'Deve contenere solo lettere e numeri'
-  }),
+  alphanumeric: (value: string): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: !value || /^[a-zA-Z0-9]+$/.test(value),
+      message: t('validation.alphanumeric')
+    }
+  },
 
-  minValue: (min: number) => (value: number): ValidationResult => ({
-    isValid: value == null || value >= min,
-    message: `Il valore deve essere almeno ${min}`
-  }),
+  minValue: (min: number) => (value: number): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value == null || value >= min,
+      message: t('validation.minValue', { min })
+    }
+  },
 
-  maxValue: (max: number) => (value: number): ValidationResult => ({
-    isValid: value == null || value <= max,
-    message: `Il valore non può superare ${max}`
-  }),
+  maxValue: (max: number) => (value: number): ValidationResult => {
+    const { t } = i18n.global
+    return {
+      isValid: value == null || value <= max,
+      message: t('validation.maxValue', { max })
+    }
+  },
 
   date: (value: string): ValidationResult => ({
     isValid: !value || isValidDateString(value),
@@ -74,6 +97,7 @@ export const rules = {
   }),
 
   url: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     try {
       new URL(value)
@@ -81,17 +105,18 @@ export const rules = {
     } catch {
       return {
         isValid: false,
-        message: 'Inserisci un URL valido'
+        message: t('validation.url')
       }
     }
   },
 
   phone: (value: string): ValidationResult => {
+    const { t } = i18n.global
     if (!value) return { isValid: true }
     const phoneRegex = /^[\+]?[1-9][\d]{5,15}$/
     return {
       isValid: phoneRegex.test(value.replace(/\s/g, '')),
-      message: 'Inserisci un numero di telefono valido'
+      message: t('validation.phone')
     }
   },
 
@@ -106,99 +131,106 @@ export const rules = {
  */
 export const authValidators = {
   username: (username: string): ValidationResult => {
+    const { t } = i18n.global
     const trimmed = username?.trim()
-    
+
     if (!trimmed) {
-      return { isValid: false, message: 'Nome utente è obbligatorio' }
+      return { isValid: false, message: t('validation.auth.usernameRequired') }
     }
-    
+
     if (trimmed.length < 3) {
-      return { isValid: false, message: 'Nome utente deve avere almeno 3 caratteri' }
+      return { isValid: false, message: t('validation.auth.usernameMinLength', { min: 3 }) }
     }
-    
+
     if (trimmed.length > 50) {
-      return { isValid: false, message: 'Nome utente non può superare i 50 caratteri' }
+      return { isValid: false, message: t('validation.auth.usernameMaxLength', { max: 50 }) }
     }
-    
+
     if (!/^[a-zA-Z0-9_.-]+$/.test(trimmed)) {
-      return { isValid: false, message: 'Nome utente può contenere solo lettere, numeri, underscore, punti e trattini' }
+      return { isValid: false, message: t('validation.auth.usernameInvalidChars') }
     }
-    
+
     return { isValid: true }
   },
 
   password: (password: string): ValidationResult => {
+    const { t } = i18n.global
+
     if (!password) {
-      return { isValid: false, message: 'Password è obbligatoria' }
+      return { isValid: false, message: t('validation.auth.passwordRequired') }
     }
 
     if (password.length < 8) {
-      return { isValid: false, message: 'Password deve avere almeno 8 caratteri' }
+      return { isValid: false, message: t('validation.auth.passwordMinLength', { min: 8 }) }
     }
 
     if (password.length > 128) {
-      return { isValid: false, message: 'Password non può superare i 128 caratteri' }
+      return { isValid: false, message: t('validation.auth.passwordMaxLength', { max: 128 }) }
     }
 
     if (!/(?=.*[a-z])/.test(password)) {
-      return { isValid: false, message: 'Password deve contenere almeno una lettera minuscola' }
+      return { isValid: false, message: t('validation.auth.passwordLowercase') }
     }
 
     if (!/(?=.*[A-Z])/.test(password)) {
-      return { isValid: false, message: 'Password deve contenere almeno una lettera maiuscola' }
+      return { isValid: false, message: t('validation.auth.passwordUppercase') }
     }
 
     if (!/(?=.*\d)/.test(password)) {
-      return { isValid: false, message: 'Password deve contenere almeno un numero' }
+      return { isValid: false, message: t('validation.auth.passwordNumber') }
     }
 
     return { isValid: true }
   },
 
   confirmPassword: (password: string, confirmPassword: string): ValidationResult => {
+    const { t } = i18n.global
+
     if (!confirmPassword) {
-      return { isValid: false, message: 'Conferma password è obbligatoria' }
+      return { isValid: false, message: t('validation.auth.confirmPasswordRequired') }
     }
-    
+
     if (password !== confirmPassword) {
-      return { isValid: false, message: 'Le password non corrispondono' }
+      return { isValid: false, message: t('validation.auth.confirmPasswordMismatch') }
     }
-    
+
     return { isValid: true }
   },
 
   email: (email: string): ValidationResult => {
+    const { t } = i18n.global
     const trimmed = email?.trim()
-    
+
     if (!trimmed) {
-      return { isValid: false, message: 'Email è obbligatoria' }
+      return { isValid: false, message: t('validation.auth.emailRequired') }
     }
-    
+
     if (trimmed.length > 255) {
-      return { isValid: false, message: 'Email non può superare i 255 caratteri' }
+      return { isValid: false, message: t('validation.auth.emailMaxLength', { max: 255 }) }
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(trimmed)) {
-      return { isValid: false, message: 'Inserisci un indirizzo email valido' }
+      return { isValid: false, message: t('validation.auth.emailInvalid') }
     }
-    
+
     return { isValid: true }
   },
 
   name: (name: string): ValidationResult => {
+    const { t } = i18n.global
     if (!name) return { isValid: true } // Name is optional
-    
+
     const trimmed = name.trim()
-    
+
     if (trimmed.length > 100) {
-      return { isValid: false, message: 'Nome non può superare i 100 caratteri' }
+      return { isValid: false, message: t('validation.auth.nameMaxLength', { max: 100 }) }
     }
-    
+
     if (!/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð\s'-]+$/.test(trimmed)) {
-      return { isValid: false, message: 'Nome può contenere solo lettere, spazi, apostrofi e trattini' }
+      return { isValid: false, message: t('validation.auth.nameInvalidChars') }
     }
-    
+
     return { isValid: true }
   }
 }
@@ -208,79 +240,86 @@ export const authValidators = {
  */
 export const taskValidators = {
   title: (title: string): ValidationResult => {
+    const { t } = i18n.global
     const trimmed = title?.trim()
-    
+
     if (!trimmed) {
-      return { isValid: false, message: 'Titolo è obbligatorio' }
+      return { isValid: false, message: t('validation.task.titleRequired') }
     }
-    
+
     if (trimmed.length > 255) {
-      return { isValid: false, message: 'Titolo non può superare i 255 caratteri' }
+      return { isValid: false, message: t('validation.task.titleMaxLength', { max: 255 }) }
     }
-    
+
     return { isValid: true }
   },
 
   description: (description: string): ValidationResult => {
+    const { t } = i18n.global
     if (!description) return { isValid: true } // Description is optional
-    
+
     if (description.length > 1000) {
-      return { isValid: false, message: 'Descrizione non può superare i 1000 caratteri' }
+      return { isValid: false, message: t('validation.task.descriptionMaxLength', { max: 1000 }) }
     }
-    
+
     return { isValid: true }
   },
 
   priority: (priority: string): ValidationResult => {
+    const { t } = i18n.global
     const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
-    
+
     if (!priority) {
-      return { isValid: false, message: 'Priorità è obbligatoria' }
+      return { isValid: false, message: t('validation.task.priorityRequired') }
     }
-    
+
     if (!validPriorities.includes(priority)) {
-      return { isValid: false, message: 'Priorità non valida' }
+      return { isValid: false, message: t('validation.task.priorityInvalid') }
     }
-    
+
     return { isValid: true }
   },
 
   dueDate: (dueDate: string): ValidationResult => {
+    const { t } = i18n.global
     if (!dueDate) return { isValid: true } // Due date is optional
-    
+
     if (!isValidDateString(dueDate)) {
-      return { isValid: false, message: 'Data di scadenza non valida' }
+      return { isValid: false, message: t('validation.task.dueDateInvalid') }
     }
-    
+
     return { isValid: true }
   },
 
   dueTime: (dueTime: string): ValidationResult => {
+    const { t } = i18n.global
     if (!dueTime) return { isValid: true } // Due time is optional
-    
+
     if (!isValidTimeString(dueTime)) {
-      return { isValid: false, message: 'Orario non valido (formato HH:MM)' }
+      return { isValid: false, message: t('validation.task.dueTimeInvalid') }
     }
-    
+
     return { isValid: true }
   },
 
   reminderDateTime: (reminderDateTime: string): ValidationResult => {
+    const { t } = i18n.global
+
     if (!reminderDateTime) {
-      return { isValid: false, message: 'Data e ora del promemoria sono obbligatorie' }
+      return { isValid: false, message: t('validation.reminder.dateRequired') }
     }
-    
+
     if (!isValidDate(reminderDateTime)) {
-      return { isValid: false, message: 'Data e ora del promemoria non valide' }
+      return { isValid: false, message: t('validation.reminder.dateInvalid') }
     }
-    
+
     const reminderDate = new Date(reminderDateTime)
     const now = new Date()
-    
+
     if (reminderDate <= now) {
-      return { isValid: false, message: 'Il promemoria deve essere impostato per il futuro' }
+      return { isValid: false, message: t('validation.reminder.timeFuture') }
     }
-    
+
     return { isValid: true }
   }
 }
@@ -314,16 +353,17 @@ export const validateLoginForm = (data: {
   username: string
   password: string
 }): FormValidationResult => {
+  const { t } = i18n.global
   return validateForm(data, {
     username: (value: string) => {
       if (!value?.trim()) {
-        return { isValid: false, message: 'Nome utente è obbligatorio' }
+        return { isValid: false, message: t('validation.auth.usernameRequired') }
       }
       return { isValid: true }
     },
     password: (value: string) => {
       if (!value) {
-        return { isValid: false, message: 'Password è obbligatoria' }
+        return { isValid: false, message: t('validation.auth.passwordRequired') }
       }
       return { isValid: true }
     }
@@ -567,18 +607,19 @@ export const checkPasswordStrength = (password: string): {
   feedback: string[]
   isStrong: boolean
 } => {
+  const { t } = i18n.global
   const feedback: string[] = []
   let score = 0
 
   if (!password) {
-    return { score: 0, feedback: ['Password è obbligatoria'], isStrong: false }
+    return { score: 0, feedback: [t('password.strength.required')], isStrong: false }
   }
 
   // Length check
   if (password.length >= 8) {
     score += 1
   } else {
-    feedback.push('Almeno 8 caratteri')
+    feedback.push(t('password.strength.tooShort', { min: 8 }))
   }
 
   if (password.length >= 12) {
@@ -589,36 +630,36 @@ export const checkPasswordStrength = (password: string): {
   if (/[a-z]/.test(password)) {
     score += 1
   } else {
-    feedback.push('Almeno una lettera minuscola')
+    feedback.push(t('password.strength.missingLowercase'))
   }
 
   if (/[A-Z]/.test(password)) {
     score += 1
   } else {
-    feedback.push('Almeno una lettera maiuscola')
+    feedback.push(t('password.strength.missingUppercase'))
   }
 
   if (/\d/.test(password)) {
     score += 1
   } else {
-    feedback.push('Almeno un numero')
+    feedback.push(t('password.strength.missingNumber'))
   }
 
   if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
     score += 1
   } else {
-    feedback.push('Caratteri speciali per maggiore sicurezza')
+    feedback.push(t('password.strength.missingSpecial'))
   }
 
   // Common patterns to avoid
   if (/(.)\1{2,}/.test(password)) {
     score -= 1
-    feedback.push('Evita sequenze di caratteri ripetuti')
+    feedback.push(t('password.strength.repeatedChars'))
   }
 
   if (/123|abc|qwe|asd/i.test(password)) {
     score -= 1
-    feedback.push('Evita sequenze comuni di caratteri')
+    feedback.push(t('password.strength.commonSequences'))
   }
 
   const isStrong = score >= 5 && password.length >= 8

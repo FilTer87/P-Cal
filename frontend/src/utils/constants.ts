@@ -1,38 +1,41 @@
 import { CalendarView } from '../types/calendar'
 
 /**
- * Calendar views
+ * Calendar views configuration
+ * Note: Labels are now i18n keys, use t('calendar.views.month') etc. in components
  */
-export const CALENDAR_VIEWS: { value: CalendarView; label: string; icon: string; shortcut: string }[] = [
+export const CALENDAR_VIEWS: { value: CalendarView; labelKey: string; icon: string; shortcut: string }[] = [
   {
     value: CalendarView.MONTH,
-    label: 'Mese',
+    labelKey: 'calendar.views.month',
     icon: 'CalendarIcon',
     shortcut: 'M'
   },
   {
     value: CalendarView.WEEK,
-    label: 'Settimana',
+    labelKey: 'calendar.views.week',
     icon: 'CalendarDaysIcon',
     shortcut: 'W'
   },
   {
     value: CalendarView.DAY,
-    label: 'Giorno',
+    labelKey: 'calendar.views.day',
     icon: 'ClockIcon',
     shortcut: 'D'
   },
   {
     value: CalendarView.AGENDA,
-    label: 'Agenda',
+    labelKey: 'calendar.views.agenda',
     icon: 'ListBulletIcon',
     shortcut: 'A'
   }
 ] as const
 
 /**
- * Italian locale strings
- * Note: weekdaysShort and weekdaysMin are now generated dynamically based on user settings
+ * @deprecated LOCALE_STRINGS is deprecated. Use i18n keys instead:
+ * - For dates: use date-fns with locale from i18n
+ * - For text: use t('dateTime.today'), t('dateTime.yesterday'), etc.
+ * This will be removed in a future version.
  */
 export const LOCALE_STRINGS = {
   months: [

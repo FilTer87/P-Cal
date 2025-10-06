@@ -45,7 +45,7 @@
       <div v-if="details" class="text-center">
         <details class="text-left">
           <summary class="cursor-pointer text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-            Mostra dettagli
+            {{ t('common.showDetails') }}
           </summary>
           <div class="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
             <pre class="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ details }}</pre>
@@ -62,7 +62,7 @@
           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
         />
         <label for="confirm-checkbox" class="text-sm text-gray-600 dark:text-gray-300">
-          {{ confirmationText || 'Confermo di voler procedere' }}
+          {{ displayConfirmationText }}
         </label>
       </div>
     </div>
@@ -74,9 +74,9 @@
         :disabled="isProcessing"
         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
       >
-        {{ cancelText }}
+        {{ displayCancelText }}
       </button>
-      
+
       <button
         @click="handleConfirm"
         :disabled="isProcessing || (requireConfirmation && !isConfirmed)"
@@ -92,7 +92,7 @@
           color="white"
           class="mr-2"
         />
-        {{ isProcessing ? processingText : confirmText }}
+        {{ isProcessing ? displayProcessingText : displayConfirmText }}
       </button>
     </template>
   </Modal>
@@ -100,6 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Modal from './Modal.vue'
 import LoadingSpinner from './LoadingSpinner.vue'
 import {
@@ -107,6 +108,9 @@ import {
   QuestionMarkCircleIcon,
   InformationCircleIcon
 } from '@heroicons/vue/24/outline'
+
+// i18n
+const { t } = useI18n()
 
 export type ConfirmVariant = 'default' | 'danger' | 'warning'
 
@@ -132,12 +136,18 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
-  confirmText: 'Conferma',
-  cancelText: 'Annulla',
-  processingText: 'Elaborazione...',
+  confirmText: undefined,
+  cancelText: undefined,
+  processingText: undefined,
   requireConfirmation: false,
   isProcessing: false
 })
+
+// Computed properties for default text values with i18n
+const displayConfirmText = computed(() => props.confirmText || t('common.confirm'))
+const displayCancelText = computed(() => props.cancelText || t('common.cancel'))
+const displayProcessingText = computed(() => props.processingText || t('common.processing'))
+const displayConfirmationText = computed(() => props.confirmationText || t('common.confirmProceed'))
 
 const emit = defineEmits<Emits>()
 

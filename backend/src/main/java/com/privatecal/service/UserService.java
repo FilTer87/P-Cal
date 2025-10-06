@@ -386,6 +386,10 @@ public class UserService {
             user.setTheme(preferencesRequest.getTheme());
         }
 
+        if (preferencesRequest.getLanguage() != null) {
+            user.setLocale(preferencesRequest.getLanguage());
+        }
+
         if (preferencesRequest.getTimezone() != null) {
             user.setTimezone(preferencesRequest.getTimezone().trim());
         }

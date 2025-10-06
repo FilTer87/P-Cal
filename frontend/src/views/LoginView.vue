@@ -4,21 +4,21 @@
       <div class="text-center">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white">P-Cal</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Il tuo calendario personale
+          {{ $t('auth.tagline') }}
         </p>
       </div>
       
       <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <h2 class="mb-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Accedi al tuo account
+            {{ $t('auth.loginTitle') }}
           </h2>
-          
+
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <!-- Username Field -->
             <div>
               <label for="username" class="label">
-                Nome utente
+                {{ $t('auth.username') }}
               </label>
               <div class="mt-1">
                 <input
@@ -29,7 +29,7 @@
                   required
                   class="input"
                   :class="{ 'input-error': errors.username }"
-                  placeholder="Inserisci il tuo nome utente"
+                  :placeholder="$t('auth.usernamePlaceholder')"
                 />
               </div>
               <p v-if="errors.username" class="error-message">
@@ -40,7 +40,7 @@
             <!-- Password Field -->
             <div>
               <label for="password" class="label">
-                Password
+                {{ $t('auth.password') }}
               </label>
               <div class="mt-1 relative">
                 <input
@@ -51,7 +51,7 @@
                   required
                   class="input pr-10"
                   :class="{ 'input-error': errors.password }"
-                  placeholder="Inserisci la tua password"
+                  :placeholder="$t('auth.passwordPlaceholder')"
                 />
                 <button
                   type="button"
@@ -83,7 +83,7 @@
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
                 />
                 <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                  Ricordami
+                  {{ $t('auth.rememberMe') }}
                 </label>
               </div>
 
@@ -93,7 +93,7 @@
                   class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                   @click.prevent="showForgotPassword"
                 >
-                  Password dimenticata?
+                  {{ $t('auth.forgotPassword') }}
                 </a>
               </div>
             </div>
@@ -106,7 +106,7 @@
                 class="btn btn-primary w-full"
               >
                 <div v-if="isLoading" class="loading-spinner"></div>
-                {{ isLoading ? 'Accesso in corso...' : 'Accedi' }}
+                {{ isLoading ? $t('auth.loggingIn') : $t('auth.login') }}
               </button>
             </div>
 
@@ -131,7 +131,7 @@
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  oppure
+                  {{ $t('auth.or') }}
                 </span>
               </div>
             </div>
@@ -140,12 +140,12 @@
           <!-- Register Link -->
           <div class="mt-6 text-center">
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Non hai un account?
+              {{ $t('auth.noAccount') }}
               <router-link
                 to="/register"
                 class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                Registrati
+                {{ $t('auth.register') }}
               </router-link>
             </p>
           </div>
@@ -155,7 +155,7 @@
             <button
               @click="toggleTheme"
               class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
-              :title="`Cambia tema: ${themeName}`"
+              :title="$t('auth.changeTheme', { theme: themeName })"
             >
               <SunIcon v-if="isDarkMode" class="h-5 w-5" />
               <MoonIcon v-else class="h-5 w-5" />
@@ -171,7 +171,7 @@
       <p class="mt-1">
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Privacy</a>
         ·
-        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Termini</a>
+        <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Terms</a>
         <!-- ·
         <a href="#" class="hover:text-gray-600 dark:hover:text-gray-300">Supporto</a> --> <!-- TODO -->
       </p>
@@ -195,6 +195,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -212,6 +213,7 @@ import ForgotPasswordModal from '../components/Auth/ForgotPasswordModal.vue'
 import type { LoginFormData } from '../types/auth'
 
 // Composables
+const { t } = useI18n()
 const router = useRouter()
 const { login, isLoading, requireGuest } = useAuth()
 const { isDarkMode, themeName, toggleTheme } = useTheme()
@@ -249,7 +251,7 @@ const showForgotPassword = () => {
 }
 
 const handleForgotPasswordSuccess = () => {
-  showSuccess('Email di reset inviata! Controlla la tua casella di posta.')
+  showSuccess(t('auth.resetEmailSent'))
 }
 
 const validateForm = () => {
@@ -290,7 +292,7 @@ const handleSubmit = async () => {
       return
     }
 
-    generalError.value = 'Nome utente o password non corretti'
+    generalError.value = t('auth.invalidCredentials')
   } catch (error: any) {
     console.error('Login error:', error)
 
@@ -302,7 +304,7 @@ const handleSubmit = async () => {
       return
     }
 
-    generalError.value = error.message || 'Errore durante l\'accesso'
+    generalError.value = error.message || t('auth.loginError')
   }
 }
 
@@ -324,12 +326,12 @@ const handleTwoFactorVerify = async (code: string) => {
       showTwoFactorModal.value = false
       pendingCredentials.value = null
     } else {
-      twoFactorModalRef.value.setError('Codice di verifica non valido')
+      twoFactorModalRef.value.setError(t('auth.invalidTwoFactorCode'))
     }
   } catch (error: any) {
     console.error('2FA verification error:', error)
     twoFactorModalRef.value.setError(
-      error.response?.data?.message || 'Codice di verifica non valido'
+      error.response?.data?.message || t('auth.invalidTwoFactorCode')
     )
   } finally {
     twoFactorModalRef.value.setLoading(false)

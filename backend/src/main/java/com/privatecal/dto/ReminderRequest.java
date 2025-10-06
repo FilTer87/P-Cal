@@ -1,6 +1,5 @@
 package com.privatecal.dto;
 
-import com.privatecal.entity.Reminder;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 

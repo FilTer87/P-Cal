@@ -2,9 +2,9 @@ import { computed, ref, watch } from 'vue'
 import { useCalendarStore } from '../stores/calendar'
 import { useTasksStore } from '../stores/tasks'
 import { useSettingsStore } from '../stores/settings'
-import { format, addDays, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
+import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { it } from 'date-fns/locale'
-import type { CalendarView, CalendarDate, CalendarWeek, CalendarMonth } from '../types/calendar'
+import type { CalendarView } from '../types/calendar'
 import type { Task } from '../types/task'
 
 export function useCalendar() {
@@ -288,48 +288,6 @@ export function useCalendar() {
     }
   }
 
-  // Statistics
-  const getCalendarStats = () => {
-    const range = viewDateRange.value
-    if (!range) return null
-
-    const tasks = tasksStore.tasks.filter(task => {
-      if (!task.dueDate) return false
-      const taskDate = new Date(task.dueDate)
-      return taskDate >= range.start && taskDate <= range.end
-    })
-
-    return {
-      totalTasks: tasks.length
-    }
-  }
-
-  // Export functionality
-  const exportCalendarData = () => {
-    const range = viewDateRange.value
-    if (!range) return null
-
-    const tasks = tasksStore.tasks.filter(task => {
-      if (!task.dueDate) return false
-      const taskDate = new Date(task.dueDate)
-      return taskDate >= range.start && taskDate <= range.end
-    })
-
-    return {
-      startDate: format(range.start, 'yyyy-MM-dd'),
-      endDate: format(range.end, 'yyyy-MM-dd'),
-      viewMode: viewMode.value,
-      tasks: tasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        dueDate: task.dueDate,
-        reminders: task.reminders.length
-      }))
-    }
-  }
-
   return {
     // State
     showTaskModal,
@@ -407,12 +365,6 @@ export function useCalendar() {
     getMonthRange,
 
     // Keyboard shortcuts
-    handleKeyboardNavigation,
-
-    // Statistics
-    getCalendarStats,
-
-    // Export
-    exportCalendarData
+    handleKeyboardNavigation
   }
 }

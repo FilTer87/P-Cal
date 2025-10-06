@@ -9,7 +9,7 @@
             <!-- Mobile Sidebar Toggle -->
             <button @click="showMobileSidebar = !showMobileSidebar"
               class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
-              title="Toggle menu">
+              :title="t('calendar.navigation.toggleMenu')">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -31,8 +31,8 @@
                 class="px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded transition-colors" :class="{
                   'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm': viewMode === view.value,
                   'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white': viewMode !== view.value
-                }" :title="`${view.label} (${view.shortcut})`">
-                {{ view.label }}
+                }" :title="`${t(view.labelKey)} (${view.shortcut})`">
+                {{ t(view.labelKey) }}
               </button>
             </div>
 
@@ -41,7 +41,7 @@
               <select :value="viewMode" @change="setViewMode($event.target.value)"
                 class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 text-sm rounded-md border-0 focus:ring-2 focus:ring-blue-500">
                 <option v-for="view in CALENDAR_VIEWS" :key="view.value" :value="view.value">
-                  {{ view.label }}
+                  {{ t(view.labelKey) }}
                 </option>
               </select>
             </div>
@@ -50,20 +50,20 @@
             <div class="flex items-center space-x-1">
               <button @click="navigatePrevious"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo precedente (Ctrl + ←)">
+                :title="t('calendar.navigation.previousPeriod')">
                 <ChevronLeftIcon class="h-5 w-5" />
               </button>
 
               <button @click="goToToday"
                 class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Vai a oggi (Ctrl + T)">
-                <span class="hidden sm:inline">Oggi</span>
+                :title="t('calendar.navigation.goToToday')">
+                <span class="hidden sm:inline">{{ t('calendar.today') }}</span>
                 <span class="sm:hidden">•</span>
               </button>
 
               <button @click="navigateNext"
                 class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                title="Periodo successivo (Ctrl + →)">
+                :title="t('calendar.navigation.nextPeriod')">
                 <ChevronRightIcon class="h-5 w-5" />
               </button>
             </div>
@@ -100,10 +100,10 @@
           <div class="flex items-center justify-between">
             <div v-if="isAgendaView">
               <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
-                Agenda
+                {{ t('calendar.views.agenda') }}
               </h2>
               <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Visualizza le attività dei prossimi {{ agendaDays }} giorni
+                {{ t('calendar.agendaDescription', { days: agendaDays }) }}
               </p>
             </div>
             <h2 v-else class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
@@ -122,54 +122,15 @@
         <!-- Calendar Content -->
         <div class="flex-1 p-2 md:p-4 overflow-auto">
           <!-- Month View -->
-          <div v-if="isMonthView" class="calendar-grid-mobile md:calendar-grid">
-            <!-- Week Days Header -->
-            <div v-for="day in settings.weekdaysShort" :key="day" class="calendar-day-header">
-              {{ day }}
-            </div>
-
-            <!-- Calendar Days -->
-            <div v-for="day in calendarDays" :key="day.date.getTime()" @click="selectDate(day.date)"
-              @dblclick="openCreateTaskModalWithDate(day.date)"
-              class="calendar-day min-h-20 md:min-h-32 cursor-pointer transition-colors p-1 md:p-2" :class="{
-                'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-400': day.isSelected,
-                'bg-yellow-50 dark:bg-yellow-900/20': day.isToday && !day.isSelected,
-                'text-gray-400 dark:text-gray-600': !day.isCurrentMonth,
-                'hover:bg-gray-100 dark:hover:bg-gray-700': !day.isSelected && !day.isToday
-              }">
-              <!-- Day Number -->
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium" :class="{
-                  'text-blue-600 dark:text-blue-400': day.isSelected,
-                  'text-yellow-700 dark:text-yellow-300': day.isToday && !day.isSelected,
-                  'text-gray-900 dark:text-white': day.isCurrentMonth && !day.isToday && !day.isSelected,
-                  'text-gray-400 dark:text-gray-600': !day.isCurrentMonth
-                }">
-                  {{ day.dayOfMonth }}
-                </span>
-                <div v-if="day.tasks && day.tasks.length > 0" class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ day.tasks.length }}
-                </div>
-              </div>
-
-              <!-- Tasks -->
-              <div class="space-y-1">
-                <div v-for="task in (day.tasks || []).slice(0, 3)" :key="task.id"
-                  @click.stop="openTaskModal(getTaskById(task.id)!)"
-                  class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
-                  :class="getTaskDisplayClasses(task)"
-                  :style="getTaskDisplayStyle(task)">
-                  {{ task.title }}
-                </div>
-                <button
-                  v-if="day.tasks && day.tasks.length > 3"
-                  @click.stop="openDayView(day.date)"
-                  class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1 hover:underline transition-colors">
-                  +{{ day.tasks.length - 3 }} altro/i
-                </button>
-              </div>
-            </div>
-          </div>
+          <MonthView
+            v-if="isMonthView"
+            :calendar-days="calendarDays"
+            :selected-date="selectedDate"
+            @select-date="selectDate"
+            @task-click="handleMonthViewTaskClick"
+            @create-task="openCreateTaskModalWithDate"
+            @open-day-view="openDayView"
+          />
 
           <!-- Week View -->
           <WeekView 
@@ -185,142 +146,42 @@
           />
 
           <!-- Day View -->
-          <div v-else-if="isDayView" class="h-full">
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <h3 class="font-medium text-gray-900 dark:text-white mb-3">
-                {{ getDayName(currentDate) }}, {{ formatDate(currentDate) }}
-              </h3>
-
-              <div class="space-y-2">
-                <!-- Current/Future Tasks -->
-                <div v-if="currentDayTasks.length > 0" class="space-y-2">
-                  <TaskCard
-                    v-for="task in currentDayTasks"
-                    :key="task.id"
-                    :task="task"
-                    :task-display-classes="getTaskDisplayClasses(task)"
-                    :task-display-style="getTaskDisplayStyle(task)"
-                    @click="openTaskModal"
-                  />
-                </div>
-
-                <!-- Separator and Past Tasks -->
-                <div v-if="pastDayTasks.length > 0">
-                  <!-- Clickable Separator line -->
-                  <div
-                    class="flex items-center my-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md py-2 transition-colors"
-                    @click="togglePastTasks"
-                  >
-                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
-                    <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
-                      Attività completate ({{ pastDayTasks.length }})
-                      <ChevronDownIcon
-                        class="h-4 w-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': showPastTasks }"
-                      />
-                    </span>
-                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
-                  </div>
-
-                  <!-- Collapsible Past Tasks -->
-                  <div v-show="showPastTasks" class="space-y-2">
-                    <TaskCard
-                      v-for="task in pastDayTasks"
-                      :key="task.id"
-                      :task="task"
-                      :task-display-classes="getTaskDisplayClasses(task)"
-                      :task-display-style="getTaskDisplayStyle(task)"
-                      @click="openTaskModal"
-                    />
-                  </div>
-                </div>
-
-                <!-- Empty state -->
-                <div v-if="currentDayTasks.length === 0 && pastDayTasks.length === 0" class="text-center py-8">
-                  <p class="text-gray-500 dark:text-gray-400">
-                    Nessuna attività programmata per oggi
-                  </p>
-                  <button @click="openCreateTaskModalWithDate(currentDate)"
-                    class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                    Crea la prima attività
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DayView
+            v-else-if="isDayView"
+            :current-date="currentDate"
+            :tasks="getTasksForDate(currentDate)"
+            :show-past-tasks="showPastTasks"
+            @task-click="openTaskModal"
+            @create-task="openCreateTaskModalWithDate"
+            @toggle-past-tasks="togglePastTasks"
+          >
+            <template #task-card="{ task }">
+              <TaskCard
+                :task="task"
+                :task-display-classes="getTaskDisplayClasses(task)"
+                :task-display-style="getTaskDisplayStyle(task)"
+                @click="openTaskModal"
+              />
+            </template>
+          </DayView>
 
           <!-- Agenda View -->
-          <div v-else-if="isAgendaView" class="space-y-4">
-            <div v-for="(dayTasks, date) in sortedTasksByDateInRange" :key="date"
-              class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <h3 class="font-medium text-gray-900 dark:text-white mb-3">
-                {{ getDateDescription(new Date(date)) }}
-              </h3>
-              <!-- Special handling for today's tasks with separator -->
-              <div v-if="isDateToday(date)" class="space-y-2">
-                <!-- Current/Future Tasks for today -->
-                <div v-if="splitTasksByTime(dayTasks).current.length > 0" class="space-y-2">
-                  <TaskCard
-                    v-for="task in splitTasksByTime(dayTasks).current"
-                    :key="task.id"
-                    :task="task"
-                    :task-display-classes="getTaskDisplayClasses(task)"
-                    :task-display-style="getTaskDisplayStyle(task)"
-                    @click="openTaskModal"
-                  />
-                </div>
-
-                <!-- Separator and Past Tasks for today -->
-                <div v-if="splitTasksByTime(dayTasks).past.length > 0">
-                  <!-- Clickable Separator line -->
-                  <div
-                    class="flex items-center my-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md py-2 transition-colors"
-                    @click="togglePastTasks"
-                  >
-                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
-                    <span class="px-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 flex items-center gap-2">
-                      Attività completate ({{ splitTasksByTime(dayTasks).past.length }})
-                      <ChevronDownIcon
-                        class="h-4 w-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': showPastTasks }"
-                      />
-                    </span>
-                    <div class="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
-                  </div>
-
-                  <!-- Collapsible Past Tasks for today -->
-                  <div v-show="showPastTasks" class="space-y-2">
-                    <TaskCard
-                      v-for="task in splitTasksByTime(dayTasks).past"
-                      :key="task.id"
-                      :task="task"
-                      :task-display-classes="getTaskDisplayClasses(task)"
-                      :task-display-style="getTaskDisplayStyle(task)"
-                      @click="openTaskModal"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Normal display for other dates -->
-              <div v-else class="space-y-2">
-                <TaskCard
-                  v-for="task in dayTasks"
-                  :key="task.id"
-                  :task="task"
-                  :task-display-classes="getTaskDisplayClasses(task)"
-                  :task-display-style="getTaskDisplayStyle(task)"
-                  @click="openTaskModal"
-                />
-              </div>
-            </div>
-
-            <div v-if="Object.keys(tasksByDateInRange || {}).length === 0" class="text-center py-8">
-              <p class="text-gray-500 dark:text-gray-400">
-                Nessuna attività in questo periodo
-              </p>
-            </div>
-          </div>
+          <AgendaView
+            v-else-if="isAgendaView"
+            :tasks-by-date="sortedTasksByDateInRange"
+            :show-past-tasks="showPastTasks"
+            @task-click="openTaskModal"
+            @toggle-past-tasks="togglePastTasks"
+          >
+            <template #task-card="{ task }">
+              <TaskCard
+                :task="task"
+                :task-display-classes="getTaskDisplayClasses(task)"
+                :task-display-style="getTaskDisplayStyle(task)"
+                @click="openTaskModal"
+              />
+            </template>
+          </AgendaView>
         </div>
       </main>
     </div>
@@ -349,6 +210,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -361,16 +223,24 @@ import TaskModal from '../components/TaskModal.vue'
 import TaskDetailModal from '../components/TaskDetailModal.vue'
 import TaskCard from '../components/TaskCard.vue'
 import WeekView from '../components/Calendar/WeekView.vue'
+import MonthView from '../components/Calendar/MonthView.vue'
+import DayView from '../components/Calendar/DayView.vue'
+import AgendaView from '../components/Calendar/AgendaView.vue'
 import CalendarSidebar from '../components/Calendar/CalendarSidebar.vue'
 import type { Task } from '../types/task'
 
 // Composables
 import { useAuth } from '../composables/useAuth'
+import { useTaskDisplay } from '../composables/useTaskDisplay'
+import { useTaskFilters } from '../composables/useTaskFilters'
 import { useRouter } from 'vue-router'
 import { useCalendar } from '../composables/useCalendar'
 import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
 import { useTheme } from '../composables/useTheme'
+
+// i18n
+const { t } = useI18n()
 
 // Utilities
 import {
@@ -398,6 +268,10 @@ const theme = useTheme()
 // Settings store
 import { useSettingsStore } from '../stores/settings'
 const settings = useSettingsStore()
+
+// Task display and filter composables
+const { getTaskDisplayClasses: getTaskDisplayClassesComposable, getTaskDisplayStyle: getTaskDisplayStyleComposable } = useTaskDisplay()
+const { splitTasksByTime: splitTasksByTimeComposable } = useTaskFilters()
 
 // Reactive state
 const showMobileSidebar = ref(false)
@@ -540,35 +414,11 @@ const sortedTasksByDateInRange = computed(() => {
   return sortedResult
 })
 
-// Tasks for day view - split into current and past
-const currentDayTasks = computed(() => {
-  const now = new Date()
-  return getTasksForDate(currentDate.value)
-    .filter(task => new Date(task.endDatetime) >= now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
-})
+// Note: currentDayTasks and pastDayTasks removed - DayView handles splitting internally
+// Note: splitTasksByTime removed - now using composable function
+// Note: isDateToday duplicate removed - using imported isToday from dateHelpers
 
-const pastDayTasks = computed(() => {
-  const now = new Date()
-  return getTasksForDate(currentDate.value)
-    .filter(task => new Date(task.endDatetime) < now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
-})
-
-// Helper function to split tasks for a specific date (used in agenda view)
-const splitTasksByTime = (tasks: any[]) => {
-  const now = new Date()
-  const current = tasks
-    .filter(task => new Date(task.endDatetime) >= now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
-  const past = tasks
-    .filter(task => new Date(task.endDatetime) < now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
-
-  return { current, past }
-}
-
-// Check if a date is today
+// Check if a date is today (kept for backward compatibility with other code)
 const isDateToday = (date: string) => {
   const today = formatDate(new Date(), 'yyyy-MM-dd')
   return date === today
@@ -577,77 +427,13 @@ const isDateToday = (date: string) => {
 // Methods
 const isToday = (date: Date) => isDateToday(date)
 
-// getPriorityColor removed as priority no longer exists in Task model
-
-// Centralized color mapping
-const TASK_COLOR_MAP: Record<string, string> = {
-  '#3b82f6': 'blue',
-  '#3788d8': 'blue', // Default blue
-  '#10b981': 'emerald',
-  '#ef4444': 'red',
-  '#f59e0b': 'amber',
-  '#8b5cf6': 'violet',
-  '#ec4899': 'pink',
-  '#6366f1': 'indigo',
-  '#14b8a6': 'teal',
-  '#f97316': 'orange',
-  '#6b7280': 'gray',
-  '#22c55e': 'green',
-  '#a855f7': 'purple',
-  '#06b6d4': 'cyan',
-  '#84cc16': 'lime',
-  '#eab308': 'yellow',
-  '#f43f5e': 'rose'
-}
-
+// Use composable functions for task display
 const getTaskDisplayClasses = (task: any, detailed = false) => {
-  const baseClasses = detailed
-    ? 'border-l-4'
-    : 'border-l-2' // Add colored border for monthly view as well
-
-  const isPast = new Date(task.endDatetime) < new Date()
-  const color = task.color || '#3788d8'
-  const colorName = TASK_COLOR_MAP[color]
-
-  if (colorName) {
-    // For Tailwind colors, use background classes but no border color classes (we'll use inline styles)
-    const classes = `${baseClasses} bg-${colorName}-50 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100 dark:hover:bg-${colorName}-900/30 task-custom-color`
-    return isPast ? `${classes} opacity-25 hover:opacity-75` : classes
-  } else {
-    // For custom hex colors, use neutral background and inline styles
-    const classes = `${baseClasses} task-custom-color bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600`
-    return isPast ? `${classes} opacity-25 hover:opacity-75` : classes
-  }
+  return getTaskDisplayClassesComposable(task, detailed)
 }
 
 const getTaskDisplayStyle = (task: any) => {
-  const color = task.color || '#3788d8'
-  const colorName = TASK_COLOR_MAP[color]
-
-
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-
-  // For ALL colors, use CSS custom properties and inline styles
-  const style: any = {
-    '--task-color': color,
-    borderLeftColor: color,
-    borderLeftWidth: '2px',
-    borderLeftStyle: 'solid'
-  }
-
-  // For custom colors (not in Tailwind map), also set background
-  if (!colorName) {
-    style['--task-bg-color'] = hexToRgba(color, 0.1)
-    style.backgroundColor = hexToRgba(color, 0.1)
-  }
-
-
-  return style
+  return getTaskDisplayStyleComposable(task)
 }
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
@@ -896,6 +682,14 @@ const getWeekDayName = (date: Date, short = false) => {
 // Use settings-aware time formatting
 const formatTime = (date: Date | string): string => {
   return settings.formatTime(date)
+}
+
+// Handle task click from MonthView - CalendarTask only has id, need to get full Task
+const handleMonthViewTaskClick = (calendarTask: any) => {
+  const fullTask = getTaskById(calendarTask.id)
+  if (fullTask) {
+    openTaskModal(fullTask)
+  }
 }
 
 // Handle switch to day view from sidebar

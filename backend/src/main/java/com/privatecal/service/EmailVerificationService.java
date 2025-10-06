@@ -54,10 +54,10 @@ public class EmailVerificationService {
 
             // Send verification email
             String verificationUrl = buildEmailVerificationUrl(token);
-            String subject = "P-Cal - Verifica il tuo indirizzo email";
+            String subject = templateBuilder.getEmailVerificationSubject(user);
             String htmlBody = templateBuilder.buildEmailVerificationEmail(user, verificationUrl);
 
-            boolean emailSent = emailService.sendEmail(user.getEmail(), subject, htmlBody);
+            boolean emailSent = emailService.sendEmail(user.getEmail(), user.getFullName(), subject, htmlBody);
 
             if (emailSent) {
                 logger.info("Verification email sent to: {}", user.getEmail());
