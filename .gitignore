@@ -51,9 +51,12 @@ backend/.nb-gradle/
 backend/.vscode/
 
 # Spring Boot
-backend/application-*.yml
-backend/application-*.properties
+backend/**/application-*.yml
+backend/**/application-*.properties
+!backend/**/application-*.example.yml
+!backend/**/application-*.example.properties
 backend/*.log
+backend/run-local.sh
 
 # Java
 backend/*.class

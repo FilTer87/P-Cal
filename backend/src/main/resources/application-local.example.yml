@@ -1,0 +1,72 @@
+# ==============================================
+# LOCAL DEVELOPMENT PROFILE
+# ==============================================
+# This is an example configuration for local development.
+# Copy this file to application-local.yml and update with your credentials.
+#
+# Usage:
+#   SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+#
+# Or create backend/.mvn/jvm.config with:
+#   -Dspring.profiles.active=local
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # Database Configuration
+  # Make sure PostgreSQL is running locally on port 5432
+  datasource:
+    url: jdbc:postgresql://localhost:5432/calendar_db
+    username: pcal_user
+    password: pcal_pass
+
+  # Email Configuration (SMTP)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-specific-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: "*"
+
+# Application-specific configuration
+app:
+  # JWT Security
+  jwt:
+    secret: privatecal-jwt-secret-key-2024-very-secure-change-in-production
+    access-token-expiration: 900000      # 15 minutes
+    refresh-token-expiration: 604800000  # 7 days
+
+  # Email Settings
+  email:
+    enabled: true
+    verification-enabled: true
+    from-address: noreply@p-cal.me
+    from-name: P-Cal
+    base-url: http://localhost:3000  # this should point to the exposed app (frontend/proxy server)
+
+  # NTFY Push Notifications
+  ntfy:
+    server-url: https://ntfy.sh   # set your NTFY server installation
+    topic-prefix: p-cal-
+    auth-token: your-ntfy-auth-token-here
+    enabled: true
+
+  # CORS Configuration
+  cors:
+    allowed-origins: "http://localhost,http://localhost:3000,http://localhost:5173,http://localhost:8080"
+
+# Logging
+logging:
+  level:
+    com.privatecal: DEBUG
+    org.springframework.security: DEBUG
