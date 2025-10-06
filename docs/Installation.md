@@ -37,6 +37,12 @@ That's it! The application will automatically:
 Default test user (created automatically):
 - Username: `demo_user` / Password: `password`
 
+<br/>
+
+**For development or testing without Docker/Podman:**
+- [Run Backend locally](./LocalRun_Backend.md)
+- [Run Frontend locally](./LocalRun_Frontend.md)
+
 ---
 
 ## Environment Configuration
