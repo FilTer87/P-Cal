@@ -7,16 +7,35 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ## [Unreleased]
 
 ### Added
-Comprehensive internationalization (i18n) support
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+
+---
+
+## [0.11.0-beta] - 2025-10-07
+
+### Added
+- Comprehensive internationalization (i18n) support:
   - Full frontend internationalization with Italian (it-IT) and English (en-US) locales
   - Multilingual email templates using Thymeleaf template engine
   - Automatic locale detection from browser with manual override in user settings (persisted preference)
   - User's language applied to all email communications and notifications
 
+- documentation for local run/development + application-local.yml example file
+- automatic tests
+
 ### Changed
-- Email templates refactored using Thymeleaf
-- Multilanguage notification system, with shared translations between all the providers as Telegram, Slack, Discord, ... (future implementations)
+- Refactored email templates using Thymeleaf
+- Multilanguage notification system, with shared translations between all the providers as NTFY (already implemented), Telegram, Slack, Discord, ... (future implementations)
 - Optional Markdown support in notifications (FormatType.MARKDOWN)
 
 ### Deprecated
@@ -25,10 +44,15 @@ Comprehensive internationalization (i18n) support
 
 ### Fixed
 - generate and update NTFY personal topic fix
+- adapted tests to new implementations
 
 ### Security
 Content Security Policy fix with unplugin-vue-i18n (prevent 'eval()')
 
+## [0.10.1-beta] - 2025-10-07
+
+### Added
+- release.yml - github action test
 
 ---
 
@@ -45,6 +69,8 @@ Content Security Policy fix with unplugin-vue-i18n (prevent 'eval()')
 ### Fixed
 - minor fronted format and validation fix
 
+---
+
 ## [0.9.3-beta] - 2025-10-01
 P-Cal - first public version of the project.
 
@@ -57,6 +83,8 @@ P-Cal - first public version of the project.
 
 ### Notes
 - This is a **pre-release**: all core features are already operational and there are no known critical bugs; email verification flow is missing in order to release v1.0.0
+
+---
 
 ## [0.9.2-beta] - 2025-10-01
 
