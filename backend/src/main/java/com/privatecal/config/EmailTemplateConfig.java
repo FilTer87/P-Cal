@@ -11,7 +11,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Configuration for email templates using Thymeleaf
+ * Configuration for email templates and notification messages
  */
 @Configuration
 public class EmailTemplateConfig {
@@ -52,6 +52,20 @@ public class EmailTemplateConfig {
     public MessageSource emailMessageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages/email");
+        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        messageSource.setFallbackToSystemLocale(false);
+        messageSource.setDefaultLocale(java.util.Locale.forLanguageTag("en-US"));
+        return messageSource;
+    }
+
+    /**
+     * Message source for notification translations (NTFY, Telegram, Slack, etc.)
+     * Properties files are located in src/main/resources/messages/
+     */
+    @Bean
+    public MessageSource notificationMessageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages/notification");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
         messageSource.setFallbackToSystemLocale(false);
         messageSource.setDefaultLocale(java.util.Locale.forLanguageTag("en-US"));

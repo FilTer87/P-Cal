@@ -7,9 +7,17 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ## [Unreleased]
 
 ### Added
-Internationalization support (EN/IT)
+Comprehensive internationalization (i18n) support
+
+  - Full frontend internationalization with Italian (it-IT) and English (en-US) locales
+  - Multilingual email templates using Thymeleaf template engine
+  - Automatic locale detection from browser with manual override in user settings (persisted preference)
+  - User's language applied to all email communications and notifications
 
 ### Changed
+- Email templates refactored using Thymeleaf
+- Multilanguage notification system, with shared translations between all the providers as Telegram, Slack, Discord, ... (future implementations)
+- Optional Markdown support in notifications (FormatType.MARKDOWN)
 
 ### Deprecated
 
