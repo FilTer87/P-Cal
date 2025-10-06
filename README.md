@@ -45,8 +45,8 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 - **Event/task management** with customizable colors, location, and descriptions
 - **Smart time visualization** distinguishing past and future events
 - **Precise hourly grid** in week view with visual indicators for off-screen activities
+- **Full Internationalization support** (i18n)
 - **Informative tooltips**
-- **Internationalization** (Work In Progress)
 
 #### ⏰ **Advanced Reminder System**
 - **Multi-channel notifications**: currently implemented Email and NTFY server
@@ -63,7 +63,8 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 
 #### ⚙️ **Preferences** (per user):
   - **Theme** (light/dark/automatic)
-  - **Time zone** (required for correct notifications delivery)
+  - **Language** with browser default
+  - **Time zone** with DST
   - **Time format** (12h/24h)
   - **First day of the week** (Monday/Sunday)
   - **Enable/disable notifications** by type
@@ -134,13 +135,14 @@ docker compose up --build -d
 
 ### 🎯 Future Roadmap
 
-#### 🔧 Possible future features under evaluation
+#### 🔧 Possible future features (no specific order)
+- ~~**Multilanguage support**~~ released! 🎉 (italian, english)
+- **Additional Languages** (next: spanish, french)
+- **Additional notification channels**: Telegram / Discord / Slack / Gotify / ...
 - **Event categories** with global filter (alternative to "multi-calendars")
 - **Recurring events** with customizable patterns
-- **Multilanguage support**
 - **Drag & Drop** to move events/tasks within grids with automatic update
 - **Advanced user session management**
-- **Additional notification channels**: Gotify, Slack, Telegram, ...
 - **CalDAV integration**
 - **Data import** from user export
 - **Data import** from other calendars
