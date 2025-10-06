@@ -325,7 +325,7 @@ const fetchNotificationConfig = async () => {
     }
   } catch (error) {
     console.error('Error fetching notification config:', error)
-    showError('Errore nel caricamento della configurazione notifiche')
+    showError(t('notifications.errorLoadingConfig'))
   } finally {
     isLoadingConfig.value = false
   }
@@ -365,15 +365,15 @@ const updateNtfyTopic = async (newTopic: string) => {
     if (data.success) {
       settings.value.ntfyTopic = data.topic
       await fetchSubscriptionUrl() // Refresh subscription URL
-      showSuccess('Topic NTFY aggiornato con successo!')
+      showSuccess(t('notifications.topicUpdatedSuccess'))
       return true
     } else {
-      showError(data.error || 'Errore nell\'aggiornamento del topic')
+      showError(data.error || t('notifications.errorUpdatingTopic'))
       return false
     }
   } catch (error) {
     console.error('Error updating NTFY topic:', error)
-    showError('Errore nell\'aggiornamento del topic')
+    showError(t('notifications.errorUpdatingTopic'))
     return false
   } finally {
     isUpdatingTopic.value = false
@@ -411,12 +411,12 @@ const requestBrowserPermissions = async () => {
   try {
     await requestPermission()
     if (browserPermission.value === 'granted') {
-      showSuccess('Permessi browser autorizzati!')
+      showSuccess(t('notifications.permissionGrantedSuccess'))
     } else {
-      showError('Permessi browser non autorizzati')
+      showError(t('notifications.permissionDeniedError'))
     }
   } catch (error) {
-    showError('Errore nella richiesta permessi browser')
+    showError(t('notifications.errorRequestingPermission'))
   } finally {
     isRequestingPermissions.value = false
   }
@@ -424,23 +424,23 @@ const requestBrowserPermissions = async () => {
 
 const testBrowserNotification = async () => {
   if (browserPermission.value !== 'granted') {
-    showError('Permessi browser non autorizzati')
+    showError(t('notifications.permissionDeniedError'))
     return
   }
 
   isTesting.value = 'browser'
   try {
     await sendBrowserNotification(
-      'Test Notifica Browser',
-      'Questo è un test delle notifiche browser per P-Cal',
+      t('notifications.testBrowserNotificationTitle'),
       {
+        body: t('notifications.testBrowserNotificationBody'),
         icon: '/favicon.ico',
         tag: 'test-notification'
       }
     )
-    showSuccess('Notifica browser inviata!')
+    showSuccess(t('notifications.browserNotificationSent'))
   } catch (error) {
-    showError('Errore nell\'invio della notifica browser')
+    showError(t('notifications.errorSendingBrowserNotification'))
   } finally {
     isTesting.value = null
   }
@@ -448,7 +448,7 @@ const testBrowserNotification = async () => {
 
 const testNTFYNotification = async () => {
   if (!canTestNTFY.value) {
-    showError('Configurazione NTFY non disponibile')
+    showError(t('notifications.ntfyConfigNotAvailable'))
     return
   }
 
@@ -461,20 +461,20 @@ const testNTFYNotification = async () => {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       },
       body: JSON.stringify({
-        type: 'PUSH',
-        message: 'Questo è un test delle notifiche NTFY per P-Cal! 🧪'
+        type: 'PUSH'
+        // No custom message - let backend use localized default
       })
     })
 
     const data = await response.json()
     if (data.success) {
-      showSuccess('Notifica NTFY inviata con successo!')
+      showSuccess(t('notifications.ntfyNotificationSentSuccess'))
     } else {
-      showError(data.error || 'Errore nell\'invio della notifica NTFY')
+      showError(data.error || t('notifications.errorSendingNtfyNotification'))
     }
   } catch (error) {
     console.error('NTFY test error:', error)
-    showError('Errore nell\'invio della notifica NTFY')
+    showError(t('notifications.errorSendingNtfyNotification'))
   } finally {
     isTesting.value = null
   }
@@ -484,12 +484,12 @@ const copyTopicUrl = async () => {
   try {
     await navigator.clipboard.writeText(ntfySubscriptionUrl.value)
     copied.value = true
-    showSuccess('URL copiato negli appunti!')
+    showSuccess(t('notifications.urlCopiedSuccess'))
     setTimeout(() => {
       copied.value = false
     }, 3000)
   } catch (error) {
-    showError('Errore nella copia dell\'URL')
+    showError(t('notifications.errorCopyingUrl'))
   }
 }
 
@@ -502,9 +502,9 @@ const saveSettings = async () => {
       browserEnabled: settings.value.browserEnabled
     }
     localStorage.setItem('notificationSettings', JSON.stringify(browserSettings))
-    showSuccess('Impostazioni salvate con successo!')
+    showSuccess(t('notifications.settingsSavedSuccess'))
   } catch (error) {
-    showError('Errore nel salvataggio delle impostazioni')
+    showError(t('notifications.errorSavingSettings'))
   } finally {
     isSaving.value = false
   }
@@ -539,7 +539,7 @@ const resetSettings = async () => {
 
   localStorage.removeItem('notificationSettings')
   await loadSettings()
-  showSuccess('Impostazioni ripristinate')
+  showSuccess(t('notifications.settingsReset'))
 }
 
 // Lifecycle
