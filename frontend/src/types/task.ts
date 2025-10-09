@@ -6,6 +6,9 @@ export interface Task {
   endDatetime: string
   location?: string
   color: string
+  recurrenceRule?: string
+  recurrenceEnd?: string
+  isRecurring: boolean
   createdAt: string
   updatedAt: string
   userId: number
@@ -19,6 +22,8 @@ export interface CreateTaskRequest {
   endDatetime: string
   location?: string
   color?: string
+  recurrenceRule?: string
+  recurrenceEnd?: string
   reminders?: CreateReminderRequest[]
 }
 
@@ -29,6 +34,8 @@ export interface UpdateTaskRequest {
   endDatetime?: string
   location?: string
   color?: string
+  recurrenceRule?: string
+  recurrenceEnd?: string
   reminders?: CreateReminderRequest[]
 }
 
@@ -69,6 +76,19 @@ export enum NotificationType {
   EMAIL = 'EMAIL'
 }
 
+export enum RecurrenceFrequency {
+  DAILY = 'DAILY',
+  WEEKLY = 'WEEKLY',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY'
+}
+
+export enum RecurrenceEndType {
+  NEVER = 'NEVER',
+  COUNT = 'COUNT',
+  DATE = 'DATE'
+}
+
 export interface TaskFilters {
   startDateFrom?: string
   startDateTo?: string
@@ -84,6 +104,13 @@ export interface TaskFormData {
   endTime: string
   location: string
   color: string
+  isRecurring: boolean
+  recurrenceFrequency?: RecurrenceFrequency
+  recurrenceInterval?: number
+  recurrenceEndType?: RecurrenceEndType
+  recurrenceCount?: number
+  recurrenceEndDate?: string
+  recurrenceByDay?: string[]
   reminders: ReminderFormData[]
 }
 

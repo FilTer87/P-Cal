@@ -331,6 +331,25 @@
     "location": "Location",
     "locationPlaceholder": "Enter location (optional)",
     "color": "Color",
+    "recurrence": "Recurrence",
+    "isRecurring": "Repeat event",
+    "recurrenceFrequency": "Frequency",
+    "recurrenceInterval": "Repeat every",
+    "recurrenceEndType": "End",
+    "recurrenceCount": "Number of occurrences",
+    "recurrenceEndDate": "End date",
+    "recurrenceByDay": "Days of week",
+    "recurrenceOptions": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "recurrenceEnd": {
+      "never": "Never",
+      "count": "After a certain number",
+      "date": "On a date"
+    },
     "reminders": "Reminders",
     "addReminder": "Add Reminder",
     "reminderType": "Type",

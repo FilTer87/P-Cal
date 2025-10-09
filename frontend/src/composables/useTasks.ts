@@ -121,7 +121,7 @@ export function useTasks() {
   const createEmptyTaskForm = (): TaskFormData => {
     const now = new Date()
     const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
-    
+
     return {
       title: '',
       description: '',
@@ -131,6 +131,13 @@ export function useTasks() {
       endTime: format(oneHourLater, 'HH:mm'),
       location: '',
       color: '#3788d8',
+      isRecurring: false,
+      recurrenceFrequency: undefined,
+      recurrenceInterval: undefined,
+      recurrenceEndType: undefined,
+      recurrenceCount: undefined,
+      recurrenceEndDate: undefined,
+      recurrenceByDay: undefined,
       reminders: []
     }
   }

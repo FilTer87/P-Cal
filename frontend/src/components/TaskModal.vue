@@ -166,6 +166,17 @@
           </div>
         </div>
 
+        <!-- Recurrence Section -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {{ t('tasks.recurrence') }}
+          </label>
+          <RecurrenceInput
+            v-model="formData"
+            :start-date="formData.startDate"
+          />
+        </div>
+
         <!-- Reminders Section -->
         <div>
           <div class="flex items-center justify-between mb-3">
@@ -307,8 +318,9 @@ import { useI18n } from 'vue-i18n'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
 import { useSettingsStore } from '../stores/settings'
-import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
+import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, RecurrenceFrequency, RecurrenceEndType, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
+import RecurrenceInput from './Tasks/RecurrenceInput.vue'
 
 // Composables
 const { t } = useI18n()

@@ -331,6 +331,25 @@
     "location": "Luogo",
     "locationPlaceholder": "Inserisci il luogo (opzionale)",
     "color": "Colore",
+    "recurrence": "Ricorrenza",
+    "isRecurring": "Ripeti evento",
+    "recurrenceFrequency": "Frequenza",
+    "recurrenceInterval": "Ripeti ogni",
+    "recurrenceEndType": "Termina",
+    "recurrenceCount": "Numero di occorrenze",
+    "recurrenceEndDate": "Data di fine",
+    "recurrenceByDay": "Giorni della settimana",
+    "recurrenceOptions": {
+      "daily": "Giornaliera",
+      "weekly": "Settimanale",
+      "monthly": "Mensile",
+      "yearly": "Annuale"
+    },
+    "recurrenceEnd": {
+      "never": "Mai",
+      "count": "Dopo un certo numero",
+      "date": "In una data"
+    },
     "reminders": "Promemoria",
     "addReminder": "Aggiungi Promemoria",
     "reminderType": "Tipologia",
