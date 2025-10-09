@@ -78,6 +78,11 @@ describe('i18n Configuration', () => {
       expect(i18n.global.locale.value).toBe('en-US')
     })
 
+    it('should create i18n instance with Spanish locale', () => {
+      const i18n = createMockI18n('es-ES')
+      expect(i18n.global.locale.value).toBe('es-ES')
+    })
+
     it('should translate keys correctly in Italian', () => {
       const i18n = createMockI18n('it-IT')
       const { t } = i18n.global
@@ -96,6 +101,16 @@ describe('i18n Configuration', () => {
       expect(t('common.cancel')).toBe('Cancel')
       expect(t('auth.login')).toBe('Login')
       expect(t('validation.required')).toBe('This field is required')
+    })
+
+    it('should translate keys correctly in Spanish', () => {
+      const i18n = createMockI18n('es-ES')
+      const { t } = i18n.global
+
+      expect(t('common.save')).toBe('Guardar')
+      expect(t('common.cancel')).toBe('Cancelar')
+      expect(t('auth.login')).toBe('Iniciar sesión')
+      expect(t('validation.required')).toBe('Este campo es obligatorio')
     })
 
     it('should handle interpolation in Italian', () => {
