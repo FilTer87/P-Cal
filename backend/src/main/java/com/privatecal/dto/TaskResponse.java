@@ -25,7 +25,10 @@ public class TaskResponse {
 
     private String color;
     private String location;
-    
+
+    private String recurrenceRule;
+    private Instant recurrenceEnd;
+
     private List<ReminderResponse> reminders = new ArrayList<>();
     
     private Long userId;
@@ -42,6 +45,7 @@ public class TaskResponse {
     private Boolean isPast;
     private Boolean isUpcoming;
     private Integer reminderCount;
+    private Boolean isRecurring;
     
     // Default constructor
     public TaskResponse() {}
@@ -55,6 +59,8 @@ public class TaskResponse {
         this.endDatetime = task.getEndDatetime();
         this.color = task.getColor();
         this.location = task.getLocation();
+        this.recurrenceRule = task.getRecurrenceRule();
+        this.recurrenceEnd = task.getRecurrenceEnd();
         this.createdAt = task.getCreatedAt();
         this.updatedAt = task.getUpdatedAt();
         
@@ -129,8 +135,9 @@ public class TaskResponse {
             this.isPast = endDatetime.isBefore(now);
             this.isUpcoming = startDatetime.isAfter(now);
         }
-        
+
         this.reminderCount = (reminders != null) ? reminders.size() : 0;
+        this.isRecurring = (recurrenceRule != null && !recurrenceRule.trim().isEmpty());
     }
     
     // Getters and Setters
@@ -191,7 +198,23 @@ public class TaskResponse {
     public void setLocation(String location) {
         this.location = location;
     }
-    
+
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public Instant getRecurrenceEnd() {
+        return recurrenceEnd;
+    }
+
+    public void setRecurrenceEnd(Instant recurrenceEnd) {
+        this.recurrenceEnd = recurrenceEnd;
+    }
+
     public List<ReminderResponse> getReminders() {
         return reminders;
     }
@@ -257,7 +280,11 @@ public class TaskResponse {
     public Integer getReminderCount() {
         return reminderCount;
     }
-    
+
+    public Boolean getIsRecurring() {
+        return isRecurring;
+    }
+
     // Helper methods
     
     /**

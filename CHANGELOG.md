@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ## [Unreleased]
 
 ### Added
+- WIP - **Recurring Events** management, using RRULE (RFC 5545)
 
 ### Changed
 

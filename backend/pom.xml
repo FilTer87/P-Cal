@@ -30,6 +30,7 @@
         <java.version>17</java.version>
         <jjwt.version>0.12.3</jjwt.version>
         <jacoco.version>0.8.11</jacoco.version>
+        <ical4j.version>3.2.14</ical4j.version>
     </properties>
     
     <dependencies>
@@ -123,7 +124,14 @@
             <artifactId>totp</artifactId>
             <version>1.7.1</version>
         </dependency>
-        
+
+        <!-- iCal4j for RFC 5545 RRULE parsing (BSD-3 license, compatible with MIT) -->
+        <dependency>
+            <groupId>org.mnode.ical4j</groupId>
+            <artifactId>ical4j</artifactId>
+            <version>${ical4j.version}</version>
+        </dependency>
+
         <!-- SpringDoc OpenAPI (Swagger) -->
         <dependency>
             <groupId>org.springdoc</groupId>

@@ -34,6 +34,7 @@ public class TaskService {
     private final ReminderRepository reminderRepository;
     private final UserService userService;
     private final ReminderService reminderService;
+    private final RecurrenceService recurrenceService;
     
     /**
      * Create a new task
@@ -47,12 +48,6 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
-        // TODO - to be removed - Check for time conflicts
-        // if (hasTimeConflict(null, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
-        //     logger.warn("Task creation failed - time conflict for user: {}", currentUser.getUsername());
-        //     throw new RuntimeException("Time conflict: You already have a task scheduled during this time");
-        // }
-        
         // Create task entity
         Task task = new Task();
         task.setUser(currentUser);
@@ -62,6 +57,8 @@ public class TaskService {
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
         // Save task
         Task savedTask = taskRepository.save(task);
@@ -109,16 +106,36 @@ public class TaskService {
     }
     
     /**
-     * Get tasks in date range for current user
+     * Get tasks in date range for current user (with recurring task expansion)
      */
     @Transactional(readOnly = true)
     public List<TaskResponse> getTasksInDateRange(Instant startDate, Instant endDate) {
         User currentUser = userService.getCurrentUser();
         List<Task> tasks = taskRepository.findTasksInDateRangeForUser(currentUser, startDate, endDate);
-        
-        return tasks.stream()
-                .map(TaskResponse::fromTask)
-                .collect(Collectors.toList());
+
+        // Expand recurring tasks into occurrences
+        List<TaskResponse> expandedTasks = new java.util.ArrayList<>();
+
+        for (Task task : tasks) {
+            if (task.isRecurring()) {
+                // Expand recurring task
+                List<RecurrenceService.TaskOccurrence> occurrences =
+                    recurrenceService.expandRecurrences(task, startDate, endDate);
+
+                // Convert occurrences to TaskResponse with adjusted dates
+                for (RecurrenceService.TaskOccurrence occurrence : occurrences) {
+                    TaskResponse response = TaskResponse.fromTask(task);
+                    response.setStartDatetime(occurrence.getOccurrenceStart());
+                    response.setEndDatetime(occurrence.getOccurrenceEnd());
+                    expandedTasks.add(response);
+                }
+            } else {
+                // Non-recurring task
+                expandedTasks.add(TaskResponse.fromTask(task));
+            }
+        }
+
+        return expandedTasks;
     }
     
     /**
@@ -226,12 +243,6 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
-        // TODO - to be removed - Check for time conflicts (excluding current task)
-        // if (hasTimeConflict(taskId, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
-        //     logger.warn("Task update failed - time conflict for user: {}", currentUser.getUsername());
-        //     throw new RuntimeException("Time conflict: You already have another task scheduled during this time");
-        // }
-        
         // Update task fields
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
@@ -239,6 +250,8 @@ public class TaskService {
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
         // Save task
         Task savedTask = taskRepository.save(task);
@@ -334,19 +347,21 @@ public class TaskService {
         if (taskRequest.getColor() != null && !taskRequest.getColor().matches("^#[0-9A-Fa-f]{6}$")) {
             throw new RuntimeException("Color must be a valid hex color (e.g., #3788d8)");
         }
+
+        // Validate recurrence rule if provided
+        if (taskRequest.getRecurrenceRule() != null && !taskRequest.getRecurrenceRule().trim().isEmpty()) {
+            if (!recurrenceService.isValidRecurrenceRule(taskRequest.getRecurrenceRule())) {
+                throw new RuntimeException("Invalid recurrence rule format (must be RFC 5545 RRULE)");
+            }
+        }
+
+        // Validate recurrence end if provided
+        if (taskRequest.getRecurrenceEnd() != null && taskRequest.getStartDatetime() != null) {
+            if (!taskRequest.getRecurrenceEnd().isAfter(taskRequest.getStartDatetime())) {
+                throw new RuntimeException("Recurrence end must be after start datetime");
+            }
+        }
     }
-    
-    /**
-     * Check for time conflicts
-     */
-    // TODO - to be removed 
-    // private boolean hasTimeConflict(Long excludeTaskId, Long userId, Instant startTime, Instant endTime) {
-    //     if (excludeTaskId != null) {
-    //         return taskRepository.countConflictingTasksExcludingTask(userId, excludeTaskId, startTime, endTime) > 0;
-    //     } else {
-    //         return taskRepository.countConflictingTasks(userId, startTime, endTime) > 0;
-    //     }
-    // }
     
     /**
      * Get task statistics for user
