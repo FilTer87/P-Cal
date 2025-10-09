@@ -47,11 +47,11 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
-        // Check for time conflicts
-        if (hasTimeConflict(null, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
-            logger.warn("Task creation failed - time conflict for user: {}", currentUser.getUsername());
-            throw new RuntimeException("Time conflict: You already have a task scheduled during this time");
-        }
+        // TODO - to be removed - Check for time conflicts
+        // if (hasTimeConflict(null, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
+        //     logger.warn("Task creation failed - time conflict for user: {}", currentUser.getUsername());
+        //     throw new RuntimeException("Time conflict: You already have a task scheduled during this time");
+        // }
         
         // Create task entity
         Task task = new Task();
@@ -156,7 +156,6 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<TaskResponse> getTodayTasks() {
         Long currentUserId = userService.getCurrentUserId();
-        Instant now = Instant.now();
 
         // Calculate start and end of day in UTC
         java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneOffset.UTC);
@@ -227,11 +226,11 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
-        // Check for time conflicts (excluding current task)
-        if (hasTimeConflict(taskId, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
-            logger.warn("Task update failed - time conflict for user: {}", currentUser.getUsername());
-            throw new RuntimeException("Time conflict: You already have another task scheduled during this time");
-        }
+        // TODO - to be removed - Check for time conflicts (excluding current task)
+        // if (hasTimeConflict(taskId, currentUser.getId(), taskRequest.getStartDatetime(), taskRequest.getEndDatetime())) {
+        //     logger.warn("Task update failed - time conflict for user: {}", currentUser.getUsername());
+        //     throw new RuntimeException("Time conflict: You already have another task scheduled during this time");
+        // }
         
         // Update task fields
         task.setTitle(taskRequest.getTitle().trim());
@@ -340,13 +339,14 @@ public class TaskService {
     /**
      * Check for time conflicts
      */
-    private boolean hasTimeConflict(Long excludeTaskId, Long userId, Instant startTime, Instant endTime) {
-        if (excludeTaskId != null) {
-            return taskRepository.countConflictingTasksExcludingTask(userId, excludeTaskId, startTime, endTime) > 0;
-        } else {
-            return taskRepository.countConflictingTasks(userId, startTime, endTime) > 0;
-        }
-    }
+    // TODO - to be removed 
+    // private boolean hasTimeConflict(Long excludeTaskId, Long userId, Instant startTime, Instant endTime) {
+    //     if (excludeTaskId != null) {
+    //         return taskRepository.countConflictingTasksExcludingTask(userId, excludeTaskId, startTime, endTime) > 0;
+    //     } else {
+    //         return taskRepository.countConflictingTasks(userId, startTime, endTime) > 0;
+    //     }
+    // }
     
     /**
      * Get task statistics for user

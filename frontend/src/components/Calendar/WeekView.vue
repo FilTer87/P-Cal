@@ -44,10 +44,16 @@
 
             <!-- Tasks for this day (including split multi-day tasks) -->
             <div class="absolute inset-0 pointer-events-none">
-              <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
+              <!-- <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
                 :style="getTaskTimeStyleIntelligent(task, getTasksWithSplitsForDate(dayInfo.day))"
                 @click="handleTaskClick(task)"
                 class="absolute left-1 right-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden group"
+                :class="getTaskTimeDisplayClasses(task)"
+                :title="getTaskTooltipContent(task)"> -->
+              <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
+                :style="getTaskTimeStyleIntelligent(task, getTasksWithSplitsForDate(dayInfo.day))"
+                @click="handleTaskClick(task)"
+                class="absolute rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden group"
                 :class="getTaskTimeDisplayClasses(task)"
                 :title="getTaskTooltipContent(task)">
 
@@ -117,6 +123,7 @@ import { format } from 'date-fns'
 import { isToday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
+import { useOverlapLayout } from '../../composables/useOverlapLayout'
 import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
 
@@ -151,6 +158,7 @@ const indicatorsUpdateTrigger = ref(0)
 // Get calendar composable with settings-aware functions
 const calendar = useCalendar()
 const settings = useSettingsStore()
+const overlaps = useOverlapLayout()
 
 // Use the settings-aware getWeekDays from composable
 const getWeekDays = calendar.getWeekDays
@@ -301,14 +309,19 @@ const getTaskTimeStyle = (task: Task) => {
 }
 
 const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[]) => {
+  const calculatedLayouts = overlaps.calculateLayout(dayTasks)
   const position = getTaskTimePositionIntelligent(task, dayTasks)
   const color = task.color || '#3788d8'
+
+  const layout = calculatedLayouts.get(task.id)
 
   return {
     ...position,
     backgroundColor: `${color}CC`,
     borderLeftColor: color,
-    zIndex: 10
+    zIndex: layout?.zIndex || 10,
+    width: layout?.width || 'calc(100% - 8px)',
+    left: layout ? `calc(4px + ${layout.leftOffset})` : '4px'
   }
 }
 

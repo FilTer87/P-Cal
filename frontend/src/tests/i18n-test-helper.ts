@@ -2,11 +2,13 @@ import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 import itIT from '../i18n/locales/it-IT.json'
 import enUS from '../i18n/locales/en-US.json'
+import esES from '../i18n/locales/es-ES.json'
 
 // Use actual translation files for testing
 export const mockMessages = {
   'it-IT': itIT,
-  'en-US': enUS
+  'en-US': enUS,
+  'es-ES': esES
 }
 
 /**
