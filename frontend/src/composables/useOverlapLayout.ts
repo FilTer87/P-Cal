@@ -2,11 +2,11 @@ import type { Task } from '@/types/task'
 
 export interface LayoutResult {
   taskId: number
-  leftOffset: string   // Offset a sinistra: "0px", "40px", "80px"
-  width: string        // Larghezza: "calc(100% - 0px)", "calc(100% - 40px)"
-  zIndex: number       // z-index per stacking (layer superiore = zIndex maggiore)
-  layer: number        // Layer nel gruppo (0-based, 0 = più in basso)
-  totalLayers: number  // Numero totale layer nel gruppo
+  leftOffset: string   // Left offset: "0px", "40px", "80px"
+  width: string        // Width: "calc(100% - 0px)", "calc(100% - 40px)"
+  zIndex: number       // z-index for stacking (higher layer = higher zIndex)
+  layer: number        // Layer in group (0-based, 0 = bottom/widest)
+  totalLayers: number  // Total layers in group
 }
 
 interface TimeTask {
@@ -17,18 +17,18 @@ interface TimeTask {
 }
 
 /**
- * Composable per calcolare layout layered (Google Calendar style)
- * Eventi sovrapposti con offset progressivo a sinistra
+ * Composable for calculating layered layout (Google Calendar style)
+ * Overlapping events with progressive left offset
  */
 export function useOverlapLayout() {
 
-  // Configurazione offset
-  const LAYER_OFFSET_PX = 40 // Pixel di offset per ogni layer
-  const MAX_VISIBLE_LAYERS = 5 // Max layer visibili (dopo, diventa troppo stretto)
+  // Offset configuration
+  const LAYER_OFFSET_PX = 26 // Pixels offset per layer
+  const MAX_VISIBLE_LAYERS = 5 // Max visible layers (beyond this, becomes too narrow)
 
   /**
-   * Calcola layout layered per task sovrapposti
-   * @param tasks Lista task con startDatetime/endDatetime
+   * Calculate layered layout for overlapping tasks
+   * @param tasks Task list with startDatetime/endDatetime
    * @returns Map<taskId, LayoutResult>
    */
   function calculateLayout(tasks: Task[]): Map<number, LayoutResult> {
@@ -46,7 +46,7 @@ export function useOverlapLayout() {
         task: task
       }))
       .sort((a, b) => {
-        // Sort by start time, poi per durata (più lunghi prima)
+        // Sort by start time, then by duration (longer first)
         if (a.start !== b.start) {
           return a.start - b.start
         }
@@ -70,7 +70,8 @@ export function useOverlapLayout() {
           taskId,
           leftOffset: `${offsetPx}px`,
           width: `calc(100% - ${offsetPx}px)`,
-          zIndex: layer, // Layer più alti hanno zIndex maggiore
+          // Higher layer = higher zIndex (appears on top)
+          zIndex: 10 + layer,
           layer,
           totalLayers
         })
@@ -121,57 +122,60 @@ export function useOverlapLayout() {
   }
 
   /**
-   * Assegna layer per ogni task nel gruppo
+   * Assign layers for each task in a group
    *
-   * Algoritmo:
-   * 1. Task più lunghi vanno nei layer più bassi (layer 0 = più in basso, più largo)
-   * 2. Task più corti vanno sopra (layer maggiore, offset maggiore)
-   * 3. Task che non si sovrappongono possono condividere lo stesso layer
+   * Algorithm:
+   * 1. Process tasks by start time (earlier first, longer first if tied)
+   * 2. For each task, find the lowest layer where it doesn't overlap
+   * 3. Tasks that don't overlap can share the same layer
    *
-   * Questo crea effetto "cascata" come Google Calendar
+   * This creates a "cascading" effect like Google Calendar
    */
   function assignLayers(group: TimeTask[]): Map<number, number> {
     const layers = new Map<number, number>()
-    const layerEndTimes: number[] = []
+    const layerTasks: TimeTask[][] = [] // Tasks in each layer
 
-    // Sort by duration (longer first) per assegnare layer
-    const sortedByDuration = [...group].sort((a, b) => {
-      const durationA = a.end - a.start
-      const durationB = b.end - b.start
-      if (durationA !== durationB) {
-        return durationB - durationA // Longer first
+    // Sort by start time, then by duration (longer first)
+    const sortedTasks = [...group].sort((a, b) => {
+      if (a.start !== b.start) {
+        return a.start - b.start // Earlier first
       }
-      return a.start - b.start // Earlier first if same duration
+      return (b.end - b.start) - (a.end - a.start) // Longer first if same start
     })
 
-    for (const task of sortedByDuration) {
-      // Trova il layer più basso disponibile
-      let assignedLayer = 0
+    for (const task of sortedTasks) {
+      // Find the lowest layer where task doesn't overlap with existing tasks
+      let assignedLayer = -1
 
-      for (let layer = 0; layer < layerEndTimes.length; layer++) {
-        if (layerEndTimes[layer] <= task.start) {
-          // Layer è libero
+      for (let layer = 0; layer < layerTasks.length; layer++) {
+        const hasOverlap = layerTasks[layer].some(otherTask =>
+          // Overlap check: task.start < otherTask.end AND task.end > otherTask.start
+          task.start < otherTask.end && task.end > otherTask.start
+        )
+
+        if (!hasOverlap) {
+          // Layer is free (no overlap with existing tasks)
           assignedLayer = layer
           break
         }
-        assignedLayer = layer + 1
       }
 
-      // Se serve nuovo layer, crealo
-      if (assignedLayer >= layerEndTimes.length) {
-        layerEndTimes.push(0)
+      // If no layer available, create new layer
+      if (assignedLayer === -1) {
+        assignedLayer = layerTasks.length
+        layerTasks.push([])
       }
 
-      // Assegna task al layer
+      // Assign task to layer
       layers.set(task.id, assignedLayer)
-      layerEndTimes[assignedLayer] = task.end
+      layerTasks[assignedLayer].push(task)
     }
 
     return layers
   }
 
   /**
-   * Calcola numero massimo di layer per il giorno
+   * Calculate maximum number of layers for the day
    */
   function getMaxLayers(tasks: Task[]): number {
     const layout = calculateLayout(tasks)
@@ -187,18 +191,18 @@ export function useOverlapLayout() {
   }
 
   /**
-   * Check se il task ha troppi layer (diventa troppo stretto)
+   * Check if task has too many layers (becomes too narrow)
    */
   function hasTooManyLayers(layoutResult: LayoutResult): boolean {
     return layoutResult.totalLayers > MAX_VISIBLE_LAYERS
   }
 
   /**
-   * Calcola larghezza effettiva in percentuale
+   * Calculate effective width percentage
    */
   function getEffectiveWidthPercent(layoutResult: LayoutResult): number {
     const offsetPx = layoutResult.layer * LAYER_OFFSET_PX
-    // Assumendo colonna ~200px, approssimazione
+    // Assuming column ~200px, approximation
     return Math.max(20, 100 - (offsetPx / 2))
   }
 

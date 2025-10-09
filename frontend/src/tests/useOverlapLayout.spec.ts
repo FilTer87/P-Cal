@@ -5,7 +5,7 @@ import type { Task } from '@/types/task'
 describe('useOverlapLayout', () => {
   const { calculateLayout, getMaxLayers } = useOverlapLayout()
 
-  // Helper per creare task mock
+  // Helper to create mock tasks
   function createTask(id: number, startHour: number, endHour: number): Task {
     const date = '2025-10-07'
     const startMinutes = Math.floor((startHour % 1) * 60)
@@ -13,11 +13,12 @@ describe('useOverlapLayout', () => {
     const startHourInt = Math.floor(startHour)
     const endHourInt = Math.floor(endHour)
 
+    // Use local timezone (no Z suffix) to match getHourFloat behavior
     return {
       id,
       title: `Task ${id}`,
-      startDatetime: `${date}T${String(startHourInt).padStart(2, '0')}:${String(startMinutes).padStart(2, '0')}:00Z`,
-      endDatetime: `${date}T${String(endHourInt).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00Z`,
+      startDatetime: `${date}T${String(startHourInt).padStart(2, '0')}:${String(startMinutes).padStart(2, '0')}:00`,
+      endDatetime: `${date}T${String(endHourInt).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00`,
       color: '#3B82F6',
       description: '',
       location: '',
@@ -37,7 +38,7 @@ describe('useOverlapLayout', () => {
       const result = layout.get(1)!
       expect(result.leftOffset).toBe('0px')
       expect(result.width).toBe('calc(100% - 0px)')
-      expect(result.zIndex).toBe(0)
+      expect(result.zIndex).toBe(10) // 10 + layer(0)
       expect(result.layer).toBe(0)
       expect(result.totalLayers).toBe(1)
     })
@@ -59,14 +60,14 @@ describe('useOverlapLayout', () => {
       expect(task1.layer).toBe(0)
       expect(task1.leftOffset).toBe('0px')
       expect(task1.width).toBe('calc(100% - 0px)')
-      expect(task1.zIndex).toBe(0)
+      expect(task1.zIndex).toBe(10) // 10 + layer(0) = 10
 
       // Task 2 (più corto) dovrebbe essere layer 1 (sopra, con offset)
       const task2 = layout.get(2)!
       expect(task2.layer).toBe(1)
-      expect(task2.leftOffset).toBe('40px')
-      expect(task2.width).toBe('calc(100% - 40px)')
-      expect(task2.zIndex).toBe(1)
+      expect(task2.leftOffset).toBe('26px')
+      expect(task2.width).toBe('calc(100% - 26px)')
+      expect(task2.zIndex).toBe(11) // 10 + layer(1) = 11
     })
   })
 
@@ -88,11 +89,11 @@ describe('useOverlapLayout', () => {
 
       // Task 2 (medio) → layer 1
       expect(layout.get(2)!.layer).toBe(1)
-      expect(layout.get(2)!.leftOffset).toBe('40px')
+      expect(layout.get(2)!.leftOffset).toBe('26px')
 
       // Task 3 (più corto) → layer 2
       expect(layout.get(3)!.layer).toBe(2)
-      expect(layout.get(3)!.leftOffset).toBe('80px')
+      expect(layout.get(3)!.leftOffset).toBe('52px')
     })
   })
 
@@ -147,12 +148,48 @@ describe('useOverlapLayout', () => {
 
       // Verifica offset progressivo
       expect(task1.leftOffset).toBe('0px')
-      expect(task2.leftOffset).toBe('40px')
-      expect(task3.leftOffset).toBe('80px')
+      expect(task2.leftOffset).toBe('26px')
+      expect(task3.leftOffset).toBe('52px')
 
       // Verifica zIndex crescente
       expect(task1.zIndex).toBeLessThan(task2.zIndex)
       expect(task2.zIndex).toBeLessThan(task3.zIndex)
+    })
+
+    it('should share layer for non-overlapping tasks within same group', () => {
+      // Four tasks in same group:
+      // Task 1: 15:30-22:30 (longest, overlaps all)
+      // Task 2: 16:30-21:00 (long, overlaps 1,3,4)
+      // Task 3: 18:00-19:00 (short, overlaps 1,2 only)
+      // Task 4: 20:00-21:30 (short, overlaps 1,2 only, NOT 3)
+
+      const tasks = [
+        createTask(1, 15.5, 22.5),  // 15:30-22:30
+        createTask(2, 16.5, 21),    // 16:30-21:00
+        createTask(3, 18, 19),      // 18:00-19:00
+        createTask(4, 20, 21.5)     // 20:00-21:30 (does NOT overlap with task 3)
+      ]
+
+      const layout = calculateLayout(tasks)
+
+      expect(layout.size).toBe(4)
+
+      const task1 = layout.get(1)!
+      const task2 = layout.get(2)!
+      const task3 = layout.get(3)!
+      const task4 = layout.get(4)!
+
+      // Task 1 and 2 should have different layers (they overlap)
+      expect(task1.layer).toBe(0)
+      expect(task2.layer).toBe(1)
+
+      // Task 3 and 4 do NOT overlap each other → should share same layer
+      expect(task3.layer).toBe(task4.layer)
+      expect(task3.leftOffset).toBe(task4.leftOffset)
+
+      // Both should be layer 2 (on top of task 1 and 2)
+      expect(task3.layer).toBe(2)
+      expect(task3.leftOffset).toBe('52px') // 26px * 2
     })
 
     it('should handle screenshot example 2', () => {
