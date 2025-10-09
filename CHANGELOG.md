@@ -7,11 +7,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ## [Unreleased]
 
 ### Added
-- Management and correct visualization of **overlapping events**
-- Spanish language translations (WIP)
 
 ### Changed
-- in week view the overlapping tasks are grouped and layered, z-index ordered by start-time and duration (similar to Google calendar visualization)
 
 ### Deprecated
 
@@ -21,6 +18,16 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Security
 
+
+---
+
+## [0.12.0-beta] - 2025-10-9
+
+### Added
+- Management and correct visualization of **overlapping events**
+
+### Changed
+- in week view the overlapping tasks are grouped and layered, z-index ordered by start-time and duration (similar to Google calendar visualization)
 
 ---
 
