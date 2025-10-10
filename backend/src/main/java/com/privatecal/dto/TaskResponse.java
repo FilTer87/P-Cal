@@ -16,11 +16,12 @@ import java.util.stream.Collectors;
 public class TaskResponse {
     
     private Long id;
+    private String occurrenceId; // Unique identifier for recurring task occurrences (format: "taskId-timestamp")
     private String title;
     private String description;
-    
+
     private Instant startDatetime;
-    
+
     private Instant endDatetime;
 
     private String color;
@@ -148,7 +149,15 @@ public class TaskResponse {
     public void setId(Long id) {
         this.id = id;
     }
-    
+
+    public String getOccurrenceId() {
+        return occurrenceId;
+    }
+
+    public void setOccurrenceId(String occurrenceId) {
+        this.occurrenceId = occurrenceId;
+    }
+
     public String getTitle() {
         return title;
     }

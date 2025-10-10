@@ -1,5 +1,6 @@
 export interface Task {
   id: number
+  occurrenceId?: string // Unique ID for recurring task occurrences (format: "taskId-timestamp")
   title: string
   description?: string
   startDatetime: string

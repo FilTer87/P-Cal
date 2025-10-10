@@ -40,6 +40,10 @@ export function useTasks() {
     await tasksStore.fetchTasks(force)
   }
 
+  const fetchTasksByDateRange = async (startDate: string, endDate: string) => {
+    await tasksStore.fetchTasksByDateRange(startDate, endDate)
+  }
+
   const refreshStatistics = async () => {
     await tasksStore.refreshStatistics()
   }
@@ -59,6 +63,7 @@ export function useTasks() {
         endTime: taskData.endDatetime ? format(new Date(taskData.endDatetime), 'HH:mm') : '',
         location: taskData.location || '',
         color: taskData.color || '#3788d8',
+        isRecurring: taskData.recurrenceRule || false,
         reminders: []
       } as TaskFormData
       const validation = validateTaskForm(formData)
@@ -308,6 +313,7 @@ export function useTasks() {
 
     // Actions (only used ones)
     fetchTasks,
+    fetchTasksByDateRange,
     refreshStatistics,
     createTask,
     updateTask,

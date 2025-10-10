@@ -1,7 +1,8 @@
 import type { Task } from '@/types/task'
+import { getTaskKey } from '@/utils/recurrence'
 
 export interface LayoutResult {
-  taskId: number
+  taskKey: string | number  // Unique key (uses occurrenceId for recurring tasks)
   leftOffset: string   // Left offset: "0px", "40px", "80px"
   width: string        // Width: "calc(100% - 0px)", "calc(100% - 40px)"
   zIndex: number       // z-index for stacking (higher layer = higher zIndex)
@@ -10,7 +11,7 @@ export interface LayoutResult {
 }
 
 interface TimeTask {
-  id: number
+  key: string | number  // Unique key (uses occurrenceId for recurring tasks)
   start: number // Hour float (10:30 → 10.5)
   end: number
   task: Task
@@ -29,9 +30,9 @@ export function useOverlapLayout() {
   /**
    * Calculate layered layout for overlapping tasks
    * @param tasks Task list with startDatetime/endDatetime
-   * @returns Map<taskId, LayoutResult>
+   * @returns Map<taskKey, LayoutResult>
    */
-  function calculateLayout(tasks: Task[]): Map<number, LayoutResult> {
+  function calculateLayout(tasks: Task[]): Map<string | number, LayoutResult> {
     if (!tasks || tasks.length === 0) {
       return new Map()
     }
@@ -40,7 +41,7 @@ export function useOverlapLayout() {
     const timeTasks: TimeTask[] = tasks
       .filter(task => task.startDatetime && task.endDatetime)
       .map(task => ({
-        id: task.id,
+        key: getTaskKey(task),
         start: getHourFloat(task.startDatetime),
         end: getHourFloat(task.endDatetime),
         task: task
@@ -57,17 +58,17 @@ export function useOverlapLayout() {
     const groups = findOverlappingGroups(timeTasks)
 
     // Calculate layers for each group
-    const layoutMap = new Map<number, LayoutResult>()
+    const layoutMap = new Map<string | number, LayoutResult>()
 
     for (const group of groups) {
       const layers = assignLayers(group)
       const totalLayers = Math.max(...Array.from(layers.values())) + 1
 
-      for (const [taskId, layer] of layers.entries()) {
+      for (const [taskKey, layer] of layers.entries()) {
         const offsetPx = layer * LAYER_OFFSET_PX
 
-        layoutMap.set(taskId, {
-          taskId,
+        layoutMap.set(taskKey, {
+          taskKey,
           leftOffset: `${offsetPx}px`,
           width: `calc(100% - ${offsetPx}px)`,
           // Higher layer = higher zIndex (appears on top)
@@ -131,8 +132,8 @@ export function useOverlapLayout() {
    *
    * This creates a "cascading" effect like Google Calendar
    */
-  function assignLayers(group: TimeTask[]): Map<number, number> {
-    const layers = new Map<number, number>()
+  function assignLayers(group: TimeTask[]): Map<string | number, number> {
+    const layers = new Map<string | number, number>()
     const layerTasks: TimeTask[][] = [] // Tasks in each layer
 
     // Sort by start time, then by duration (longer first)
@@ -167,7 +168,7 @@ export function useOverlapLayout() {
       }
 
       // Assign task to layer
-      layers.set(task.id, assignedLayer)
+      layers.set(task.key, assignedLayer)
       layerTasks[assignedLayer].push(task)
     }
 

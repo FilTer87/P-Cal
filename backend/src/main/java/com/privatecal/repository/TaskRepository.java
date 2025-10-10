@@ -36,24 +36,28 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     
     /**
      * Find tasks within a date range for a user
+     * Includes recurring tasks regardless of their original date (they will be expanded later)
      */
     @Query("SELECT t FROM Task t WHERE t.user = :user AND " +
+           "(t.recurrenceRule IS NOT NULL OR " +
            "((t.startDatetime >= :startDate AND t.startDatetime < :endDate) OR " +
            "(t.endDatetime > :startDate AND t.endDatetime <= :endDate) OR " +
-           "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate))")
-    List<Task> findTasksInDateRangeForUser(@Param("user") User user, 
-                                         @Param("startDate") Instant startDate, 
+           "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate)))")
+    List<Task> findTasksInDateRangeForUser(@Param("user") User user,
+                                         @Param("startDate") Instant startDate,
                                          @Param("endDate") Instant endDate);
     
     /**
      * Find tasks within a date range for a user by user ID
+     * Includes recurring tasks regardless of their original date (they will be expanded later)
      */
     @Query("SELECT t FROM Task t WHERE t.user.id = :userId AND " +
+           "(t.recurrenceRule IS NOT NULL OR " +
            "((t.startDatetime >= :startDate AND t.startDatetime < :endDate) OR " +
            "(t.endDatetime > :startDate AND t.endDatetime <= :endDate) OR " +
-           "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate))")
-    List<Task> findTasksInDateRangeForUserId(@Param("userId") Long userId, 
-                                           @Param("startDate") Instant startDate, 
+           "(t.startDatetime <= :startDate AND t.endDatetime >= :endDate)))")
+    List<Task> findTasksInDateRangeForUserId(@Param("userId") Long userId,
+                                           @Param("startDate") Instant startDate,
                                            @Param("endDate") Instant endDate);
     
     /**

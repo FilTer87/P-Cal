@@ -123,7 +123,7 @@
             :class="{ 'rotate-180': activeSection === 'tasks' }" />
         </div>
         <div v-show="activeSection === 'tasks'" class="space-y-2 transition-all duration-200 px-2 pb-2">
-          <div v-for="task in todayTasks.slice(0, 5)" :key="task.id" @click="handleTaskClick(task)"
+          <div v-for="task in todayTasks.slice(0, 5)" :key="getTaskKey(task)" @click="handleTaskClick(task)"
             class="p-3 rounded-md cursor-pointer transition-colors bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
             <div class="flex items-center space-x-2">
               <div class="flex-1 min-w-0">
@@ -189,6 +189,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { formatTime } from '../../utils/dateHelpers'
 import type { Task, Reminder } from '../../types/task'
+import { getTaskKey } from '@/utils/recurrence'
 
 // i18n
 const { t } = useI18n()

@@ -1,4 +1,4 @@
-import { RecurrenceFrequency, RecurrenceEndType } from '@/types/task'
+import { RecurrenceFrequency, RecurrenceEndType, type Task } from '@/types/task'
 
 export interface RecurrenceParams {
   frequency: RecurrenceFrequency
@@ -179,4 +179,12 @@ export function getRecurrenceDescription(
   }
 
   return parts.join(' ')
+}
+
+/**
+ * Get unique key for a task (handles recurring task occurrences)
+ * Uses occurrenceId if available (for recurring tasks), otherwise uses id
+ */
+export function getTaskKey(task: Task): string | number {
+  return task.occurrenceId || task.id
 }

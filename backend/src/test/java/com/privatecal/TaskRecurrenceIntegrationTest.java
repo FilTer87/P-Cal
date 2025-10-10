@@ -259,6 +259,28 @@ class TaskRecurrenceIntegrationTest {
     }
 
     @Test
+    void testGetTasksRecurrenceInFutureDateRange() {
+        // Create weekly task starting Sept 25
+        TaskRequest request = new TaskRequest(
+            "Weekly task (old)",
+            getInstant(2025, 9, 25, 10, 0),
+            getInstant(2025, 9, 25, 10, 30)
+        );
+        request.setRecurrenceRule("FREQ=WEEKLY");
+        taskService.createTask(request);
+
+        // Query only for the second week of October
+        Instant rangeStart = getInstant(2025, 10, 6, 0, 0);
+        Instant rangeEnd = getInstant(2025, 10, 12, 23, 59);
+
+        List<TaskResponse> tasks = taskService.getTasksInDateRange(rangeStart, rangeEnd);
+
+        // Should return 1 occurrence
+        assertEquals(1, tasks.size());
+        assertEquals(getInstant(2025, 10, 9, 10, 0), tasks.get(0).getStartDatetime());
+    }
+
+    @Test
     void testInvalidRecurrenceRuleThrowsException() {
         TaskRequest request = new TaskRequest(
             "Invalid recurring task",

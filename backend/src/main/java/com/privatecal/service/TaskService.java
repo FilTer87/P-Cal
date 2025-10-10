@@ -127,11 +127,15 @@ public class TaskService {
                     TaskResponse response = TaskResponse.fromTask(task);
                     response.setStartDatetime(occurrence.getOccurrenceStart());
                     response.setEndDatetime(occurrence.getOccurrenceEnd());
+                    // Generate unique occurrence ID: taskId-epochMillis
+                    response.setOccurrenceId(task.getId() + "-" + occurrence.getOccurrenceStart().toEpochMilli());
                     expandedTasks.add(response);
                 }
             } else {
-                // Non-recurring task
-                expandedTasks.add(TaskResponse.fromTask(task));
+                // Non-recurring task - use task ID as occurrence ID
+                TaskResponse response = TaskResponse.fromTask(task);
+                response.setOccurrenceId(String.valueOf(task.getId()));
+                expandedTasks.add(response);
             }
         }
 

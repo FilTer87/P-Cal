@@ -239,6 +239,10 @@ import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
 import { useTheme } from '../composables/useTheme'
 
+// Stores
+import { useSettingsStore } from '../stores/settings'
+import { useTasksStore } from '../stores/tasks'
+
 // i18n
 const { t } = useI18n()
 
@@ -265,8 +269,6 @@ const calendar = useCalendar()
 const tasks = useTasks()
 const reminders = useReminders()
 const theme = useTheme()
-// Settings store
-import { useSettingsStore } from '../stores/settings'
 const settings = useSettingsStore()
 
 // Task display and filter composables
@@ -363,6 +365,42 @@ const {
 watch([viewMode, currentDate], () => {
   showPastTasks.value = false
 })
+
+// Fetch tasks for current date range when date or view changes
+watch([currentDate, viewMode], async ([newDate, newViewMode]) => {
+  if (!newDate) return
+
+  let startDate: string
+  let endDate: string
+
+  if (newViewMode === 'week') {
+    // Get week range
+    const weekDays = calendar.getWeekDays(newDate)
+    startDate = formatDate(weekDays[0], 'yyyy-MM-dd')
+    endDate = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
+  } else if (newViewMode === 'month') {
+    // Get month range
+    const year = newDate.getFullYear()
+    const month = newDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    startDate = formatDate(firstDay, 'yyyy-MM-dd')
+    endDate = formatDate(lastDay, 'yyyy-MM-dd')
+  } else if (newViewMode === 'day') {
+    // Single day
+    startDate = formatDate(newDate, 'yyyy-MM-dd')
+    endDate = startDate
+  } else {
+    // Agenda view - next 30 days
+    startDate = formatDate(new Date(), 'yyyy-MM-dd')
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    endDate = formatDate(futureDate, 'yyyy-MM-dd')
+  }
+
+  // Fetch tasks for the date range
+  await tasks.fetchTasksByDateRange(startDate, endDate)
+}, { immediate: true })
 
 // Additional computed properties
 const tasksByDateInRange = computed(() => {
@@ -466,29 +504,37 @@ const handleTaskModalClose = () => {
 }
 
 const handleTaskCreated = async (task: Task) => {
-  // Refresh tasks data
-  await tasks.fetchTasks()
+  // Refresh tasks data - the watch will automatically reload based on current view
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+
+  // Trigger watch to reload current date range
+  currentDate.value = new Date(currentDate.value.getTime())
 }
 
 const handleTaskUpdated = async (task: Task) => {
-  // Refresh tasks data
-  await tasks.fetchTasks()
+  // Clear store to remove old occurrences (especially for recurring tasks)
+  // Import the store directly to access its methods
+  const tasksStore = useTasksStore()
+  tasksStore.tasks = []
+
+  // Refresh tasks data - the watch will automatically reload based on current view
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+
+  // Trigger watch to reload current date range
+  currentDate.value = new Date(currentDate.value.getTime())
 }
 
 const handleTaskDeleted = async (taskId: number) => {
   // Close the detail modal
   closeTaskModal()
-  // Refresh tasks data
-  await tasks.fetchTasks()
+  // Refresh tasks data - the watch will automatically reload based on current view
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+
+  // Trigger watch to reload current date range
+  currentDate.value = new Date(currentDate.value.getTime())
 }
 
 // Override calendar methods to use our enhanced modal
@@ -709,14 +755,14 @@ onMounted(async () => {
   // Initialize auth and require authentication
   await auth.requireAuth()
 
-  // Initialize settings 
+  // Initialize settings
   settings.loadSettings()
-  
+
   // Initialize calendar view mode
   calendar.initializeViewMode()
 
-  // Fetch initial data
-  await tasks.fetchTasks()
+  // Note: tasks are now loaded by the watch on currentDate/viewMode
+  // await tasks.fetchTasks() // REMOVED - conflicts with fetchTasksByDateRange
   await reminders.fetchAllReminders()
 
   // Fetch accurate statistics from dedicated endpoints
@@ -744,6 +790,7 @@ const allWeekTasks = computed(() => {
   const weekStart = formatDate(weekDays[0], 'yyyy-MM-dd')
   const weekEnd = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
   const allTasks: any[] = []
+  const seenKeys = new Set<string | number>()
 
   // Get ALL tasks from the composable
   const allStoreTasks = tasks.allTasks.value || []
@@ -759,7 +806,11 @@ const allWeekTasks = computed(() => {
     // - Task starts before/during week AND ends during/after week
     // - This covers: tasks starting before week, tasks within week, tasks ending after week
     if (taskStart <= weekEnd && taskEnd >= weekStart) {
-      allTasks.push(task)
+      const taskKey = task.occurrenceId || task.id
+      if (!seenKeys.has(taskKey)) {
+        allTasks.push(task)
+        seenKeys.add(taskKey)
+      }
     }
   })
 

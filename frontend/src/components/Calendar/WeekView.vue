@@ -44,24 +44,18 @@
 
             <!-- Tasks for this day (including split multi-day tasks) -->
             <div class="absolute inset-0 pointer-events-none">
-              <!-- <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
-                :style="getTaskTimeStyleIntelligent(task, getTasksWithSplitsForDate(dayInfo.day))"
-                @click="handleTaskClick(task)"
-                class="absolute left-1 right-1 rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden group"
-                :class="getTaskTimeDisplayClasses(task)"
-                :title="getTaskTooltipContent(task)"> -->
-              <div v-for="task in getTasksWithSplitsForDate(dayInfo.day)" :key="`${task.id}-${task._splitIndex || 0}`"
-                :style="getTaskTimeStyleIntelligent(task, getTasksWithSplitsForDate(dayInfo.day))"
+              <div v-for="task in dayInfo.tasks" :key="`${getTaskKey(task)}-${task._splitIndex || 0}`"
+                :style="getTaskTimeStyleIntelligent(task, dayInfo.tasks, dayInfo.layouts)"
                 @click="handleTaskClick(task)"
                 class="absolute rounded text-xs font-medium cursor-pointer pointer-events-auto transition-all hover:shadow-md overflow-hidden group"
                 :class="getTaskTimeDisplayClasses(task)"
                 :title="getTaskTooltipContent(task)">
 
                 <!-- Content for larger tasks -->
-                <template v-if="shouldShowTitle(task, getTasksWithSplitsForDate(dayInfo.day))">
+                <template v-if="shouldShowTitle(task, dayInfo.tasks)">
                   <div class="truncate font-semibold leading-tight text-xs">{{ task.title }}</div>
-                  <div v-if="task.location && shouldShowLocation(task, getTasksWithSplitsForDate(dayInfo.day))" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
-                  <div v-if="shouldShowTime(task, getTasksWithSplitsForDate(dayInfo.day))" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
+                  <div v-if="task.location && shouldShowLocation(task, dayInfo.tasks)" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
+                  <div v-if="shouldShowTime(task, dayInfo.tasks)" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
                 </template>
 
                 <!-- Minimal indicator for very small tasks -->
@@ -89,8 +83,8 @@
           
           
           <!-- Top indicators for hidden tasks above -->
-          <div v-for="(task, index) in dayInfo.indicators.top" 
-            :key="`top-${task.id}`"
+          <div v-for="(task, index) in dayInfo.indicators.top"
+            :key="`top-${getTaskKey(task)}`"
             class="absolute w-3 h-3 rounded-full border border-white shadow-sm"
             :style="{ 
               top: '16px',
@@ -100,8 +94,8 @@
           </div>
 
           <!-- Bottom indicators for hidden tasks below -->
-          <div v-for="(task, index) in dayInfo.indicators.bottom" 
-            :key="`bottom-${task.id}`"
+          <div v-for="(task, index) in dayInfo.indicators.bottom"
+            :key="`bottom-${getTaskKey(task)}`"
             class="absolute w-3 h-3 rounded-full border border-white shadow-lg"
             :style="{ 
               bottom: '16px',
@@ -126,6 +120,7 @@ import { useSettingsStore } from '../../stores/settings'
 import { useOverlapLayout } from '../../composables/useOverlapLayout'
 import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
+import { getTaskKey } from '../../utils/recurrence'
 
 // i18n
 const { t } = useI18n()
@@ -175,11 +170,7 @@ const getWeekDayName = (date: Date, short = false) => {
 const getTasksWithSplitsForDate = (date: Date) => {
   const currentDay = format(date, 'yyyy-MM-dd')
   const allTasksWithSplits: Task[] = []
-  
-  // Debug logging for date matching
-  console.debug(`🗓️ Getting tasks for column ${currentDay} (${format(date, 'E')})`)
-  
-  const matchingTasks: string[] = []
+  const seenKeys = new Set<string | number>()
 
   props.tasks.forEach(task => {
     if (!task.startDatetime || !task.endDatetime) return
@@ -187,33 +178,31 @@ const getTasksWithSplitsForDate = (date: Date) => {
     // Use local timezone for date extraction, not UTC string split
     const taskStartDay = format(new Date(task.startDatetime), 'yyyy-MM-dd')
     const taskEndDay = format(new Date(task.endDatetime), 'yyyy-MM-dd')
-    
-    // Debug logging for timezone comparison
-    const utcStartDay = task.startDatetime.split('T')[0]
-    const utcEndDay = task.endDatetime.split('T')[0]
-    if (taskStartDay !== utcStartDay || taskEndDay !== utcEndDay) {
-      console.debug(`🕐 Timezone fix for Task ${task.id}: UTC(${utcStartDay}-${utcEndDay}) -> Local(${taskStartDay}-${taskEndDay})`)
+    const taskKey = getTaskKey(task)
+
+    // Skip if we've already seen this task key
+    if (seenKeys.has(taskKey)) {
+      return
     }
 
     if (taskStartDay === taskEndDay) {
       // Single-day task
       if (taskStartDay === currentDay) {
         allTasksWithSplits.push(task)
-        matchingTasks.push(`Task ${task.id} (${task.title}) matches single-day`)
+        seenKeys.add(taskKey)
       }
     } else {
       // Multi-day task - ONLY if currentDay is within the task range
       if (currentDay >= taskStartDay && currentDay <= taskEndDay) {
-        matchingTasks.push(`Task ${task.id} (${task.title}) matches multi-day (${taskStartDay} to ${taskEndDay})`)
         let visualStartTime: string
         let visualEndTime: string
-        
+
         if (currentDay === taskStartDay) {
           // First day: from original start time to end of day
           visualStartTime = task.startDatetime
           visualEndTime = `${currentDay}T23:59:59`
         } else if (currentDay === taskEndDay) {
-          // Last day: from start of day to original end time  
+          // Last day: from start of day to original end time
           visualStartTime = `${currentDay}T00:00:00`
           visualEndTime = task.endDatetime
         } else {
@@ -221,7 +210,7 @@ const getTasksWithSplitsForDate = (date: Date) => {
           visualStartTime = `${currentDay}T00:00:00`
           visualEndTime = `${currentDay}T23:59:59`
         }
-        
+
         // Create task with ORIGINAL data but visual positioning times
         const splitTask = {
           ...task, // Keep ALL original data
@@ -230,16 +219,13 @@ const getTasksWithSplitsForDate = (date: Date) => {
           _visualEndTime: visualEndTime,
           _splitIndex: currentDay // For unique key
         }
-        
+
         allTasksWithSplits.push(splitTask)
+        seenKeys.add(taskKey)
       }
     }
   })
-  
-  if (matchingTasks.length > 0) {
-    console.debug(`✅ Column ${currentDay}: ${matchingTasks.join('; ')}`)
-  }
-  
+
   return allTasksWithSplits
 }
 
@@ -308,12 +294,12 @@ const getTaskTimeStyle = (task: Task) => {
   }
 }
 
-const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[]) => {
-  const calculatedLayouts = overlaps.calculateLayout(dayTasks)
+const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[], calculatedLayouts: Map<string | number, any>) => {
   const position = getTaskTimePositionIntelligent(task, dayTasks)
   const color = task.color || '#3788d8'
 
-  const layout = calculatedLayouts.get(task.id)
+  const taskKey = getTaskKey(task)
+  const layout = calculatedLayouts.get(taskKey)
 
   return {
     ...position,
@@ -321,7 +307,7 @@ const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[]) => {
     borderLeftColor: color,
     zIndex: layout?.zIndex || 10,
     width: layout?.width || 'calc(100% - 8px)',
-    left: layout ? `calc(4px + ${layout.leftOffset})` : '4px'
+    left: layout ? `calc(0px + ${layout.leftOffset})` : '0px'
   }
 }
 
@@ -438,7 +424,7 @@ const hasOverlapWithNext = (currentTask: any, dayTasks: Task[]) => {
 
   // Find tasks that start within 2 minutes of this task's end
   const overlapping = dayTasks.some(otherTask => {
-    if (otherTask.id === currentTask.id) return false
+    if (getTaskKey(otherTask) === getTaskKey(currentTask)) return false
 
     const otherStartStr = otherTask._visualStartTime || otherTask.startDatetime
     if (!otherStartStr) return false
@@ -502,15 +488,17 @@ const getTaskTimePositionIntelligent = (task: any, dayTasks: Task[]) => {
 // Computed properties
 const weekDaysWithIndicators = computed(() => {
   indicatorsUpdateTrigger.value // Force reactivity
-  
+
   return getWeekDays(props.currentDate).map(day => {
     const dayTasks = getTasksWithSplitsForDate(day)
     const indicators = getTasksOverflowIndicators(dayTasks)
-    
+    const layouts = overlaps.calculateLayout(dayTasks)
+
     return {
       day,
       tasks: dayTasks,
-      indicators
+      indicators,
+      layouts
     }
   })
 })
