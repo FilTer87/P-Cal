@@ -85,6 +85,34 @@
           </div>
         </div>
 
+        <!-- Recurrence Info -->
+        <div v-if="task.recurrenceRule">
+          <div class="flex items-center space-x-2 mb-2">
+            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('tasks.recurrence') }}</h4>
+          </div>
+          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 space-y-2">
+            <div class="flex items-start space-x-2">
+              <svg class="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  {{ getRecurrenceDescription() }}
+                </p>
+                <p v-if="task.recurrenceEnd" class="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                  {{ t('tasks.recurrenceUntil') }}: {{ formatDate(task.recurrenceEnd) }}
+                </p>
+                <p v-else class="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                  {{ t('tasks.recurrenceNoEnd') }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Location -->
         <div v-if="task.location">
           <div class="flex items-center space-x-3">
@@ -245,6 +273,7 @@ import { useI18n } from 'vue-i18n'
 import type { Task, NotificationType } from '../types/task'
 import { NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS } from '../types/task'
 import { formatDate, formatDateTime, formatTime } from '../utils/dateHelpers'
+import { getRecurrenceDescription as getRecurrenceText } from '../utils/recurrence'
 import ConfirmDialog from './Common/ConfirmDialog.vue'
 import { useTasks } from '../composables/useTasks'
 
@@ -369,6 +398,11 @@ const getNotificationIcon = (type: NotificationType) => {
 
 const getNotificationTypeLabel = (type: NotificationType) => {
   return NOTIFICATION_TYPE_CONFIG[type]?.label || type
+}
+
+const getRecurrenceDescription = () => {
+  if (!props.task?.recurrenceRule) return ''
+  return getRecurrenceText(props.task.recurrenceRule, t)
 }
 
 const getTaskStatus = () => {

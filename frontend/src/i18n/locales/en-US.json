@@ -350,6 +350,8 @@
       "count": "After a certain number",
       "date": "On a date"
     },
+    "recurrenceUntil": "Repeats until",
+    "recurrenceNoEnd": "Repeats forever",
     "reminders": "Reminders",
     "addReminder": "Add Reminder",
     "reminderType": "Type",

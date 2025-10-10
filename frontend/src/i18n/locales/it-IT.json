@@ -350,6 +350,8 @@
       "count": "Dopo un certo numero",
       "date": "In una data"
     },
+    "recurrenceUntil": "Ripeti fino al",
+    "recurrenceNoEnd": "Si ripete all'infinito",
     "reminders": "Promemoria",
     "addReminder": "Aggiungi Promemoria",
     "reminderType": "Tipologia",
