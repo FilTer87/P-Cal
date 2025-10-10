@@ -19,12 +19,26 @@
             {{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}
           </span>
 
-          <!-- Reminder bell icon -->
-          <BellIcon
-            v-if="hasReminders"
-            class="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
-            :title="t('tasks.hasReminders')"
-          />
+          <div class="flex items-center gap-1">
+            <!-- Recurrence icon -->
+            <svg
+              v-if="isRecurring"
+              class="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
+              :title="t('tasks.recurrence')"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+
+            <!-- Reminder bell icon -->
+            <BellIcon
+              v-if="hasReminders"
+              class="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
+              :title="t('tasks.hasReminders')"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -58,5 +72,9 @@ defineEmits<{
 // Computed
 const hasReminders = computed(() => {
   return props.task.reminders && props.task.reminders.length > 0
+})
+
+const isRecurring = computed(() => {
+  return !!props.task.recurrenceRule
 })
 </script>
