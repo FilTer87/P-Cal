@@ -124,6 +124,92 @@ public class RecurrenceService {
     }
 
     /**
+     * Get the next occurrence of a recurring task after a given time
+     * Returns null if there are no more occurrences
+     *
+     * @param task The recurring task
+     * @param afterTime Get the next occurrence after this time
+     * @return The next TaskOccurrence or null if none exists
+     */
+    public TaskOccurrence getNextOccurrence(Task task, Instant afterTime) {
+        logger.debug("getNextOccurrence for task {}: afterTime={}, recurrenceRule={}",
+                    task.getId(), afterTime, task.getRecurrenceRule());
+
+        if (task.getRecurrenceRule() == null || task.getRecurrenceRule().trim().isEmpty()) {
+            // Non-recurring task - return the task itself if it's after the given time
+            if (task.getStartDatetime().isAfter(afterTime)) {
+                return new TaskOccurrence(task, task.getStartDatetime(), task.getEndDatetime());
+            }
+            return null;
+        }
+
+        try {
+            // Parse RRULE
+            RRule rrule = new RRule(task.getRecurrenceRule());
+            Recur recur = rrule.getRecur();
+
+            // Calculate task duration
+            long durationMillis = ChronoUnit.MILLIS.between(task.getStartDatetime(), task.getEndDatetime());
+
+            // Convert to ical4j DateTime
+            DateTime startDate = toDateTime(task.getStartDatetime());
+            // Add 1 second to afterTime to exclude the current occurrence
+            DateTime searchFrom = toDateTime(afterTime.plusSeconds(1));
+
+            // Calculate effective end date
+            // Use recurrenceEnd if set, otherwise search up to 2 years from afterTime
+            Instant effectiveEnd = task.getRecurrenceEnd() != null
+                ? task.getRecurrenceEnd()
+                : afterTime.plus(730, ChronoUnit.DAYS); // 2 years
+
+            DateTime periodEnd = toDateTime(effectiveEnd);
+
+            logger.debug("Searching for next occurrence: startDate={}, searchFrom={} (afterTime+1s), periodEnd={}",
+                        startDate, searchFrom, periodEnd);
+
+            // Generate occurrences starting from afterTime + 1 second
+            DateList dates = recur.getDates(
+                startDate,
+                searchFrom,
+                periodEnd,
+                Value.DATE_TIME,
+                1 // We only need the first occurrence
+            );
+
+            logger.debug("Found {} dates from recur.getDates()", dates.size());
+
+            // Return the first occurrence after afterTime
+            if (!dates.isEmpty()) {
+                Date firstDate = dates.get(0);
+                Instant occStart = Instant.ofEpochMilli(firstDate.getTime());
+                Instant occEnd = occStart.plusMillis(durationMillis);
+
+                logger.debug("First date found: {}, occStart={}, isAfter(afterTime)={}",
+                            firstDate, occStart, occStart.isAfter(afterTime));
+
+                // Make sure it's actually after the requested time
+                if (occStart.isAfter(afterTime)) {
+                    logger.info("Next occurrence found for task {}: {}", task.getId(), occStart);
+                    return new TaskOccurrence(task, occStart, occEnd);
+                } else {
+                    logger.warn("Found occurrence {} is not after requested time {}", occStart, afterTime);
+                }
+            } else {
+                logger.warn("No dates found for task {} with RRULE {} after {}",
+                           task.getId(), task.getRecurrenceRule(), afterTime);
+            }
+
+            return null;
+        } catch (ParseException e) {
+            logger.error("Invalid RRULE for task {}: {}", task.getId(), task.getRecurrenceRule(), e);
+            return null;
+        } catch (Exception e) {
+            logger.error("Error getting next occurrence for task {}: {}", task.getId(), e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
      * Check if non-recurring task is within range
      */
     private boolean isInRange(Task task, Instant rangeStart, Instant rangeEnd) {

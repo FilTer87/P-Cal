@@ -34,6 +34,7 @@ public class ReminderService {
     private final TaskRepository taskRepository;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final RecurrenceService recurrenceService;
     
     /**
      * Create reminder for a task
@@ -281,21 +282,79 @@ public class ReminderService {
      */
     private void processReminder(Reminder reminder) {
         try {
-            logger.debug("Processing reminder ID: {} for task: {}", 
-                        reminder.getId(), reminder.getTask().getTitle());
-            
+            Task task = reminder.getTask();
+            logger.debug("Processing reminder ID: {} for task: {}",
+                        reminder.getId(), task.getTitle());
+
             // Send notification using unified service
             notificationService.sendReminderNotification(reminder);
-            
-            // Mark as sent
-            markReminderAsSent(reminder.getId());
-            
-            logger.info("Reminder processed successfully for task: {}", 
-                       reminder.getTask().getTitle());
-            
+
+            // Handle recurring task reminders
+            if (task.getRecurrenceRule() != null && !task.getRecurrenceRule().trim().isEmpty()) {
+                handleRecurringReminder(reminder, task);
+            } else {
+                // Non-recurring task: mark as sent
+                markReminderAsSent(reminder.getId());
+            }
+
+            logger.info("Reminder processed successfully for task: {}", task.getTitle());
+
         } catch (Exception e) {
-            logger.error("Failed to process reminder ID {}: {}", 
+            logger.error("Failed to process reminder ID {}: {}",
                         reminder.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Handle reminder for recurring task
+     * Updates reminder time to next occurrence instead of marking as sent
+     */
+    private void handleRecurringReminder(Reminder reminder, Task task) {
+        try {
+            // Calculate which occurrence we just processed
+            // reminderTime + offset = occurrence start time
+            Instant currentOccurrenceStart = reminder.getReminderTime()
+                .plus(java.time.Duration.ofMinutes(reminder.getReminderOffsetMinutes()));
+
+            logger.info("Processing recurring reminder {}: current occurrence at {}, reminderTime was {}, offset {}min",
+                        reminder.getId(), currentOccurrenceStart, reminder.getReminderTime(),
+                        reminder.getReminderOffsetMinutes());
+
+            // Get the next occurrence after the one we just processed
+            RecurrenceService.TaskOccurrence nextOccurrence =
+                recurrenceService.getNextOccurrence(task, currentOccurrenceStart);
+
+            if (nextOccurrence != null) {
+                // Calculate new reminder time: next occurrence start - offset
+                Instant newReminderTime = nextOccurrence.getOccurrenceStart()
+                    .minus(java.time.Duration.ofMinutes(reminder.getReminderOffsetMinutes()));
+
+                logger.info("Next occurrence found at {}. New reminder time will be {}",
+                           nextOccurrence.getOccurrenceStart(), newReminderTime);
+
+                // Update reminder with new time and track which occurrence was processed
+                reminder.setReminderTime(newReminderTime);
+                reminder.setLastSentOccurrence(currentOccurrenceStart);
+                reminder.setIsSent(false); // Keep as unsent so it will be processed again
+
+                Reminder saved = reminderRepository.save(reminder);
+
+                logger.info("Saved recurring reminder {}: reminderTime={}, lastSentOccurrence={}, isSent={}",
+                           saved.getId(), saved.getReminderTime(), saved.getLastSentOccurrence(),
+                           saved.getIsSent());
+            } else {
+                // No more occurrences - mark as sent (series is complete)
+                reminder.setLastSentOccurrence(currentOccurrenceStart);
+                markReminderAsSent(reminder.getId());
+                logger.info("No more occurrences for recurring reminder {}, marked as sent",
+                           reminder.getId());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error handling recurring reminder {}: {}",
+                        reminder.getId(), e.getMessage());
+            // Fallback: mark as sent to prevent infinite loop
+            markReminderAsSent(reminder.getId());
         }
     }
     
