@@ -361,6 +361,137 @@ class TaskRecurrenceIntegrationTest {
         }
     }
 
+    @Test
+    void testUpdateSingleOccurrenceCreatesExceptionAndNewTask() {
+        // Create recurring task (3 daily occurrences)
+        TaskRequest createRequest = new TaskRequest(
+            "Daily meeting",
+            getInstant(2025, 10, 1, 10, 0),
+            getInstant(2025, 10, 1, 11, 0)
+        );
+        createRequest.setRecurrenceRule("FREQ=DAILY;COUNT=3");
+        TaskResponse created = taskService.createTask(createRequest);
+
+        // Get the second occurrence date
+        Instant secondOccurrence = getInstant(2025, 10, 2, 10, 0);
+
+        // Update single occurrence with new data
+        TaskRequest updateRequest = new TaskRequest(
+            "Modified meeting (one-time)",
+            getInstant(2025, 10, 2, 14, 0), // Different time
+            getInstant(2025, 10, 2, 15, 0)
+        );
+        updateRequest.setDescription("This is a special one-time change");
+
+        TaskResponse updatedSingle = taskService.updateSingleOccurrence(
+            created.getId(),
+            secondOccurrence,
+            updateRequest
+        );
+
+        // Verify new task is created and is non-recurring
+        assertNotNull(updatedSingle);
+        assertNotEquals(created.getId(), updatedSingle.getId());
+        assertEquals("Modified meeting (one-time)", updatedSingle.getTitle());
+        assertEquals("This is a special one-time change", updatedSingle.getDescription());
+        assertNull(updatedSingle.getRecurrenceRule());
+        assertFalse(updatedSingle.getIsRecurring());
+        assertEquals(getInstant(2025, 10, 2, 14, 0), updatedSingle.getStartDatetime());
+
+        // Verify original task has exception date by accessing the entity directly
+        com.privatecal.entity.Task originalTask = taskRepository.findById(created.getId())
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+        assertNotNull(originalTask.getRecurrenceExceptions());
+        assertTrue(originalTask.getRecurrenceExceptions().contains(secondOccurrence.toString()));
+    }
+
+    @Test
+    void testUpdateSingleOccurrenceExcludesFromDateRange() {
+        // Create recurring task (5 daily occurrences)
+        TaskRequest createRequest = new TaskRequest(
+            "Daily task",
+            getInstant(2025, 10, 1, 9, 0),
+            getInstant(2025, 10, 1, 9, 30)
+        );
+        createRequest.setRecurrenceRule("FREQ=DAILY;COUNT=5");
+        TaskResponse created = taskService.createTask(createRequest);
+
+        // Get range before update (should have 5 occurrences)
+        Instant rangeStart = getInstant(2025, 10, 1, 0, 0);
+        Instant rangeEnd = getInstant(2025, 10, 5, 23, 59);
+        List<TaskResponse> tasksBefore = taskService.getTasksInDateRange(rangeStart, rangeEnd);
+        assertEquals(5, tasksBefore.size());
+
+        // Update the 3rd occurrence
+        Instant thirdOccurrence = getInstant(2025, 10, 3, 9, 0);
+        TaskRequest updateRequest = new TaskRequest(
+            "Modified single task",
+            getInstant(2025, 10, 3, 15, 0), // Different time
+            getInstant(2025, 10, 3, 15, 30)
+        );
+
+        taskService.updateSingleOccurrence(created.getId(), thirdOccurrence, updateRequest);
+
+        // Get range after update (should still have 5 tasks total: 4 from series + 1 modified)
+        List<TaskResponse> tasksAfter = taskService.getTasksInDateRange(rangeStart, rangeEnd);
+        assertEquals(5, tasksAfter.size());
+
+        // Verify the modified task exists with new data
+        boolean foundModified = tasksAfter.stream()
+            .anyMatch(t -> t.getTitle().equals("Modified single task")
+                && t.getStartDatetime().equals(getInstant(2025, 10, 3, 15, 0)));
+        assertTrue(foundModified, "Modified single occurrence should exist with new data");
+
+        // Verify original occurrence is excluded (should not find task at 9:00)
+        boolean foundOriginal = tasksAfter.stream()
+            .anyMatch(t -> t.getStartDatetime().equals(getInstant(2025, 10, 3, 9, 0)));
+        assertFalse(foundOriginal, "Original occurrence at 9:00 should be excluded");
+    }
+
+    @Test
+    void testUpdateSingleOccurrencePreservesOtherOccurrences() {
+        // Create weekly recurring task
+        TaskRequest createRequest = new TaskRequest(
+            "Weekly standup",
+            getInstant(2025, 10, 1, 10, 0),
+            getInstant(2025, 10, 1, 10, 30)
+        );
+        createRequest.setRecurrenceRule("FREQ=WEEKLY;COUNT=4");
+        TaskResponse created = taskService.createTask(createRequest);
+
+        // Update second occurrence
+        Instant secondOccurrence = getInstant(2025, 10, 8, 10, 0);
+        TaskRequest updateRequest = new TaskRequest(
+            "Modified standup",
+            getInstant(2025, 10, 8, 11, 0),
+            getInstant(2025, 10, 8, 11, 30)
+        );
+
+        taskService.updateSingleOccurrence(created.getId(), secondOccurrence, updateRequest);
+
+        // Verify other occurrences remain unchanged
+        Instant rangeStart = getInstant(2025, 10, 1, 0, 0);
+        Instant rangeEnd = getInstant(2025, 10, 31, 23, 59);
+        List<TaskResponse> tasks = taskService.getTasksInDateRange(rangeStart, rangeEnd);
+
+        // Should have 4 tasks total (3 from series + 1 modified)
+        assertEquals(4, tasks.size());
+
+        // First occurrence should be unchanged
+        TaskResponse firstOccurrence = tasks.stream()
+            .filter(t -> t.getStartDatetime().equals(getInstant(2025, 10, 1, 10, 0)))
+            .findFirst()
+            .orElse(null);
+        assertNotNull(firstOccurrence);
+        assertEquals("Weekly standup", firstOccurrence.getTitle());
+
+        // Third and fourth occurrences should also be unchanged
+        long unchangedCount = tasks.stream()
+            .filter(t -> t.getTitle().equals("Weekly standup"))
+            .count();
+        assertEquals(3, unchangedCount);
+    }
+
     // Helper methods
 
     private Instant getInstant(int year, int month, int day, int hour, int minute) {
