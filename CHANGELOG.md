@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 - Reminders send logic follows RRULE next occurrence on recurrent events
 - Future occurrences retrieval and correct visualization
 - Recurring event infos shown on task detail translated in human language
+- Update "all occurrences" or "single occurrence" option (using EXDATE - RFC 5545)
 
 ### Changed
 
@@ -20,6 +21,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ### Removed
 
 ### Fixed
+
+- Correctly display events after update (no need to change view or date-range)
 
 ### Security
 

@@ -240,12 +240,12 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest): Promise<Task | null> => {
+  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isLoading.value = true
     error.value = null
 
     try {
-      const updatedTask = await taskApi.updateTask(taskId, taskData)
+      const updatedTask = await taskApi.updateTask(taskId, taskData, occurrenceStart)
       
       // Ensure we have a valid task before updating
       if (updatedTask && updatedTask.id) {

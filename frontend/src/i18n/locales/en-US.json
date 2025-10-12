@@ -414,7 +414,9 @@
       "MEDIUM": "Medium",
       "HIGH": "High",
       "URGENT": "Urgent"
-    }
+    },
+    "editingAllOccurrences": "Editing all occurrences",
+    "editingAllOccurrencesDescription": "Dates and times are locked because you are editing all occurrences of the event. Changes will apply to the entire recurring series."
   },
   "calendar": {
     "views": {
@@ -773,6 +775,20 @@
       "missingSpecial": "Add at least one special character",
       "repeatedChars": "Avoid repeated characters",
       "commonSequences": "Avoid common sequences (123, abc, etc.)"
+    }
+  },
+  "recurringEdit": {
+    "title": "Edit Recurring Event",
+    "description": "This is a recurring event. What would you like to edit?",
+    "options": {
+      "single": {
+        "label": "Only this occurrence",
+        "description": "Changes apply only to this date"
+      },
+      "all": {
+        "label": "All occurrences",
+        "description": "Changes apply to all events in the series"
+      }
     }
   }
 }

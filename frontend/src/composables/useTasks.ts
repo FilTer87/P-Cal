@@ -85,12 +85,12 @@ export function useTasks() {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest): Promise<Task | null> => {
+  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isFormLoading.value = true
     formErrors.value = {}
 
     try {
-      const task = await tasksStore.updateTask(taskId, taskData)
+      const task = await tasksStore.updateTask(taskId, taskData, occurrenceStart)
       if (task) {
         showSuccess(i18n.global.t('composables.useTasks.taskUpdated'))
         return task

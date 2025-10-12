@@ -1,4 +1,12 @@
 <template>
+  <!-- Recurring Edit Choice Modal -->
+  <RecurringEditChoiceModal
+    :show="showRecurringEditChoice"
+    @close="showRecurringEditChoice = false"
+    @edit-all="handleEditAllOccurrences"
+    @edit-single="handleEditSingleOccurrence"
+  />
+
   <div v-if="show && task" class="modal-overlay" @click="handleBackdropClick">
     <div class="modal-content" @click.stop>
       <!-- Modal Header -->
@@ -275,6 +283,7 @@ import { NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS } from '../types/task'
 import { formatDate, formatDateTime, formatTime } from '../utils/dateHelpers'
 import { getRecurrenceDescription as getRecurrenceText } from '../utils/recurrence'
 import ConfirmDialog from './Common/ConfirmDialog.vue'
+import RecurringEditChoiceModal from './RecurringEditChoiceModal.vue'
 import { useTasks } from '../composables/useTasks'
 
 // Composables
@@ -287,7 +296,7 @@ interface Props {
 
 interface Emits {
   (e: 'close'): void
-  (e: 'edit', task: Task): void
+  (e: 'edit', task: Task, editMode?: 'single' | 'all'): void
   (e: 'delete', taskId: number): void
 }
 
@@ -299,6 +308,7 @@ const { deleteTask } = useTasks()
 
 // State
 const showDeleteConfirm = ref(false)
+const showRecurringEditChoice = ref(false)
 
 // Methods
 const closeModal = () => {
@@ -311,7 +321,30 @@ const handleBackdropClick = () => {
 
 const handleEdit = () => {
   if (props.task) {
-    emit('edit', props.task)
+    // Check if this is a recurring task
+    if (props.task.recurrenceRule) {
+      // Show choice modal for recurring tasks
+      showRecurringEditChoice.value = true
+    } else {
+      // Direct edit for non-recurring tasks
+      emit('edit', props.task)
+    }
+  }
+}
+
+const handleEditAllOccurrences = () => {
+  showRecurringEditChoice.value = false
+  if (props.task) {
+    // Edit the master task (all occurrences)
+    emit('edit', props.task, 'all')
+  }
+}
+
+const handleEditSingleOccurrence = () => {
+  showRecurringEditChoice.value = false
+  if (props.task) {
+    // Edit only this occurrence
+    emit('edit', props.task, 'single')
   }
 }
 

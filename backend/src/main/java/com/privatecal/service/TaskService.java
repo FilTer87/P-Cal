@@ -246,12 +246,24 @@ public class TaskService {
         
         // Validate task request
         validateTaskRequest(taskRequest);
-        
+
         // Update task fields
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
-        task.setStartDatetime(taskRequest.getStartDatetime());
-        task.setEndDatetime(taskRequest.getEndDatetime());
+
+        // For recurring tasks, preserve original dates to avoid shifting the series
+        // Only update dates if the task is not recurring OR if recurrence rule is being changed
+        boolean isRecurring = task.getRecurrenceRule() != null && !task.getRecurrenceRule().trim().isEmpty();
+        if (!isRecurring || !taskRequest.getRecurrenceRule().equals(task.getRecurrenceRule())) {
+            // Update dates only for non-recurring tasks or when recurrence rule changes
+            task.setStartDatetime(taskRequest.getStartDatetime());
+            task.setEndDatetime(taskRequest.getEndDatetime());
+        } else {
+            // For recurring tasks with unchanged recurrence rule, keep original dates
+            logger.info("Preserving original dates for recurring task {} (start: {}, end: {})",
+                       taskId, task.getStartDatetime(), task.getEndDatetime());
+        }
+
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
@@ -284,10 +296,72 @@ public class TaskService {
         savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
         
         logger.info("Task updated successfully: {} for user: {}", savedTask.getTitle(), currentUser.getUsername());
-        
+
         return TaskResponse.fromTask(savedTask);
     }
-    
+
+    /**
+     * Update a single occurrence of a recurring task
+     * Creates a new non-recurring task and adds an exception to the master task
+     *
+     * @param taskId The ID of the recurring master task
+     * @param occurrenceStart The start datetime of the occurrence to edit
+     * @param taskRequest The updated task data
+     * @return The newly created task for the single occurrence
+     */
+    public TaskResponse updateSingleOccurrence(Long taskId, Instant occurrenceStart, TaskRequest taskRequest) {
+        logger.info("Updating single occurrence of task ID {} at {}", taskId, occurrenceStart);
+
+        User currentUser = userService.getCurrentUser();
+
+        // Find master task and validate ownership
+        Task masterTask = taskRepository.findByIdAndUser(taskId, currentUser)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        // Verify it's a recurring task
+        if (masterTask.getRecurrenceRule() == null || masterTask.getRecurrenceRule().trim().isEmpty()) {
+            throw new RuntimeException("Task is not recurring");
+        }
+
+        // Validate task request
+        validateTaskRequest(taskRequest);
+
+        // Add exception date to master task (EXDATE)
+        recurrenceService.addExceptionDate(masterTask, occurrenceStart);
+        taskRepository.save(masterTask);
+
+        logger.info("Added EXDATE {} to master task {}", occurrenceStart, masterTask.getId());
+
+        // Create new non-recurring task for this specific occurrence
+        Task newTask = new Task();
+        newTask.setUser(currentUser);
+        newTask.setTitle(taskRequest.getTitle().trim());
+        newTask.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
+        newTask.setStartDatetime(taskRequest.getStartDatetime());
+        newTask.setEndDatetime(taskRequest.getEndDatetime());
+        newTask.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : masterTask.getColor());
+        newTask.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        // No recurrence for single occurrence
+        newTask.setRecurrenceRule(null);
+        newTask.setRecurrenceEnd(null);
+
+        Task savedTask = taskRepository.save(newTask);
+
+        // Add reminders if provided
+        if (taskRequest.getReminders() != null) {
+            for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
+                reminderService.createReminderForTask(savedTask.getId(), reminderRequest);
+            }
+        }
+
+        // Reload task with reminders
+        savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
+
+        logger.info("Created new task {} for single occurrence edit", savedTask.getId());
+
+        return TaskResponse.fromTask(savedTask);
+    }
+
     /**
      * Delete task
      */

@@ -503,38 +503,61 @@ const handleTaskModalClose = () => {
   closeCreateTaskModal()
 }
 
+// Helper function to reload tasks for current date range
+const reloadCurrentDateRange = async () => {
+  let startDate: string
+  let endDate: string
+
+  if (viewMode.value === 'week') {
+    const weekDays = calendar.getWeekDays(currentDate.value)
+    startDate = formatDate(weekDays[0], 'yyyy-MM-dd')
+    endDate = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
+  } else if (viewMode.value === 'month') {
+    const year = currentDate.value.getFullYear()
+    const month = currentDate.value.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    startDate = formatDate(firstDay, 'yyyy-MM-dd')
+    endDate = formatDate(lastDay, 'yyyy-MM-dd')
+  } else if (viewMode.value === 'day') {
+    startDate = formatDate(currentDate.value, 'yyyy-MM-dd')
+    endDate = startDate
+  } else {
+    // Agenda view - next 30 days
+    startDate = formatDate(new Date(), 'yyyy-MM-dd')
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    endDate = formatDate(futureDate, 'yyyy-MM-dd')
+  }
+
+  await tasks.fetchTasksByDateRange(startDate, endDate)
+}
+
 const handleTaskCreated = async (task: Task) => {
-  // Refresh tasks data - the watch will automatically reload based on current view
+  // Refresh tasks data
   await tasks.refreshStatistics()
   await reminders.fetchAllReminders()
-
-  // Trigger watch to reload current date range
-  currentDate.value = new Date(currentDate.value.getTime())
+  await reloadCurrentDateRange()
 }
 
 const handleTaskUpdated = async (task: Task) => {
   // Clear store to remove old occurrences (especially for recurring tasks)
-  // Import the store directly to access its methods
   const tasksStore = useTasksStore()
   tasksStore.tasks = []
 
-  // Refresh tasks data - the watch will automatically reload based on current view
+  // Refresh tasks data and reload current date range
   await tasks.refreshStatistics()
   await reminders.fetchAllReminders()
-
-  // Trigger watch to reload current date range
-  currentDate.value = new Date(currentDate.value.getTime())
+  await reloadCurrentDateRange()
 }
 
 const handleTaskDeleted = async (taskId: number) => {
   // Close the detail modal
   closeTaskModal()
-  // Refresh tasks data - the watch will automatically reload based on current view
+  // Refresh tasks data
   await tasks.refreshStatistics()
   await reminders.fetchAllReminders()
-
-  // Trigger watch to reload current date range
-  currentDate.value = new Date(currentDate.value.getTime())
+  await reloadCurrentDateRange()
 }
 
 // Override calendar methods to use our enhanced modal
@@ -545,12 +568,34 @@ const openCreateTaskModalWithDate = (date?: Date) => {
 }
 
 // Handle editing from task detail modal
-const handleTaskDetailEdit = (task: Task) => {
+const handleTaskDetailEdit = async (task: Task, editMode?: 'single' | 'all') => {
   // Close the detail modal first
   calendar.closeTaskModal()
 
+  let taskToEdit = task
+
+  // If editing all occurrences of a recurring task, fetch the master task
+  if (editMode === 'all' && task.recurrenceRule) {
+    try {
+      // Fetch the master task to get original dates
+      const masterTask = await tasks.getTaskById(task.id)
+      if (masterTask) {
+        taskToEdit = masterTask
+        console.log('Loaded master task for editing all occurrences:', masterTask)
+      }
+    } catch (error) {
+      console.error('Failed to load master task:', error)
+      // Fallback to original task if fetch fails
+    }
+  }
+
+  // Store edit mode info on the task object for use in form submission
+  if (editMode) {
+    (taskToEdit as any)._editMode = editMode
+  }
+
   // Then open the edit modal
-  selectedTaskForEdit.value = task
+  selectedTaskForEdit.value = taskToEdit
   createTaskDate.value = undefined
   calendar.openCreateTaskModal()
 }

@@ -11,9 +11,14 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for handling recurring tasks using RFC 5545 RRULE format
@@ -85,11 +90,20 @@ public class RecurrenceService {
             MAX_OCCURRENCES
         );
 
+        // Parse exception dates (EXDATE)
+        Set<Instant> exceptions = parseExceptionDates(task.getRecurrenceExceptions());
+
         // Convert to TaskOccurrence list
         List<TaskOccurrence> occurrences = new ArrayList<>();
         for (Date date : dates) {
             Instant occStart = Instant.ofEpochMilli(date.getTime());
             Instant occEnd = occStart.plusMillis(durationMillis);
+
+            // Skip if this occurrence is in the exception list
+            if (exceptions.contains(occStart)) {
+                logger.debug("Skipping exception date: {}", occStart);
+                continue;
+            }
 
             // Only include if within range
             if (isOccurrenceInRange(occStart, occEnd, rangeStart, rangeEnd)) {
@@ -104,6 +118,48 @@ public class RecurrenceService {
         }
 
         return occurrences;
+    }
+
+    /**
+     * Parse exception dates from comma-separated string
+     * Format: "2025-10-17T10:00:00Z,2025-10-24T10:00:00Z"
+     */
+    private Set<Instant> parseExceptionDates(String exceptionsStr) {
+        if (exceptionsStr == null || exceptionsStr.trim().isEmpty()) {
+            return new HashSet<>();
+        }
+
+        return Arrays.stream(exceptionsStr.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(Instant::parse)
+            .collect(Collectors.toSet());
+    }
+
+    /**
+     * Add an exception date to the task (EXDATE)
+     * @param task The task to modify
+     * @param exceptionDate The occurrence date to exclude
+     */
+    public void addExceptionDate(Task task, Instant exceptionDate) {
+        Set<Instant> exceptions = parseExceptionDates(task.getRecurrenceExceptions());
+        exceptions.add(exceptionDate);
+        task.setRecurrenceExceptions(formatExceptionDates(exceptions));
+        logger.info("Added exception date {} to task {}", exceptionDate, task.getId());
+    }
+
+    /**
+     * Format exception dates as comma-separated string
+     */
+    private String formatExceptionDates(Set<Instant> exceptions) {
+        if (exceptions == null || exceptions.isEmpty()) {
+            return null;
+        }
+
+        return exceptions.stream()
+            .sorted()
+            .map(Instant::toString)
+            .collect(Collectors.joining(","));
     }
 
     /**

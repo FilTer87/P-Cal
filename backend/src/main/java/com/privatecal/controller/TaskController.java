@@ -154,17 +154,32 @@ public class TaskController {
     /**
      * Update task
      * PUT /api/tasks/{taskId}
+     * Optional query param: occurrenceStart (ISO 8601 datetime) for editing single occurrence
      */
     @PutMapping("/{taskId}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId, 
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId,
+                                                  @RequestParam(required = false) String occurrenceStart,
                                                   @Valid @RequestBody TaskRequest taskRequest) {
         try {
-            logger.debug("Updating task ID: {}", taskId);
-            
-            TaskResponse response = taskService.updateTask(taskId, taskRequest);
-            
+            logger.debug("Updating task ID: {}, occurrenceStart: {}", taskId, occurrenceStart);
+
+            TaskResponse response;
+
+            // Check if we're editing a single occurrence
+            if (occurrenceStart != null && !occurrenceStart.trim().isEmpty()) {
+                // Parse occurrence datetime
+                Instant occurrenceInstant = Instant.parse(occurrenceStart);
+                logger.info("Editing single occurrence at {}", occurrenceInstant);
+
+                // Update single occurrence (creates new task + adds EXDATE)
+                response = taskService.updateSingleOccurrence(taskId, occurrenceInstant, taskRequest);
+            } else {
+                // Update the entire task (all occurrences if recurring)
+                response = taskService.updateTask(taskId, taskRequest);
+            }
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             logger.error("Error updating task ID: {}", taskId, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

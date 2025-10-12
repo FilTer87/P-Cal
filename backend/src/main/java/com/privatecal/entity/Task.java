@@ -58,6 +58,9 @@ public class Task {
     @Column(name = "recurrence_end")
     private Instant recurrenceEnd;
 
+    @Column(name = "recurrence_exceptions", columnDefinition = "TEXT")
+    private String recurrenceExceptions;
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reminder> reminders = new ArrayList<>();
     
@@ -176,6 +179,14 @@ public class Task {
 
     public void setRecurrenceEnd(Instant recurrenceEnd) {
         this.recurrenceEnd = recurrenceEnd;
+    }
+
+    public String getRecurrenceExceptions() {
+        return recurrenceExceptions;
+    }
+
+    public void setRecurrenceExceptions(String recurrenceExceptions) {
+        this.recurrenceExceptions = recurrenceExceptions;
     }
 
     public boolean isRecurring() {
