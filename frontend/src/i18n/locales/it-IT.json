@@ -331,6 +331,27 @@
     "location": "Luogo",
     "locationPlaceholder": "Inserisci il luogo (opzionale)",
     "color": "Colore",
+    "recurrence": "Ricorrenza",
+    "isRecurring": "Ripeti evento",
+    "recurrenceFrequency": "Frequenza",
+    "recurrenceInterval": "Ripeti ogni",
+    "recurrenceEndType": "Termina",
+    "recurrenceCount": "Numero di occorrenze",
+    "recurrenceEndDate": "Data di fine",
+    "recurrenceByDay": "Giorni della settimana",
+    "recurrenceOptions": {
+      "daily": "Giornaliera",
+      "weekly": "Settimanale",
+      "monthly": "Mensile",
+      "yearly": "Annuale"
+    },
+    "recurrenceEnd": {
+      "never": "Mai",
+      "count": "Dopo un certo numero",
+      "date": "In una data"
+    },
+    "recurrenceUntil": "Ripeti fino al",
+    "recurrenceNoEnd": "Si ripete all'infinito",
     "reminders": "Promemoria",
     "addReminder": "Aggiungi Promemoria",
     "reminderType": "Tipologia",
@@ -393,7 +414,9 @@
       "MEDIUM": "Media",
       "HIGH": "Alta",
       "URGENT": "Urgente"
-    }
+    },
+    "editingAllOccurrences": "Modifica di tutte le occorrenze",
+    "editingAllOccurrencesDescription": "Le date e gli orari sono bloccati perché stai modificando tutte le occorrenze dell'evento. Le modifiche si applicheranno all'intera serie ricorrente."
   },
   "calendar": {
     "views": {
@@ -752,6 +775,20 @@
       "missingSpecial": "Aggiungi almeno un carattere speciale",
       "repeatedChars": "Evita caratteri ripetuti",
       "commonSequences": "Evita sequenze comuni (123, abc, ecc.)"
+    }
+  },
+  "recurringEdit": {
+    "title": "Modifica Evento Ricorrente",
+    "description": "Questo è un evento ricorrente. Cosa vuoi modificare?",
+    "options": {
+      "single": {
+        "label": "Solo questa occorrenza",
+        "description": "Le modifiche si applicano solo a questa data"
+      },
+      "all": {
+        "label": "Tutte le occorrenze",
+        "description": "Le modifiche si applicano a tutti gli eventi della serie"
+      }
     }
   }
 }

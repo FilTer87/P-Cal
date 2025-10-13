@@ -239,6 +239,10 @@ import { useTasks } from '../composables/useTasks'
 import { useReminders } from '../composables/useReminders'
 import { useTheme } from '../composables/useTheme'
 
+// Stores
+import { useSettingsStore } from '../stores/settings'
+import { useTasksStore } from '../stores/tasks'
+
 // i18n
 const { t } = useI18n()
 
@@ -265,8 +269,6 @@ const calendar = useCalendar()
 const tasks = useTasks()
 const reminders = useReminders()
 const theme = useTheme()
-// Settings store
-import { useSettingsStore } from '../stores/settings'
 const settings = useSettingsStore()
 
 // Task display and filter composables
@@ -363,6 +365,42 @@ const {
 watch([viewMode, currentDate], () => {
   showPastTasks.value = false
 })
+
+// Fetch tasks for current date range when date or view changes
+watch([currentDate, viewMode], async ([newDate, newViewMode]) => {
+  if (!newDate) return
+
+  let startDate: string
+  let endDate: string
+
+  if (newViewMode === 'week') {
+    // Get week range
+    const weekDays = calendar.getWeekDays(newDate)
+    startDate = formatDate(weekDays[0], 'yyyy-MM-dd')
+    endDate = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
+  } else if (newViewMode === 'month') {
+    // Get month range
+    const year = newDate.getFullYear()
+    const month = newDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    startDate = formatDate(firstDay, 'yyyy-MM-dd')
+    endDate = formatDate(lastDay, 'yyyy-MM-dd')
+  } else if (newViewMode === 'day') {
+    // Single day
+    startDate = formatDate(newDate, 'yyyy-MM-dd')
+    endDate = startDate
+  } else {
+    // Agenda view - next 30 days
+    startDate = formatDate(new Date(), 'yyyy-MM-dd')
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    endDate = formatDate(futureDate, 'yyyy-MM-dd')
+  }
+
+  // Fetch tasks for the date range
+  await tasks.fetchTasksByDateRange(startDate, endDate)
+}, { immediate: true })
 
 // Additional computed properties
 const tasksByDateInRange = computed(() => {
@@ -465,30 +503,61 @@ const handleTaskModalClose = () => {
   closeCreateTaskModal()
 }
 
+// Helper function to reload tasks for current date range
+const reloadCurrentDateRange = async () => {
+  let startDate: string
+  let endDate: string
+
+  if (viewMode.value === 'week') {
+    const weekDays = calendar.getWeekDays(currentDate.value)
+    startDate = formatDate(weekDays[0], 'yyyy-MM-dd')
+    endDate = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
+  } else if (viewMode.value === 'month') {
+    const year = currentDate.value.getFullYear()
+    const month = currentDate.value.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    startDate = formatDate(firstDay, 'yyyy-MM-dd')
+    endDate = formatDate(lastDay, 'yyyy-MM-dd')
+  } else if (viewMode.value === 'day') {
+    startDate = formatDate(currentDate.value, 'yyyy-MM-dd')
+    endDate = startDate
+  } else {
+    // Agenda view - next 30 days
+    startDate = formatDate(new Date(), 'yyyy-MM-dd')
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    endDate = formatDate(futureDate, 'yyyy-MM-dd')
+  }
+
+  await tasks.fetchTasksByDateRange(startDate, endDate)
+}
+
 const handleTaskCreated = async (task: Task) => {
   // Refresh tasks data
-  await tasks.fetchTasks()
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+  await reloadCurrentDateRange()
 }
 
 const handleTaskUpdated = async (task: Task) => {
-  // Refresh tasks data
-  await tasks.fetchTasks()
+  // Clear store to remove old occurrences (especially for recurring tasks)
+  const tasksStore = useTasksStore()
+  tasksStore.tasks = []
+
+  // Refresh tasks data and reload current date range
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+  await reloadCurrentDateRange()
 }
 
 const handleTaskDeleted = async (taskId: number) => {
   // Close the detail modal
   closeTaskModal()
   // Refresh tasks data
-  await tasks.fetchTasks()
   await tasks.refreshStatistics()
-  // Refresh reminders to update sidebar
   await reminders.fetchAllReminders()
+  await reloadCurrentDateRange()
 }
 
 // Override calendar methods to use our enhanced modal
@@ -499,12 +568,34 @@ const openCreateTaskModalWithDate = (date?: Date) => {
 }
 
 // Handle editing from task detail modal
-const handleTaskDetailEdit = (task: Task) => {
+const handleTaskDetailEdit = async (task: Task, editMode?: 'single' | 'all') => {
   // Close the detail modal first
   calendar.closeTaskModal()
 
+  let taskToEdit = task
+
+  // If editing all occurrences of a recurring task, fetch the master task
+  if (editMode === 'all' && task.recurrenceRule) {
+    try {
+      // Fetch the master task to get original dates
+      const masterTask = await tasks.getTaskById(task.id)
+      if (masterTask) {
+        taskToEdit = masterTask
+        console.log('Loaded master task for editing all occurrences:', masterTask)
+      }
+    } catch (error) {
+      console.error('Failed to load master task:', error)
+      // Fallback to original task if fetch fails
+    }
+  }
+
+  // Store edit mode info on the task object for use in form submission
+  if (editMode) {
+    (taskToEdit as any)._editMode = editMode
+  }
+
   // Then open the edit modal
-  selectedTaskForEdit.value = task
+  selectedTaskForEdit.value = taskToEdit
   createTaskDate.value = undefined
   calendar.openCreateTaskModal()
 }
@@ -709,14 +800,14 @@ onMounted(async () => {
   // Initialize auth and require authentication
   await auth.requireAuth()
 
-  // Initialize settings 
+  // Initialize settings
   settings.loadSettings()
-  
+
   // Initialize calendar view mode
   calendar.initializeViewMode()
 
-  // Fetch initial data
-  await tasks.fetchTasks()
+  // Note: tasks are now loaded by the watch on currentDate/viewMode
+  // await tasks.fetchTasks() // REMOVED - conflicts with fetchTasksByDateRange
   await reminders.fetchAllReminders()
 
   // Fetch accurate statistics from dedicated endpoints
@@ -744,6 +835,7 @@ const allWeekTasks = computed(() => {
   const weekStart = formatDate(weekDays[0], 'yyyy-MM-dd')
   const weekEnd = formatDate(weekDays[weekDays.length - 1], 'yyyy-MM-dd')
   const allTasks: any[] = []
+  const seenKeys = new Set<string | number>()
 
   // Get ALL tasks from the composable
   const allStoreTasks = tasks.allTasks.value || []
@@ -759,7 +851,11 @@ const allWeekTasks = computed(() => {
     // - Task starts before/during week AND ends during/after week
     // - This covers: tasks starting before week, tasks within week, tasks ending after week
     if (taskStart <= weekEnd && taskEnd >= weekStart) {
-      allTasks.push(task)
+      const taskKey = task.occurrenceId || task.id
+      if (!seenKeys.has(taskKey)) {
+        allTasks.push(task)
+        seenKeys.add(taskKey)
+      }
     }
   })
 

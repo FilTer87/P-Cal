@@ -31,7 +31,12 @@ public class TaskRequest {
 
     @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
-    
+
+    @Size(max = 500, message = "Recurrence rule must be at most 500 characters")
+    private String recurrenceRule;
+
+    private Instant recurrenceEnd;
+
     private List<ReminderRequest> reminders = new ArrayList<>();
     
     // Default constructor
@@ -63,6 +68,15 @@ public class TaskRequest {
             return true; // Let @NotNull handle null validation
         }
         return endDatetime.isAfter(startDatetime);
+    }
+
+    @AssertTrue(message = "Recurrence end must be after start datetime")
+    @JsonIgnore
+    public boolean isRecurrenceEndAfterStartDatetime() {
+        if (recurrenceEnd == null || startDatetime == null) {
+            return true; // Recurrence end is optional
+        }
+        return recurrenceEnd.isAfter(startDatetime);
     }
     
     // Getters and Setters
@@ -109,11 +123,27 @@ public class TaskRequest {
     public String getLocation() {
         return location;
     }
-    
+
     public void setLocation(String location) {
         this.location = location;
     }
-    
+
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public Instant getRecurrenceEnd() {
+        return recurrenceEnd;
+    }
+
+    public void setRecurrenceEnd(Instant recurrenceEnd) {
+        this.recurrenceEnd = recurrenceEnd;
+    }
+
     public List<ReminderRequest> getReminders() {
         return reminders;
     }

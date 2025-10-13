@@ -50,7 +50,17 @@ public class Task {
     @Size(max = 200)
     @Column(length = 200)
     private String location;
-    
+
+    @Size(max = 500)
+    @Column(name = "recurrence_rule", length = 500)
+    private String recurrenceRule;
+
+    @Column(name = "recurrence_end")
+    private Instant recurrenceEnd;
+
+    @Column(name = "recurrence_exceptions", columnDefinition = "TEXT")
+    private String recurrenceExceptions;
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reminder> reminders = new ArrayList<>();
     
@@ -84,6 +94,9 @@ public class Task {
     private void validate() {
         if (endDatetime != null && startDatetime != null && !endDatetime.isAfter(startDatetime)) {
             throw new IllegalArgumentException("End datetime must be after start datetime");
+        }
+        if (recurrenceEnd != null && startDatetime != null && !recurrenceEnd.isAfter(startDatetime)) {
+            throw new IllegalArgumentException("Recurrence end must be after start datetime");
         }
     }
     
@@ -151,7 +164,35 @@ public class Task {
     public void setLocation(String location) {
         this.location = location;
     }
-    
+
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public Instant getRecurrenceEnd() {
+        return recurrenceEnd;
+    }
+
+    public void setRecurrenceEnd(Instant recurrenceEnd) {
+        this.recurrenceEnd = recurrenceEnd;
+    }
+
+    public String getRecurrenceExceptions() {
+        return recurrenceExceptions;
+    }
+
+    public void setRecurrenceExceptions(String recurrenceExceptions) {
+        this.recurrenceExceptions = recurrenceExceptions;
+    }
+
+    public boolean isRecurring() {
+        return recurrenceRule != null && !recurrenceRule.trim().isEmpty();
+    }
+
     public List<Reminder> getReminders() {
         return reminders;
     }

@@ -5,6 +5,8 @@
 
 import { localDateTimeToUTC, localDateToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
+import { buildRRule, parseRRule } from '../utils/recurrence'
+import { RecurrenceEndType } from '../types/task'
 
 /**
  * Convert offset value and unit to minutes
@@ -52,6 +54,27 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
   const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
   const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
 
+  // Build recurrence rule if task is recurring
+  let recurrenceRule: string | undefined
+  let recurrenceEnd: string | undefined
+
+  if (formData.isRecurring && formData.recurrenceFrequency) {
+    const rruleParams = {
+      frequency: formData.recurrenceFrequency,
+      interval: formData.recurrenceInterval || 1,
+      endType: formData.recurrenceEndType || RecurrenceEndType.NEVER,
+      count: formData.recurrenceCount,
+      endDate: formData.recurrenceEndDate,
+      byDay: formData.recurrenceByDay
+    }
+    recurrenceRule = buildRRule(rruleParams)
+
+    // Set recurrenceEnd if using DATE end type
+    if (formData.recurrenceEndType === RecurrenceEndType.DATE && formData.recurrenceEndDate) {
+      recurrenceEnd = localDateTimeToUTC(formData.recurrenceEndDate, '23:59')
+    }
+  }
+
   return {
     title: formData.title.trim(),
     description: formData.description?.trim() || undefined,
@@ -59,6 +82,8 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
+    recurrenceRule,
+    recurrenceEnd,
     reminders: formData.reminders?.map(reminder => ({
       reminderOffsetMinutes: reminder.offsetMinutes ||
                            (reminder.offsetValue && reminder.offsetUnit ?
@@ -76,6 +101,33 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
   const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
   const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
 
+  // Build recurrence rule if task is recurring
+  let recurrenceRule: string | undefined | null
+  let recurrenceEnd: string | undefined | null
+
+  if (formData.isRecurring && formData.recurrenceFrequency) {
+    const rruleParams = {
+      frequency: formData.recurrenceFrequency,
+      interval: formData.recurrenceInterval || 1,
+      endType: formData.recurrenceEndType || RecurrenceEndType.NEVER,
+      count: formData.recurrenceCount,
+      endDate: formData.recurrenceEndDate,
+      byDay: formData.recurrenceByDay
+    }
+    recurrenceRule = buildRRule(rruleParams)
+
+    // Set recurrenceEnd if using DATE end type
+    if (formData.recurrenceEndType === RecurrenceEndType.DATE && formData.recurrenceEndDate) {
+      recurrenceEnd = localDateTimeToUTC(formData.recurrenceEndDate, '23:59')
+    } else {
+      recurrenceEnd = null
+    }
+  } else {
+    // Clear recurrence if not recurring
+    recurrenceRule = null
+    recurrenceEnd = null
+  }
+
   return {
     title: formData.title.trim(),
     description: formData.description?.trim() || undefined,
@@ -83,6 +135,8 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
+    recurrenceRule,
+    recurrenceEnd,
     reminders: formData.reminders?.map(reminder => ({
       reminderOffsetMinutes: reminder.offsetMinutes ||
                            (reminder.offsetValue && reminder.offsetUnit ?
@@ -97,6 +151,9 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
  * Transform task data from backend to form data for editing
  */
 export function transformTaskToFormData(task: Task): TaskFormData {
+  // Parse recurrence rule if present
+  const recurrenceParams = task.recurrenceRule ? parseRRule(task.recurrenceRule) : null
+
   return {
     title: task.title || '',
     description: task.description || '',
@@ -106,6 +163,14 @@ export function transformTaskToFormData(task: Task): TaskFormData {
     endTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : '',
     location: task.location || '',
     color: task.color || '#3788d8',
+    isRecurring: task.isRecurring || false,
+    recurrenceFrequency: recurrenceParams?.frequency,
+    recurrenceInterval: recurrenceParams?.interval,
+    recurrenceEndType: recurrenceParams?.endType,
+    recurrenceCount: recurrenceParams?.count,
+    recurrenceEndDate: recurrenceParams?.endDate ||
+                      (task.recurrenceEnd ? utcToLocalDate(task.recurrenceEnd) : undefined),
+    recurrenceByDay: recurrenceParams?.byDay,
     reminders: task.reminders?.map(reminder => {
       const offsetMinutes = reminder.reminderOffsetMinutes || 15
       const { offsetValue, offsetUnit } = convertFromMinutes(offsetMinutes)
