@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
-- Spanish language (frontend translation, Notifications WIP)
+- Spanish language, full frontend translations (Notifications and email templates WIP)
 
 ### Changed
 
