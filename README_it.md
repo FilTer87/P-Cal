@@ -42,7 +42,8 @@ Il software è **libero e orientato alla privacy**: completamente privo di track
 - **Viste multiple**: Mese, Settimana, Giorno e Agenda
 - **Gestione eventi/attività** con colori personalizzabili, luogo e descrizioni
 - **Visualizzazione temporale intelligente** con distinzione eventi passati/futuri
-- **Griglia oraria precisa** nella vista settimana con indicatori visivi per attività fuori schermo
+- **Griglia oraria precisa** nella vista settimanale con indicatori visivi per attività fuori schermo
+- **Gestione Eventi Ricorrenti** con pattern customizzabili (RFC 5545, CalDAV compliance)
 - **Supporto multilingua completo** (i18n)
 - **Tooltips informativi**
 
@@ -138,11 +139,9 @@ docker compose up --build -d
 ### 🎯 Roadmap Future
 
 #### 🔧 Possibili funzionalità future (nessun ordine specifico)
-- ~~**Gestione multilingua**~~ rilasciato! 🎉 (Italiano, Inglese)
 - **Traduzioni in altre lingue** (prossime: Spagnolo, Francese)
 - **Canali di notifica aggiuntivi**: Telegram / Discord / Slack / Gotify / ...
 - **Categorie eventi** con filtro di visualizzazione globale (alternativa a calendari multipli)
-- **Eventi ricorrenti** con pattern personalizzabili
 - **Drag & Drop** per spostamento evento/attività nelle griglie ed update automatico
 - **Gestione avanzata sessioni utente**
 - **Integrazione CalDAV**

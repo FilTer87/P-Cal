@@ -8,11 +8,28 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
-- **Recurring Events** management, using RRULE (RFC 5545)
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+
+---
+
+## [0.13.0-beta] - 2025-10-13
+
+### Added
+
+- **Recurring Events** management following RFC 5545 (CalDAV compliance)
 - Reminders send logic follows RRULE next occurrence on recurrent events
 - Future occurrences retrieval and correct visualization
 - Recurring event infos shown on task detail translated in human language
-- Update "all occurrences" or "single occurrence" option (using EXDATE - RFC 5545)
+- Update "all occurrences" or "single occurrence" option
 
 ### Changed
 
@@ -25,7 +42,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 - Correctly display events after update (no need to change view or date-range)
 
 ### Security
-
 
 ---
 

@@ -42,9 +42,10 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 
 #### 📊 **Complete Calendar Management**
 - **Multiple views**: Month, Week, Day, and Agenda
-- **Event/task management** with customizable colors, location, and descriptions
+- **Events management** with customizable colors, location, and descriptions
 - **Smart time visualization** distinguishing past and future events
 - **Precise hourly grid** in week view with visual indicators for off-screen activities
+- **Recurring Events** with customizable patterns (RFC 5545, CalDAV compliance)
 - **Full Internationalization support** (i18n)
 - **Informative tooltips**
 
@@ -136,11 +137,9 @@ docker compose up --build -d
 ### 🎯 Future Roadmap
 
 #### 🔧 Possible future features (no specific order)
-- ~~**Multilanguage support**~~ released! 🎉 (italian, english)
 - **Additional Languages** (next: spanish, french)
 - **Additional notification channels**: Telegram / Discord / Slack / Gotify / ...
 - **Event categories** with global filter (alternative to "multi-calendars")
-- **Recurring events** with customizable patterns
 - **Drag & Drop** to move events/tasks within grids with automatic update
 - **Advanced user session management**
 - **CalDAV integration**
