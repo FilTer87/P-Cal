@@ -366,69 +366,6 @@ public class TaskService {
         return TaskResponse.fromTask(savedTask);
     }
 
-
-    /**
-     * Update a single occurrence of a recurring task
-     * Creates a new non-recurring task and adds an exception to the master task
-     *
-     * @param taskId The ID of the recurring master task
-     * @param occurrenceStart The start datetime of the occurrence to edit
-     * @param taskRequest The updated task data
-     * @return The newly created task for the single occurrence
-     */
-    public TaskResponse updateSingleOccurrence(Long taskId, Instant occurrenceStart, TaskRequest taskRequest) {
-        logger.info("Updating single occurrence of task ID {} at {}", taskId, occurrenceStart);
-
-        User currentUser = userService.getCurrentUser();
-
-        // Find master task and validate ownership
-        Task masterTask = taskRepository.findByIdAndUser(taskId, currentUser)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
-
-        // Verify it's a recurring task
-        if (masterTask.getRecurrenceRule() == null || masterTask.getRecurrenceRule().trim().isEmpty()) {
-            throw new RuntimeException("Task is not recurring");
-        }
-
-        // Validate task request
-        validateTaskRequest(taskRequest);
-
-        // Add exception date to master task (EXDATE)
-        recurrenceService.addExceptionDate(masterTask, occurrenceStart);
-        taskRepository.save(masterTask);
-
-        logger.info("Added EXDATE {} to master task {}", occurrenceStart, masterTask.getId());
-
-        // Create new non-recurring task for this specific occurrence
-        Task newTask = new Task();
-        newTask.setUser(currentUser);
-        newTask.setTitle(taskRequest.getTitle().trim());
-        newTask.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
-        newTask.setStartDatetime(taskRequest.getStartDatetime());
-        newTask.setEndDatetime(taskRequest.getEndDatetime());
-        newTask.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : masterTask.getColor());
-        newTask.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
-        // No recurrence for single occurrence
-        newTask.setRecurrenceRule(null);
-        newTask.setRecurrenceEnd(null);
-
-        Task savedTask = taskRepository.save(newTask);
-
-        // Add reminders if provided
-        if (taskRequest.getReminders() != null) {
-            for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
-                reminderService.createReminderForTask(savedTask.getId(), reminderRequest);
-            }
-        }
-
-        // Reload task with reminders
-        savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
-
-        logger.info("Created new task {} for single occurrence edit", savedTask.getId());
-
-        return TaskResponse.fromTask(savedTask);
-    }
-
     /**
      * Delete task
      */
