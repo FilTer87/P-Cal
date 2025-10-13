@@ -16,6 +16,9 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Fixed
 
+- Prevent reminders to be sent on update of past events (see recurring occurrences)
+- Prevent shortcuts to change view while typing
+
 ### Security
 
 

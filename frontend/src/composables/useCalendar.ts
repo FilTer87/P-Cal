@@ -245,6 +245,12 @@ export function useCalendar() {
 
   // Keyboard shortcuts
   const handleKeyboardNavigation = (event: KeyboardEvent) => {
+    // Ignore shortcuts when user is typing in input/textarea or contenteditable
+    const target = event.target as HTMLElement
+    const isTyping = target.tagName === 'INPUT' ||
+                     target.tagName === 'TEXTAREA' ||
+                     target.isContentEditable
+
     if (event.ctrlKey || event.metaKey) {
       switch (event.key) {
         case 't':
@@ -262,6 +268,11 @@ export function useCalendar() {
           break
       }
     } else {
+      // Skip single-key shortcuts when user is typing
+      if (isTyping) {
+        return
+      }
+
       switch (event.key) {
         case 'm':
         case 'M':
