@@ -59,6 +59,7 @@
           >
             <option value="it-IT">🇮🇹 {{ t('profile.languageItalian') }}</option>
             <option value="en-US">🇺🇸 {{ t('profile.languageEnglish') }}</option>
+            <option value="es-ES">🇪🇸 {{ t('profile.languageSpanish') }}</option>
           </select>
         </div>
 

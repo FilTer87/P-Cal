@@ -44,13 +44,14 @@ import {
   getMonth,
   getYear
 } from 'date-fns'
-import { it, enUS } from 'date-fns/locale'
+import { it, enUS, es } from 'date-fns/locale'
 import { i18n } from '../i18n'
 
 // Map of supported locales for date-fns
 const dateFnsLocales: Record<string, Locale> = {
   'it-IT': it,
-  'en-US': enUS
+  'en-US': enUS,
+  'es-ES': es
 }
 
 /**
