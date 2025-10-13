@@ -16,10 +16,22 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Fixed
 
+### Security
+
+
+---
+
+## [0.13.1-beta] - 2025-10-13
+Small fixes and improvements
+
+### Changed
+
+- Close unsubmitted form only by "X" or "Cancel" buttons (Prevent to lost modified fields on accidentally clicks)
+
+### Fixed
+
 - Prevent reminders to be sent on update of past events (see recurring occurrences)
 - Prevent shortcuts to change view while typing
-
-### Security
 
 
 ---
@@ -33,12 +45,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 - Future occurrences retrieval and correct visualization
 - Recurring event infos shown on task detail translated in human language
 - Update "all occurrences" or "single occurrence" option
-
-### Changed
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
