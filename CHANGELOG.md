@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+- Spanish language (frontend translation, Notifications WIP)
+
 ### Changed
 
 ### Deprecated
@@ -18,6 +20,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Security
 
+- updated happy-DOM dependency to fix RCE attacks issue (https://github.com/advisories/GHSA-37j7-fg3j-429f)
 
 ---
 

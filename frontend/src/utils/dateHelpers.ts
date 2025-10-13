@@ -438,7 +438,7 @@ export const formatInTimezone = (date: Date | string, timezone: string, pattern 
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
-  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
+  const locale = i18n.global.locale.value
   return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
     year: 'numeric',

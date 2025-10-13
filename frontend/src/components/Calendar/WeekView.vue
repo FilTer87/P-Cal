@@ -159,7 +159,7 @@ const overlaps = useOverlapLayout()
 const getWeekDays = calendar.getWeekDays
 
 const getWeekDayName = (date: Date, short = false) => {
-  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
+  const locale = i18n.global.locale.value
   if (short) {
     return date.toLocaleDateString(locale, { weekday: 'short' })
   }
