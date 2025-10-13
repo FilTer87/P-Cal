@@ -12,6 +12,7 @@ import type {
 import { taskApi } from '../services/taskApi'
 import { useCustomToast } from '../composables/useCustomToast'
 import { i18n } from '../i18n'
+import { getTaskKey } from '../utils/recurrence'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -159,24 +160,52 @@ export const useTasksStore = defineStore('tasks', () => {
     isLoading.value = true
     error.value = null
 
-
     try {
       const response = await taskApi.getTasksByDateRange(startDate, endDate)
-      
+
       // Ensure response is an array
       const tasksArray = Array.isArray(response) ? response : []
-      
+
       // Update tasks with fetched data (merge with existing)
-      const existingTaskIds = new Set((tasks.value || []).map(task => task.id))
-      const newTasks = tasksArray.filter(task => !existingTaskIds.has(task.id))
-      
+      // Use occurrenceId for recurring tasks to allow multiple occurrences of the same task
+      const existingTaskKeys = new Set<string | number>()
+
       // Ensure tasks.value is always an array
       if (!Array.isArray(tasks.value)) {
         tasks.value = []
       }
-      
+
+      // Track existing task keys
+      const currentTasks = tasks.value || []
+      currentTasks.forEach(task => {
+        existingTaskKeys.add(getTaskKey(task))
+      })
+
+      // Filter new tasks to avoid duplicates
+      const newTasks = tasksArray.filter(task => {
+        const taskKey = getTaskKey(task)
+        return !existingTaskKeys.has(taskKey)
+      })
+
+      // If we're adding expanded tasks (with occurrenceId), remove non-expanded versions
+      const expandedTaskIds = new Set<number>()
+      tasksArray.forEach(task => {
+        if (task.occurrenceId) {
+          expandedTaskIds.add(task.id)
+        }
+      })
+
+      // Remove non-expanded versions if we have expanded versions coming in
+      if (expandedTaskIds.size > 0) {
+        tasks.value = tasks.value.filter(task => {
+          // Keep task if it's not being replaced by expanded version
+          // (either different id, or has occurrenceId itself)
+          return !expandedTaskIds.has(task.id) || task.occurrenceId
+        })
+      }
+
       tasks.value = [...tasks.value, ...newTasks]
-      
+
       console.debug(`📅 Added ${newTasks.length} new tasks to store. Total tasks: ${tasks.value.length}`)
     } catch (err: any) {
       console.error('📅 Error fetching tasks by date range:', err)
@@ -211,12 +240,12 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest): Promise<Task | null> => {
+  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isLoading.value = true
     error.value = null
 
     try {
-      const updatedTask = await taskApi.updateTask(taskId, taskData)
+      const updatedTask = await taskApi.updateTask(taskId, taskData, occurrenceStart)
       
       // Ensure we have a valid task before updating
       if (updatedTask && updatedTask.id) {

@@ -1,6 +1,6 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="handleBackdropClick">
-    <div class="modal-content" @click.stop>
+  <div v-if="show" class="modal-overlay">
+    <div class="modal-content">
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -50,6 +50,19 @@
           <p v-if="formErrors.description" class="mt-1 text-sm text-red-500">{{ formErrors.description }}</p>
         </div>
 
+        <!-- Warning banner for editing all occurrences -->
+        <div v-if="isEditingAllOccurrences" class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+          <div class="flex items-start gap-2">
+            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="text-sm text-blue-800 dark:text-blue-200">
+              <p class="font-medium">{{ t('tasks.editingAllOccurrences') }}</p>
+              <p class="mt-1">{{ t('tasks.editingAllOccurrencesDescription') }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Start Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -61,8 +74,9 @@
               v-model="formData.startDate"
               type="date"
               :disabled="isFormLoading"
+              :readonly="isEditingAllOccurrences"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startDate }"
+              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startDate, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.startDate" class="mt-1 text-sm text-red-500">{{ formErrors.startDate }}</p>
           </div>
@@ -79,8 +93,9 @@
               v-model="formData.startTime"
               type="time"
               :disabled="isFormLoading"
+              :readonly="isEditingAllOccurrences"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startTime }"
+              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startTime, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.startTime" class="mt-1 text-sm text-red-500">{{ formErrors.startTime }}</p>
           </div>
@@ -97,8 +112,9 @@
               v-model="formData.endDate"
               type="date"
               :disabled="isFormLoading"
+              :readonly="isEditingAllOccurrences"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.endDate }"
+              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.endDate, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.endDate" class="mt-1 text-sm text-red-500">{{ formErrors.endDate }}</p>
           </div>
@@ -115,8 +131,9 @@
               v-model="formData.endTime"
               type="time"
               :disabled="isFormLoading"
+              :readonly="isEditingAllOccurrences"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.endTime }"
+              :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.endTime, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.endTime" class="mt-1 text-sm text-red-500">{{ formErrors.endTime }}</p>
           </div>
@@ -164,6 +181,17 @@
               </svg>
             </button>
           </div>
+        </div>
+
+        <!-- Recurrence Section (hidden when editing single occurrence) -->
+        <div v-if="!isEditingSingleOccurrence">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {{ t('tasks.recurrence') }}
+          </label>
+          <RecurrenceInput
+            v-model="formData"
+            :start-date="formData.startDate"
+          />
         </div>
 
         <!-- Reminders Section -->
@@ -307,8 +335,9 @@ import { useI18n } from 'vue-i18n'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
 import { useSettingsStore } from '../stores/settings'
-import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, type Task, type TaskFormData } from '../types/task'
+import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, RecurrenceFrequency, RecurrenceEndType, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
+import RecurrenceInput from './Tasks/RecurrenceInput.vue'
 
 // Composables
 const { t } = useI18n()
@@ -360,6 +389,14 @@ const formData = ref<TaskFormData>(createEmptyTaskForm())
 // Computed
 const isEditing = computed(() => !!props.task)
 
+const isEditingAllOccurrences = computed(() => {
+  return props.task && (props.task as any)._editMode === 'all' && props.task.recurrenceRule
+})
+
+const isEditingSingleOccurrence = computed(() => {
+  return props.task && (props.task as any)._editMode === 'single' && props.task.recurrenceRule
+})
+
 const isFormValid = computed(() => {
   return formData.value.title.trim().length > 0
 })
@@ -385,12 +422,17 @@ const resetForm = () => {
 const loadTaskData = () => {
   if (props.task) {
     formData.value = createTaskFormFromTask(props.task)
-  }
-}
 
-const handleBackdropClick = () => {
-  if (!isFormLoading.value) {
-    closeModal()
+    // If editing single occurrence, force non-recurring
+    if (isEditingSingleOccurrence.value) {
+      formData.value.isRecurring = false
+      formData.value.recurrenceFrequency = 'daily'
+      formData.value.recurrenceInterval = 1
+      formData.value.recurrenceEndType = 'never'
+      formData.value.recurrenceCount = undefined
+      formData.value.recurrenceEndDate = undefined
+      formData.value.recurrenceByDay = []
+    }
   }
 }
 
@@ -446,7 +488,12 @@ const handleSubmit = async () => {
     if (isEditing.value && props.task) {
       // Update existing task
       const updateData = convertFormToUpdateRequest(formData.value)
-      const updatedTask = await updateTask(props.task.id, updateData)
+
+      // Check if this is a single occurrence edit (stored in _editMode by CalendarView)
+      const editMode = (props.task as any)._editMode
+      const occurrenceStart = editMode === 'single' ? props.task.startDatetime : undefined
+
+      const updatedTask = await updateTask(props.task.id, updateData, occurrenceStart)
       if (updatedTask) {
         emit('task-updated', updatedTask)
         closeModal()

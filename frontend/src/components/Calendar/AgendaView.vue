@@ -16,7 +16,7 @@
           <slot
             name="task-card"
             v-for="task in getTodayCurrentTasks(dayTasks)"
-            :key="task.id"
+            :key="getTaskKey(task)"
             :task="task"
           >
             <div
@@ -66,7 +66,7 @@
             <slot
               name="task-card"
               v-for="task in getTodayPastTasks(dayTasks)"
-              :key="task.id"
+              :key="getTaskKey(task)"
               :task="task"
             >
               <div
@@ -92,7 +92,7 @@
 
       <!-- Normal display for other dates -->
       <div v-else class="space-y-2">
-        <slot name="task-card" v-for="task in dayTasks" :key="task.id" :task="task">
+        <slot name="task-card" v-for="task in dayTasks" :key="getTaskKey(task)" :task="task">
           <div
             :class="taskDisplayClasses(task)"
             :style="taskDisplayStyle(task)"
@@ -128,6 +128,7 @@ import type { Task } from '@/types/task'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { splitTasksByTime } from '@/composables/useTaskFilters'
 import { formatTime, getDateDescription, formatDate } from '@/utils/dateHelpers'
+import { getTaskKey } from '@/utils/recurrence'
 
 // i18n
 const { t } = useI18n()

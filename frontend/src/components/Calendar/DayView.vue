@@ -8,7 +8,7 @@
       <div class="space-y-2">
         <!-- Current/Future Tasks -->
         <div v-if="currentTasks.length > 0" class="space-y-2">
-          <slot name="task-card" v-for="task in currentTasks" :key="task.id" :task="task">
+          <slot name="task-card" v-for="task in currentTasks" :key="getTaskKey(task)" :task="task">
             <div
               :class="taskDisplayClasses(task)"
               :style="taskDisplayStyle(task)"
@@ -53,7 +53,7 @@
 
           <!-- Collapsible Past Tasks -->
           <div v-show="showPastTasks" class="space-y-2">
-            <slot name="task-card" v-for="task in pastTasks" :key="task.id" :task="task">
+            <slot name="task-card" v-for="task in pastTasks" :key="getTaskKey(task)" :task="task">
               <div
                 :class="taskDisplayClasses(task)"
                 :style="taskDisplayStyle(task)"
@@ -97,6 +97,7 @@ import { useI18n } from 'vue-i18n'
 import type { Task } from '@/types/task'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { splitTasksByTime } from '@/composables/useTaskFilters'
+import { getTaskKey } from '@/utils/recurrence'
 import { formatTime, getDayName, formatDate } from '@/utils/dateHelpers'
 
 // i18n

@@ -42,7 +42,9 @@ Il software è **libero e orientato alla privacy**: completamente privo di track
 - **Viste multiple**: Mese, Settimana, Giorno e Agenda
 - **Gestione eventi/attività** con colori personalizzabili, luogo e descrizioni
 - **Visualizzazione temporale intelligente** con distinzione eventi passati/futuri
-- **Griglia oraria precisa** nella vista settimana con indicatori visivi per attività fuori schermo
+- **Griglia oraria precisa** nella vista settimanale con indicatori visivi per attività fuori schermo
+- **Gestione Eventi Ricorrenti** con pattern customizzabili (RFC 5545, CalDAV compliance)
+- **Supporto multilingua completo** (i18n)
 - **Tooltips informativi**
 
 #### ⏰ **Sistema di Reminder Avanzato**
@@ -60,7 +62,8 @@ Il software è **libero e orientato alla privacy**: completamente privo di track
 
 #### ⚙️ **Preferenze** (per utente):
   - **Tema** (chiaro/scuro/automatico)
-  - **Fuso orario** (necessario per corretto invio di notifiche)
+  - **Lingua** con default da browser 
+  - **Fuso orario** con ora solare/legale automatica
   - **Formato orario** (12h/24h)
   - **Primo giorno della settimana** (Lunedì/Domenica)
   - **Abilitaz/disabilita notifiche** per tipologia
@@ -135,13 +138,12 @@ docker compose up --build -d
 
 ### 🎯 Roadmap Future
 
-#### 🔧 Possibili funzionalità future in valutazione
+#### 🔧 Possibili funzionalità future (nessun ordine specifico)
+- **Traduzioni in altre lingue** (prossime: Spagnolo, Francese)
+- **Canali di notifica aggiuntivi**: Telegram / Discord / Slack / Gotify / ...
 - **Categorie eventi** con filtro di visualizzazione globale (alternativa a calendari multipli)
-- **Eventi ricorrenti** con pattern personalizzabili
-- **Gestione multilingua**
 - **Drag & Drop** per spostamento evento/attività nelle griglie ed update automatico
 - **Gestione avanzata sessioni utente**
-- **Canali di notifica aggiuntivi**: Gotify, Slack, Telegram, ...
 - **Integrazione CalDAV**
 - **Import dati** da export utente
 - **Import dati** da altri calendar

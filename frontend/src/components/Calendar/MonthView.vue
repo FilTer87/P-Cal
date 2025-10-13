@@ -28,7 +28,7 @@
       <div class="space-y-1">
         <div
           v-for="task in getVisibleTasks(day.tasks)"
-          :key="task.id"
+          :key="getTaskKey(task)"
           @click.stop="handleTaskClick(task)"
           class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
           :class="taskDisplayClasses(task)"
@@ -55,6 +55,7 @@ import type { Task } from '@/types/task'
 import type { CalendarDate, CalendarTask } from '@/types/calendar'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { useSettingsStore } from '@/stores/settings'
+import { getTaskKey } from '@/utils/recurrence'
 
 // i18n
 const { t } = useI18n()

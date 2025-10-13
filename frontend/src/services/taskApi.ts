@@ -35,9 +35,13 @@ export class TaskApi {
 
   /**
    * Update an existing task
+   * @param occurrenceStart Optional ISO 8601 datetime string for editing single occurrence of recurring task
    */
-  async updateTask(id: number, taskData: UpdateTaskRequest): Promise<Task> {
-    return apiClient.put<Task>(API_ENDPOINTS.TASKS.BY_ID(id), taskData)
+  async updateTask(id: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task> {
+    const url = occurrenceStart
+      ? `${API_ENDPOINTS.TASKS.BY_ID(id)}?occurrenceStart=${encodeURIComponent(occurrenceStart)}`
+      : API_ENDPOINTS.TASKS.BY_ID(id)
+    return apiClient.put<Task>(url, taskData)
   }
 
   /**

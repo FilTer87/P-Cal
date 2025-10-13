@@ -1,6 +1,6 @@
 {
   "name": "privatecal-frontend",
-  "version": "0.10.0-beta",
+  "version": "0.13.1-beta",
   "type": "module",
   "license": "MIT",
   "scripts": {

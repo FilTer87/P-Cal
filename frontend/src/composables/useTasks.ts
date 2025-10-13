@@ -40,6 +40,10 @@ export function useTasks() {
     await tasksStore.fetchTasks(force)
   }
 
+  const fetchTasksByDateRange = async (startDate: string, endDate: string) => {
+    await tasksStore.fetchTasksByDateRange(startDate, endDate)
+  }
+
   const refreshStatistics = async () => {
     await tasksStore.refreshStatistics()
   }
@@ -59,6 +63,7 @@ export function useTasks() {
         endTime: taskData.endDatetime ? format(new Date(taskData.endDatetime), 'HH:mm') : '',
         location: taskData.location || '',
         color: taskData.color || '#3788d8',
+        isRecurring: taskData.recurrenceRule || false,
         reminders: []
       } as TaskFormData
       const validation = validateTaskForm(formData)
@@ -80,12 +85,12 @@ export function useTasks() {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest): Promise<Task | null> => {
+  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isFormLoading.value = true
     formErrors.value = {}
 
     try {
-      const task = await tasksStore.updateTask(taskId, taskData)
+      const task = await tasksStore.updateTask(taskId, taskData, occurrenceStart)
       if (task) {
         showSuccess(i18n.global.t('composables.useTasks.taskUpdated'))
         return task
@@ -121,7 +126,7 @@ export function useTasks() {
   const createEmptyTaskForm = (): TaskFormData => {
     const now = new Date()
     const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
-    
+
     return {
       title: '',
       description: '',
@@ -131,6 +136,13 @@ export function useTasks() {
       endTime: format(oneHourLater, 'HH:mm'),
       location: '',
       color: '#3788d8',
+      isRecurring: false,
+      recurrenceFrequency: undefined,
+      recurrenceInterval: undefined,
+      recurrenceEndType: undefined,
+      recurrenceCount: undefined,
+      recurrenceEndDate: undefined,
+      recurrenceByDay: undefined,
       reminders: []
     }
   }
@@ -301,6 +313,7 @@ export function useTasks() {
 
     // Actions (only used ones)
     fetchTasks,
+    fetchTasksByDateRange,
     refreshStatistics,
     createTask,
     updateTask,

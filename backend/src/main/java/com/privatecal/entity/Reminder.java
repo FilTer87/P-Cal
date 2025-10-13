@@ -41,8 +41,11 @@ public class Reminder {
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-    
-    
+
+    @Column(name = "last_sent_occurrence")
+    private Instant lastSentOccurrence;
+
+
     // Constructors
     public Reminder() {}
     
@@ -63,10 +66,24 @@ public class Reminder {
             this.reminderTime = task.getStartDatetime().minus(java.time.Duration.ofMinutes(reminderOffsetMinutes));
         }
     }
-    
+
     @PrePersist
+    private void onPrePersist() {
+        // Only calculate on creation
+        calculateReminderTime();
+    }
+
     @PreUpdate
-    private void updateReminderTime() {
+    private void onPreUpdate() {
+        // For recurring tasks, reminderTime is managed manually by ReminderService
+        // Only recalculate if this is not a recurring task OR if lastSentOccurrence is null
+        if (task != null && task.getRecurrenceRule() != null &&
+            !task.getRecurrenceRule().trim().isEmpty() &&
+            lastSentOccurrence != null) {
+            // This is a recurring task that has been processed - don't recalculate
+            return;
+        }
+        // For non-recurring tasks or initial setup, recalculate
         calculateReminderTime();
     }
     
@@ -128,7 +145,15 @@ public class Reminder {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
-    
+
+    public Instant getLastSentOccurrence() {
+        return lastSentOccurrence;
+    }
+
+    public void setLastSentOccurrence(Instant lastSentOccurrence) {
+        this.lastSentOccurrence = lastSentOccurrence;
+    }
+
     public boolean isDue() {
         return reminderTime != null && !isSent && Instant.now().isAfter(reminderTime);
     }
