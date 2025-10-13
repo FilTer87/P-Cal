@@ -475,10 +475,16 @@ const getTaskDisplayStyle = (task: any) => {
 }
 
 const handleKeyboardShortcuts = (event: KeyboardEvent) => {
+  // Ignore shortcuts when user is typing in input/textarea or contenteditable
+  const target = event.target as HTMLElement
+  const isTyping = target.tagName === 'INPUT' ||
+                   target.tagName === 'TEXTAREA' ||
+                   target.isContentEditable
+
   calendar.handleKeyboardNavigation(event)
 
-  // Additional shortcuts
-  if (event.ctrlKey && event.key === 'n') {
+  // Additional shortcuts - only if not typing
+  if (event.ctrlKey && event.key === 'n' && !isTyping) {
     event.preventDefault()
     openCreateTaskModalWithDate()
   }
