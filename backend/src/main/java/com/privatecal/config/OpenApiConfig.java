@@ -26,7 +26,7 @@ public class OpenApiConfig {
             .info(new Info()
                 .title("P-Cal API")
                 .description("REST API for P-Cal - Private and secure Calendar Application with activity management and Notifications")
-                .version("v0.13.0-beta")
+                .version("v0.13.1-beta")
                 .contact(new Contact()
                     .name("Filippo Terenzi")
                     .url("https://github.com/FilTer87")

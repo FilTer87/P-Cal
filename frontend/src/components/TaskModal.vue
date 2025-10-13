@@ -1,6 +1,6 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="handleBackdropClick">
-    <div class="modal-content" @click.stop>
+  <div v-if="show" class="modal-overlay">
+    <div class="modal-content">
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -433,12 +433,6 @@ const loadTaskData = () => {
       formData.value.recurrenceEndDate = undefined
       formData.value.recurrenceByDay = []
     }
-  }
-}
-
-const handleBackdropClick = () => {
-  if (!isFormLoading.value) {
-    closeModal()
   }
 }
 
