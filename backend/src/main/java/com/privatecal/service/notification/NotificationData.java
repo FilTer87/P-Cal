@@ -49,10 +49,24 @@ public class NotificationData {
     /**
      * Create NotificationData from Reminder entity
      * This method extracts all necessary data from the reminder and its related entities
+     * For recurring tasks, calculates the actual occurrence time from reminderTime + offset
      */
     public static NotificationData fromReminder(Reminder reminder) {
         Task task = reminder.getTask();
         User user = task.getUser();
+
+        // Calculate actual occurrence start time
+        // For recurring tasks, reminderTime is set to the next occurrence minus offset
+        // So: reminderTime + offset = actual occurrence start time
+        Instant actualStartTime = reminder.getReminderTime()
+                .plus(java.time.Duration.ofMinutes(reminder.getReminderOffsetMinutes()));
+
+        // Calculate actual occurrence end time based on original task duration
+        long taskDurationMillis = java.time.Duration.between(
+                task.getStartDatetime(),
+                task.getEndDatetime()
+        ).toMillis();
+        Instant actualEndTime = actualStartTime.plusMillis(taskDurationMillis);
 
         return new Builder()
                 .userId(user.getId())
@@ -64,8 +78,8 @@ public class NotificationData {
                 .taskTitle(task.getTitle())
                 .taskDescription(task.getDescription())
                 .taskLocation(task.getLocation())
-                .taskStartTime(task.getStartDatetime())
-                .taskEndTime(task.getEndDatetime())
+                .taskStartTime(actualStartTime)
+                .taskEndTime(actualEndTime)
                 .reminderId(reminder.getId())
                 .reminderTime(reminder.getReminderTime())
                 .reminderOffsetMinutes(reminder.getReminderOffsetMinutes())

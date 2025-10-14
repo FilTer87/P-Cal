@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ### Fixed
 
 - Reminders create and update: calculate the next occurrence from now for recurring events to setup the correct reminder time
+- Retrieve reminders correctly in case of recurring events with past end date (orginal task)
 
 ### Security
 

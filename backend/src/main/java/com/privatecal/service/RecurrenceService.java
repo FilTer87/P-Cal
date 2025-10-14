@@ -219,14 +219,16 @@ public class RecurrenceService {
 
             DateTime periodEnd = toDateTime(effectiveEnd);
 
-            logger.debug("🔍 getNextOccurrence DEBUG:");
-            logger.debug("  task.getStartDatetime()={}", task.getStartDatetime());
-            logger.debug("  afterTime={}", afterTime);
-            logger.debug("  afterTime+1s={}", afterTime.plusSeconds(1));
-            logger.debug("  startDate (ical4j)={}", startDate);
-            logger.debug("  searchFrom (ical4j)={}", searchFrom);
-            logger.debug("  periodEnd (ical4j)={}", periodEnd);
-            logger.debug("  RRULE={}", task.getRecurrenceRule());
+            if (logger.isDebugEnabled()) {
+                logger.debug("🔍 getNextOccurrence DEBUG:");
+                logger.debug("  task.getStartDatetime()={}", task.getStartDatetime());
+                logger.debug("  afterTime={}", afterTime);
+                logger.debug("  afterTime+1s={}", afterTime.plusSeconds(1));
+                logger.debug("  startDate (ical4j)={}", startDate);
+                logger.debug("  searchFrom (ical4j)={}", searchFrom);
+                logger.debug("  periodEnd (ical4j)={}", periodEnd);
+                logger.debug("  RRULE={}", task.getRecurrenceRule());
+            }
 
             // Generate occurrences starting from afterTime + 1 second
             DateList dates = recur.getDates(
@@ -237,9 +239,11 @@ public class RecurrenceService {
                 1 // We only need the first occurrence
             );
 
-            logger.info("  Found {} dates from recur.getDates()", dates.size());
-            if (!dates.isEmpty()) {
-                logger.info("  First date: {}", dates.get(0));
+            if (logger.isDebugEnabled()) {
+                logger.debug("  Found {} dates from recur.getDates()", dates.size());
+                if (!dates.isEmpty()) {
+                    logger.debug("  First date: {}", dates.get(0));
+                }
             }
 
             // Return the first occurrence after afterTime

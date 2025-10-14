@@ -46,8 +46,12 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     /**
      * Find all reminders that are due (time has passed and not yet sent)
      * Excludes reminders for tasks that have already ended (no notifications for past events)
+     * For recurring tasks (lastSentOccurrence IS NOT NULL), the task endDatetime check is skipped
+     * because the original task date may be in the past, but future occurrences exist
      */
-    @Query("SELECT r FROM Reminder r WHERE r.reminderTime <= :currentTime AND r.isSent = false AND r.task.endDatetime > :currentTime ORDER BY r.reminderTime ASC")
+    @Query("SELECT r FROM Reminder r WHERE r.reminderTime <= :currentTime AND r.isSent = false " +
+           "AND (r.lastSentOccurrence IS NOT NULL OR r.task.endDatetime > :currentTime) " +
+           "ORDER BY r.reminderTime ASC")
     List<Reminder> findDueReminders(@Param("currentTime") Instant currentTime);
     
     /**
@@ -147,8 +151,10 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     /**
      * Count overdue reminders (should have been sent but weren't)
      * Excludes reminders for tasks that have already ended
+     * For recurring tasks (lastSentOccurrence IS NOT NULL), the task endDatetime check is skipped
      */
-    @Query("SELECT COUNT(r) FROM Reminder r WHERE r.reminderTime < :currentTime AND r.isSent = false AND r.task.endDatetime > :currentTime")
+    @Query("SELECT COUNT(r) FROM Reminder r WHERE r.reminderTime < :currentTime AND r.isSent = false " +
+           "AND (r.lastSentOccurrence IS NOT NULL OR r.task.endDatetime > :currentTime)")
     long countOverdueReminders(@Param("currentTime") Instant currentTime);
     
     /**
