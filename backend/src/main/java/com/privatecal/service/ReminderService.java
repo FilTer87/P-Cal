@@ -2,7 +2,6 @@ package com.privatecal.service;
 
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.ReminderResponse;
-import com.privatecal.dto.NotificationType;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -41,34 +40,79 @@ public class ReminderService {
      */
     public ReminderResponse createReminderForTask(Long taskId, ReminderRequest reminderRequest) {
         logger.debug("Creating reminder for task ID: {}", taskId);
-        
+
         User currentUser = userService.getCurrentUser();
-        
+
         // Find task and validate ownership
         Task task = taskRepository.findByIdAndUser(taskId, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
+        logger.debug("📅 ReminderService.createReminderForTask: task retrieved from DB");
+        logger.debug("  task.getId() = {}", task.getId());
+        logger.debug("  task.getStartDatetime() = {}", task.getStartDatetime());
+        logger.debug("  task.getRecurrenceRule() = {}", task.getRecurrenceRule());
+
         // Validate reminder request
         validateReminderRequest(reminderRequest);
-        
+
         // Create reminder entity
         Reminder reminder = new Reminder();
         reminder.setTask(task);
         reminder.setReminderOffsetMinutes(reminderRequest.getReminderOffsetMinutes());
         reminder.setNotificationType(reminderRequest.getNotificationType());
-        reminder.calculateReminderTime();
-        
-        // Validate reminder time
-        if (reminder.getReminderTime() != null && reminder.getReminderTime().isAfter(task.getStartDatetime())) {
-            throw new RuntimeException("Reminder time cannot be after task start time");
+
+        // For recurring tasks, calculate reminder time based on next occurrence
+        if (task.getRecurrenceRule() != null && !task.getRecurrenceRule().trim().isEmpty()) {
+            Instant now = Instant.now();
+            Instant occurrenceStart;
+
+            // If task hasn't started yet, use the original task start time
+            if (task.getStartDatetime().isAfter(now)) {
+                occurrenceStart = task.getStartDatetime();
+                logger.info("Recurring task hasn't started yet, using original start time: {}", occurrenceStart);
+            } else {
+                // Task has already started - find the next occurrence from now
+                RecurrenceService.TaskOccurrence nextOccurrence =
+                    recurrenceService.getNextOccurrence(task, now.minusSeconds(2));
+
+                if (nextOccurrence != null) {
+                    occurrenceStart = nextOccurrence.getOccurrenceStart();
+                    logger.info("Recurring task started in past, next occurrence at: {}", occurrenceStart);
+                } else {
+                    // No future occurrences - mark reminder as sent so it won't trigger
+                    reminder.setReminderTime(task.getStartDatetime());
+                    reminder.setIsSent(true);
+                    logger.warn("No future occurrences found for recurring task {}, marking reminder as sent",
+                               task.getId());
+                    Reminder savedReminder = reminderRepository.save(reminder);
+                    return ReminderResponse.fromReminder(savedReminder);
+                }
+            }
+
+            // Calculate reminder time: occurrence start - offset
+            Instant reminderTime = occurrenceStart
+                .minus(java.time.Duration.ofMinutes(reminderRequest.getReminderOffsetMinutes()));
+
+            reminder.setReminderTime(reminderTime);
+
+            logger.info("Recurring task reminder: occurrence at {}, reminder time set to {}",
+                       occurrenceStart, reminderTime);
+        } else {
+            // Non-recurring task: use normal calculation
+            reminder.calculateReminderTime();
+
+            // Validate reminder time
+            if (reminder.getReminderTime() != null && reminder.getReminderTime().isAfter(task.getStartDatetime())) {
+                throw new RuntimeException("Reminder time cannot be after task start time");
+            }
         }
-        
+
         // Save reminder
         Reminder savedReminder = reminderRepository.save(reminder);
-        
-        logger.info("Reminder created for task: {} at {} minutes before", 
-                   task.getTitle(), reminderRequest.getReminderOffsetMinutes());
-        
+
+        logger.info("Reminder created for task: {} at {} minutes before ({})",
+                   task.getTitle(), reminderRequest.getReminderOffsetMinutes(), savedReminder.getReminderTime());
+
         return ReminderResponse.fromReminder(savedReminder);
     }
     

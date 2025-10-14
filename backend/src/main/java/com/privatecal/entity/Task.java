@@ -36,11 +36,13 @@ public class Task {
     private String description;
     
     @NotNull
-    @Column(name = "start_datetime", nullable = false)
+    @Column(name = "start_datetime", nullable = false, columnDefinition = "TIMESTAMP")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
     private Instant startDatetime;
-    
+
     @NotNull
-    @Column(name = "end_datetime", nullable = false)
+    @Column(name = "end_datetime", nullable = false, columnDefinition = "TIMESTAMP")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
     private Instant endDatetime;
     
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color")
