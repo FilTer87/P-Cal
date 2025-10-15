@@ -316,7 +316,7 @@ const activeTab = ref('personal')
 // Mobile accordion toggle
 const toggleMobileSection = (tabId: string) => {
   if (activeTab.value === tabId) {
-    activeTab.value = null
+    activeTab.value = ''
   } else {
     activeTab.value = tabId
   }
@@ -335,7 +335,8 @@ const preferencesForm = reactive({
   calendarView: 'week' as 'month' | 'week' | 'day' | 'agenda',
   emailNotifications: true,
   reminderNotifications: true,
-  weekStartDay: 1 as 0 | 1
+  weekStartDay: 1 as 0 | 1,
+  language: 'it-IT' as string | null
 })
 
 // Tabs configuration
@@ -394,7 +395,29 @@ const handleSecurityCancel = () => {
 // Auto-save individual preference updates
 const savePreference = async (updates: Partial<typeof preferencesForm>) => {
   try {
-    const updatedPreferences = await authApi.updatePreferences(updates)
+    // Map form data to API preferences (filtering null values)
+    type UserPreferencesUpdate = {
+      theme?: 'light' | 'dark' | 'system'
+      language?: string
+      timezone?: string
+      timeFormat?: '12h' | '24h'
+      calendarView?: 'month' | 'week' | 'day' | 'agenda'
+      emailNotifications?: boolean
+      reminderNotifications?: boolean
+      weekStartDay?: 0 | 1
+    }
+    const apiUpdates: Partial<UserPreferencesUpdate> = {}
+
+    if (updates.theme !== undefined) apiUpdates.theme = updates.theme
+    if (updates.language !== undefined && updates.language !== null) apiUpdates.language = updates.language
+    if (updates.timezone !== undefined) apiUpdates.timezone = updates.timezone
+    if (updates.timeFormat !== undefined) apiUpdates.timeFormat = updates.timeFormat
+    if (updates.calendarView !== undefined) apiUpdates.calendarView = updates.calendarView
+    if (updates.emailNotifications !== undefined) apiUpdates.emailNotifications = updates.emailNotifications
+    if (updates.reminderNotifications !== undefined) apiUpdates.reminderNotifications = updates.reminderNotifications
+    if (updates.weekStartDay !== undefined) apiUpdates.weekStartDay = updates.weekStartDay
+
+    const updatedPreferences = await authApi.updatePreferences(apiUpdates)
 
     // Update settings store with new values
     if (updates.theme) {

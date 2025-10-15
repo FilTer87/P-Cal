@@ -1,20 +1,13 @@
 import { apiClient } from './api'
-import type { 
-  Reminder, 
-  CreateReminderRequest, 
-  UpdateReminderRequest 
+import type {
+  Reminder,
+  CreateReminderRequest,
+  UpdateReminderRequest
 } from '../types/task'
-import type { PaginatedResponse, PaginationParams } from '../types/api'
+import type { PaginationParams } from '../types/api'
 import { API_ENDPOINTS } from '../types/api'
 
 export class ReminderApi {
-  /**
-   * Get all reminders for a specific task
-   */
-  async getTaskReminders(taskId: number): Promise<Reminder[]> {
-    return apiClient.get<Reminder[]>(API_ENDPOINTS.REMINDERS.BY_TASK(taskId))
-  }
-
   /**
    * Get all reminders for the authenticated user
    */
@@ -37,35 +30,11 @@ export class ReminderApi {
   }
 
   /**
-   * Delete a reminder
-   */
-  async deleteReminder(id: number): Promise<void> {
-    return apiClient.delete<void>(API_ENDPOINTS.REMINDERS.BY_ID(id))
-  }
-
-  /**
-   * Mark reminder as sent
-   */
-  async markReminderSent(id: number): Promise<Reminder> {
-    return apiClient.patch<Reminder>(`${API_ENDPOINTS.REMINDERS.BY_ID(id)}/mark-sent`)
-  }
-
-  /**
-   * Get upcoming reminders
-   */
-  async getUpcomingReminders(hours = 24): Promise<Reminder[]> {
-    return apiClient.get<Reminder[]>(API_ENDPOINTS.REMINDERS.UPCOMING, {
-      params: { hours }
-    })
-  }
-
-  /**
    * Get pending reminders
    */
   async getPendingReminders(params?: PaginationParams): Promise<Reminder[]> {
     return apiClient.get<Reminder[]>(`${API_ENDPOINTS.REMINDERS.BASE}/upcoming`, { params })
   }
-
 }
 
 export const reminderApi = new ReminderApi()

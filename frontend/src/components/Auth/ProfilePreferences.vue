@@ -213,7 +213,7 @@
 <script setup lang="ts">
 import { reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { i18n } from '@/i18n'
+import { i18nGlobal } from '@/i18n'
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import NotificationSettings from '@/components/Reminder/NotificationSettings.vue'
 import * as ct from 'countries-and-timezones'
@@ -255,7 +255,8 @@ const formatTimezoneName = (timezone: string): string => {
 // Group timezones by continent with translated labels
 const timezoneGroups = computed(() => {
   // Get all IANA timezones supported by the browser
-  const allTimezones = Intl.supportedValuesOf('timeZone')
+  // @ts-ignore - supportedValuesOf is ES2022, but works in modern browsers
+  const allTimezones = Intl.supportedValuesOf('timeZone') as string[]
 
   // Translation mapping for continent names
   const continentTranslations: Record<string, string> = {
@@ -274,7 +275,7 @@ const timezoneGroups = computed(() => {
   // Group timezones by continent
   const grouped: Record<string, Array<{ value: string, label: string, offset: string }>> = {}
 
-  allTimezones.forEach(tz => {
+  allTimezones.forEach((tz: string) => {
     // Skip deprecated and special timezones
     if (tz.startsWith('Etc/') || tz === 'Factory') return
 
@@ -348,7 +349,7 @@ const emit = defineEmits<{
 // Local preferences (reactive copy of props for v-model binding)
 const preferences = reactive({
   theme: props.theme,
-  language: props.language || i18n.global.locale.value,
+  language: props.language || i18nGlobal.locale.value,
   timeFormat: props.timeFormat,
   calendarView: props.calendarView,
   timezone: props.timezone,

@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" :title="$t('twoFactor.setupTitle')" :persistent="true" size="large">
+  <Modal v-model="isOpen" :title="$t('twoFactor.setupTitle')" :persistent="true" size="lg">
     <div class="space-y-6">
       <!-- Step 1: Setup Instructions -->
       <div v-if="step === 1" class="space-y-4">

@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import type { Composer } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 import itIT from './locales/it-IT.json'
 import enUS from './locales/en-US.json'
@@ -47,6 +48,8 @@ export const i18n: I18n = createI18n({
   warnHtmlMessage: false
 })
 
+export const i18nGlobal = i18n.global as Composer
+
 // Helper to change locale
 export function setLocale(locale: Locale) {
   if (!AVAILABLE_LOCALES.includes(locale)) {
@@ -54,7 +57,7 @@ export function setLocale(locale: Locale) {
     locale = DEFAULT_LOCALE
   }
 
-  i18n.global.locale.value = locale
+  i18nGlobal.locale.value = locale
 
   // Persist locale preference
   if (typeof localStorage !== 'undefined') {
@@ -101,8 +104,8 @@ export function setupLocaleWatcher() {
   window.addEventListener('storage', (e) => {
     if (e.key === 'locale' && e.newValue) {
       const newLocale = e.newValue as Locale
-      if (AVAILABLE_LOCALES.includes(newLocale) && i18n.global.locale.value !== newLocale) {
-        i18n.global.locale.value = newLocale
+      if (AVAILABLE_LOCALES.includes(newLocale) && i18nGlobal.locale.value !== newLocale) {
+        i18nGlobal.locale.value = newLocale
       }
     }
   })

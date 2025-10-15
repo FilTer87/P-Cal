@@ -17,7 +17,7 @@ import {
   format
 } from 'date-fns'
 import { it, enUS } from 'date-fns/locale'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 import type {
   CalendarView,
   CalendarState,
@@ -36,7 +36,7 @@ export const useCalendarStore = defineStore('calendar', () => {
   // State
   const currentDate = ref(new Date())
   const selectedDate = ref<Date | null>(null)
-  const viewMode = ref<CalendarView>('month' as CalendarView)
+  const viewMode = ref<CalendarView>('month')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   
@@ -47,7 +47,7 @@ export const useCalendarStore = defineStore('calendar', () => {
   const currentYear = computed(() => currentDate.value.getFullYear())
   const currentMonth = computed(() => currentDate.value.getMonth())
   const currentMonthName = computed(() => {
-    const locale = i18n.global.locale.value === 'en-US' ? enUS : it
+    const locale = i18nGlobal.locale.value === 'en-US' ? enUS : it
     return format(currentDate.value, 'MMMM yyyy', { locale })
   })
 
@@ -105,18 +105,7 @@ export const useCalendarStore = defineStore('calendar', () => {
         isToday: isToday(currentDay),
         isSelected: selectedDate.value ? isSameDay(currentDay, selectedDate.value) : false,
         isWeekend: isWeekend(currentDay),
-        tasks: dayTasks.map(task => {
-          const taskDate = task.dueDate || task.startDatetime || task.startDateTime || task.endDatetime
-          return {
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            priority: task.priority,
-            dueDate: taskDate || '',
-            hasReminders: task.reminders?.length > 0 || false,
-            color: task.color
-          }
-        })
+        tasks: dayTasks
       }
       
       days.push(dayData)
@@ -263,7 +252,7 @@ export const useCalendarStore = defineStore('calendar', () => {
   })
 
   const formatDisplayDate = (date: Date): string => {
-    const locale = i18n.global.locale.value === 'en-US' ? enUS : it
+    const locale = i18nGlobal.locale.value === 'en-US' ? enUS : it
     const weekStartsOn = settingsStore.weekStartDay
 
     switch (viewMode.value) {

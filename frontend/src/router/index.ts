@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -85,7 +85,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Set page title from i18n
   if (to.meta.titleKey) {
-    document.title = i18n.global.t(to.meta.titleKey as string)
+    document.title = i18nGlobal.t(to.meta.titleKey as string)
   }
   
   // Initialize auth state if not already done

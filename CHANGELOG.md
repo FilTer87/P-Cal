@@ -8,9 +8,15 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
-- Spanish language, full frontend translations (Notifications and email templates WIP)
+- Spanish language:
+  - enabled selection on frontend
+  - added missing translations keys and templates
 
 ### Changed
+
+- frontend refactoring:
+  - clean-up: removed dead code related to old implementations or modified features
+  - type-safety fix and improvement: resolved 100+ type-check errors
 
 ### Deprecated
 
@@ -19,8 +25,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ### Fixed
 
 ### Security
-
-- updated happy-DOM dependency to fix RCE attacks issue (https://github.com/advisories/GHSA-37j7-fg3j-429f)
 
 ---
 

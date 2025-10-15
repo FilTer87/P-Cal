@@ -12,7 +12,7 @@ import { RecurrenceEndType } from '../types/task'
  * Convert offset value and unit to minutes
  */
 function convertToMinutes(offsetValue: number, offsetUnit: string): number {
-  const multipliers = {
+  const multipliers: Record<string, number> = {
     minutes: 1,
     hours: 60,
     days: 24 * 60
@@ -30,20 +30,6 @@ function convertFromMinutes(offsetMinutes: number): { offsetValue: number, offse
     return { offsetValue: offsetMinutes / 60, offsetUnit: 'hours' }
   } else {
     return { offsetValue: offsetMinutes, offsetUnit: 'minutes' }
-  }
-}
-
-/**
- * Transform task data from backend (UTC) to frontend (local) format
- */
-export function transformTaskFromBackend(task: Task): Task {
-  return {
-    ...task,
-    // Keep original UTC times for API calls, but add local display fields
-    _displayStartDate: task.startDatetime ? utcToLocalDate(task.startDatetime) : undefined,
-    _displayStartTime: task.startDatetime ? utcToLocalTime(task.startDatetime) : undefined,
-    _displayEndDate: task.endDatetime ? utcToLocalDate(task.endDatetime) : undefined,
-    _displayEndTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : undefined,
   }
 }
 
@@ -84,13 +70,16 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     color: formData.color,
     recurrenceRule,
     recurrenceEnd,
-    reminders: formData.reminders?.map(reminder => ({
-      reminderOffsetMinutes: reminder.offsetMinutes ||
+    reminders: formData.reminders?.map(reminder => {
+      const offsetMinutes = reminder.offsetMinutes ||
                            (reminder.offsetValue && reminder.offsetUnit ?
                             convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
-                            reminder.reminderOffsetMinutes),
-      notificationType: reminder.notificationType
-    })) || []
+                            reminder.reminderOffsetMinutes) || 15
+      return {
+        reminderOffsetMinutes: offsetMinutes,
+        notificationType: reminder.notificationType
+      }
+    }) || []
   }
 }
 
@@ -102,8 +91,8 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
   const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
 
   // Build recurrence rule if task is recurring
-  let recurrenceRule: string | undefined | null
-  let recurrenceEnd: string | undefined | null
+  let recurrenceRule: string | undefined
+  let recurrenceEnd: string | undefined
 
   if (formData.isRecurring && formData.recurrenceFrequency) {
     const rruleParams = {
@@ -120,12 +109,12 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     if (formData.recurrenceEndType === RecurrenceEndType.DATE && formData.recurrenceEndDate) {
       recurrenceEnd = localDateTimeToUTC(formData.recurrenceEndDate, '23:59')
     } else {
-      recurrenceEnd = null
+      recurrenceEnd = undefined
     }
   } else {
     // Clear recurrence if not recurring
-    recurrenceRule = null
-    recurrenceEnd = null
+    recurrenceRule = undefined
+    recurrenceEnd = undefined
   }
 
   return {
@@ -137,13 +126,16 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     color: formData.color,
     recurrenceRule,
     recurrenceEnd,
-    reminders: formData.reminders?.map(reminder => ({
-      reminderOffsetMinutes: reminder.offsetMinutes ||
+    reminders: formData.reminders?.map(reminder => {
+      const offsetMinutes = reminder.offsetMinutes ||
                            (reminder.offsetValue && reminder.offsetUnit ?
                             convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
-                            reminder.reminderOffsetMinutes),
-      notificationType: reminder.notificationType
-    })) || []
+                            reminder.reminderOffsetMinutes) || 15
+      return {
+        reminderOffsetMinutes: offsetMinutes,
+        notificationType: reminder.notificationType
+      }
+    }) || []
   }
 }
 
@@ -212,9 +204,3 @@ export function transformQuickTaskData(data: {
   }
 }
 
-/**
- * Batch transform tasks from backend
- */
-export function transformTasksFromBackend(tasks: Task[]): Task[] {
-  return tasks.map(transformTaskFromBackend)
-}

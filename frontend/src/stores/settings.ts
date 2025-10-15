@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { DEFAULT_SETTINGS } from '../utils/constants'
-import { setLocale, type Locale, i18n } from '../i18n'
+import { setLocale, type Locale, i18nGlobal } from '../i18n'
 
 export type WeekStartDay = 0 | 1 // 0 = Sunday, 1 = Monday
 
@@ -32,7 +32,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const timeFormat = computed(() => settings.value.timeFormat)
   
   const weekdaysShort = computed(() => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     if (settings.value.weekStartDay === 0) {
       // Sunday first: Sun, Mon, Tue, Wed, Thu, Fri, Sat
       return [
@@ -59,7 +59,7 @@ export const useSettingsStore = defineStore('settings', () => {
   })
 
   const weekdaysFull = computed(() => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     if (settings.value.weekStartDay === 0) {
       // Sunday first
       return [
@@ -210,7 +210,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Week start day options for UI
   const weekStartOptions = computed(() => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     return [
       { value: 1, label: t('stores.settings.weekStart.monday'), description: t('stores.settings.weekStart.startsMonday') },
       { value: 0, label: t('stores.settings.weekStart.sunday'), description: t('stores.settings.weekStart.startsSunday') }

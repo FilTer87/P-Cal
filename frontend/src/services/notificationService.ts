@@ -26,7 +26,7 @@ export interface NotificationPayload {
 }
 
 export interface ServiceWorkerMessage {
-  type: 'SHOW_NOTIFICATION' | 'NOTIFICATION_CLICKED' | 'NOTIFICATION_CLOSED'
+  type: 'SHOW_NOTIFICATION' | 'NOTIFICATION_CLICKED' | 'NOTIFICATION_CLOSED' | 'SCHEDULE_NOTIFICATION' | 'CANCEL_NOTIFICATION'
   payload?: any
 }
 

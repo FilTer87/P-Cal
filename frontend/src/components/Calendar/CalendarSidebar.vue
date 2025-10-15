@@ -198,7 +198,6 @@ const { t } = useI18n()
 interface Props {
   showMobile?: boolean
   user?: any
-  taskStats?: any
   todayTasks?: Task[]
   upcomingReminders?: Reminder[]
   currentViewMode?: string

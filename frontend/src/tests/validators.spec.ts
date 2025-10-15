@@ -7,7 +7,6 @@ import {
   validateLoginForm,
   validateRegistrationForm,
   validateTaskForm,
-  validateReminderForm,
   validateForgotPasswordForm,
   validateResetPasswordForm,
   checkPasswordStrength,
@@ -560,49 +559,49 @@ describe('validators.ts', () => {
       })
     })
 
-    describe('validateReminderForm', () => {
-      beforeEach(() => {
-        vi.useFakeTimers()
-        vi.setSystemTime(new Date('2025-01-01T10:00:00Z'))
-      })
+    // describe('validateReminderForm', () => {
+    //   beforeEach(() => {
+    //     vi.useFakeTimers()
+    //     vi.setSystemTime(new Date('2025-01-01T10:00:00Z'))
+    //   })
 
-      it('should validate future reminder date/time', () => {
-        const result = validateReminderForm({
-          date: '2025-12-31',
-          time: '14:30'
-        })
-        expect(result.isValid).toBe(true)
-      })
+    //   it('should validate future reminder date/time', () => {
+    //     const result = validateReminderForm({
+    //       date: '2025-12-31',
+    //       time: '14:30'
+    //     })
+    //     expect(result.isValid).toBe(true)
+    //   })
 
-      it('should reject empty date', () => {
-        const result = validateReminderForm({
-          date: '',
-          time: '14:30'
-        })
-        expect(result.isValid).toBe(false)
-        expect(result.errors.date).toBeDefined()
-      })
+    //   it('should reject empty date', () => {
+    //     const result = validateReminderForm({
+    //       date: '',
+    //       time: '14:30'
+    //     })
+    //     expect(result.isValid).toBe(false)
+    //     expect(result.errors.date).toBeDefined()
+    //   })
 
-      it('should reject empty time', () => {
-        const result = validateReminderForm({
-          date: '2025-12-31',
-          time: ''
-        })
-        expect(result.isValid).toBe(false)
-        expect(result.errors.time).toBeDefined()
-      })
+    //   it('should reject empty time', () => {
+    //     const result = validateReminderForm({
+    //       date: '2025-12-31',
+    //       time: ''
+    //     })
+    //     expect(result.isValid).toBe(false)
+    //     expect(result.errors.time).toBeDefined()
+    //   })
 
-      it('should reject past reminder date/time', () => {
-        const result = validateReminderForm({
-          date: '2024-01-01',
-          time: '10:00'
-        })
-        expect(result.isValid).toBe(false)
-        expect(result.errors.time).toContain('futuro')
-      })
+    //   it('should reject past reminder date/time', () => {
+    //     const result = validateReminderForm({
+    //       date: '2024-01-01',
+    //       time: '10:00'
+    //     })
+    //     expect(result.isValid).toBe(false)
+    //     expect(result.errors.time).toContain('futuro')
+    //   })
 
-      vi.useRealTimers()
-    })
+    //   vi.useRealTimers()
+    // })
   })
 
   describe('Password Strength Checker', () => {

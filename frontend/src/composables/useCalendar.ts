@@ -70,29 +70,6 @@ export function useCalendar() {
     calendarStore.navigateNext()
   }
 
-  const previousMonth = () => {
-    calendarStore.previousMonth()
-  }
-
-  const nextMonth = () => {
-    calendarStore.nextMonth()
-  }
-
-  const previousWeek = () => {
-    calendarStore.previousWeek()
-  }
-
-  const nextWeek = () => {
-    calendarStore.nextWeek()
-  }
-
-  const previousDay = () => {
-    calendarStore.previousDay()
-  }
-
-  const nextDay = () => {
-    calendarStore.nextDay()
-  }
 
   // View mode management
   const setViewMode = (mode: CalendarView) => {
@@ -118,11 +95,6 @@ export function useCalendar() {
     const dateString = format(date, 'yyyy-MM-dd')
     return tasksStore.hasTasksOnDate(dateString)
   }
-
-  const getTaskCountForDate = (date: Date): number => {
-    return getTasksForDate(date).length
-  }
-
 
   // Task modal management
   const openTaskModal = (task: Task) => {
@@ -158,9 +130,25 @@ export function useCalendar() {
   const dropTaskOnDate = async (date: Date) => {
     if (!draggedTask.value) return false
 
-    const dateString = format(date, 'yyyy-MM-dd')
-    const success = await tasksStore.updateTask(draggedTask.value.id, {
-      dueDate: dateString
+    // Calculate the new start and end datetimes by moving the task to the new date
+    // while preserving the time and duration
+    const task = draggedTask.value
+    const oldStart = new Date(task.startDatetime)
+    const oldEnd = new Date(task.endDatetime)
+
+    // Calculate the time difference to maintain task duration
+    const duration = oldEnd.getTime() - oldStart.getTime()
+
+    // Create new start datetime with the target date but original time
+    const newStart = new Date(date)
+    newStart.setHours(oldStart.getHours(), oldStart.getMinutes(), oldStart.getSeconds())
+
+    // Calculate new end datetime
+    const newEnd = new Date(newStart.getTime() + duration)
+
+    const success = await tasksStore.updateTask(task.id, {
+      startDatetime: newStart.toISOString(),
+      endDatetime: newEnd.toISOString()
     })
 
     if (success) {
@@ -174,22 +162,6 @@ export function useCalendar() {
   // Date utilities
   const formatDisplayDate = (date: Date): string => {
     return calendarStore.formatDisplayDate(date)
-  }
-
-  const formatDateForInput = (date: Date): string => {
-    return format(date, 'yyyy-MM-dd')
-  }
-
-  const formatDateForDisplay = (date: Date): string => {
-    return format(date, 'd MMMM yyyy', { locale: it })
-  }
-
-  const formatDayName = (date: Date, short = false): string => {
-    return format(date, short ? 'EEE' : 'EEEE', { locale: it })
-  }
-
-  const formatMonthYear = (date: Date): string => {
-    return format(date, 'MMMM yyyy', { locale: it })
   }
 
   const isDateInCurrentView = (date: Date): boolean => {
@@ -218,29 +190,15 @@ export function useCalendar() {
   const getWeekDays = (date: Date): Date[] => {
     const start = startOfWeek(date, { weekStartsOn: settingsStore.weekStartDay })
     const days: Date[] = []
-    
+
     for (let i = 0; i < 7; i++) {
       days.push(addDays(start, i))
     }
-    
+
     // Debug logging for week days generation
     console.debug('📅 Week days generated:', days.map(d => `${format(d, 'yyyy-MM-dd')} (${format(d, 'E')})`).join(', '))
-    
+
     return days
-  }
-
-  const getWeekRange = (date: Date): { start: Date; end: Date } => {
-    return {
-      start: startOfWeek(date, { weekStartsOn: settingsStore.weekStartDay }),
-      end: endOfWeek(date, { weekStartsOn: settingsStore.weekStartDay })
-    }
-  }
-
-  const getMonthRange = (date: Date): { start: Date; end: Date } => {
-    return {
-      start: startOfMonth(date),
-      end: endOfMonth(date)
-    }
   }
 
   // Keyboard shortcuts
@@ -333,12 +291,6 @@ export function useCalendar() {
     clearSelection,
     navigatePrevious,
     navigateNext,
-    previousMonth,
-    nextMonth,
-    previousWeek,
-    nextWeek,
-    previousDay,
-    nextDay,
 
     // View mode
     setViewMode,
@@ -347,7 +299,6 @@ export function useCalendar() {
     // Task management
     getTasksForDate,
     hasTasksOnDate,
-    getTaskCountForDate,
 
     // Modal management
     openTaskModal,
@@ -362,18 +313,12 @@ export function useCalendar() {
 
     // Date utilities
     formatDisplayDate,
-    formatDateForInput,
-    formatDateForDisplay,
-    formatDayName,
-    formatMonthYear,
     isDateInCurrentView,
     isToday,
     isSameDate,
     isWeekend,
     isCurrentMonth,
     getWeekDays,
-    getWeekRange,
-    getMonthRange,
 
     // Keyboard shortcuts
     handleKeyboardNavigation

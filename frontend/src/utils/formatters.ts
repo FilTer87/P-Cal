@@ -1,11 +1,11 @@
 import { formatDate, formatDateTime, formatTime, formatRelativeTime, getDateDescription } from './dateHelpers'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 /**
  * Get current locale from i18n
  */
 const getCurrentLocale = (): string => {
-  return i18n.global.locale.value
+  return i18nGlobal.locale.value
 }
 
 /**
@@ -51,7 +51,7 @@ export const formatPercentage = (value: number, decimals = 1): string => {
  * Format duration in minutes to human readable format
  */
 export const formatDuration = (minutes: number): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
 
   if (minutes < 60) {
     return minutes === 1
@@ -98,7 +98,7 @@ export const formatTaskDueDate = (dueDate: string): {
   color: 'green' | 'blue' | 'yellow' | 'red' | 'gray'
   isPast: boolean
 } => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
 
   if (!dueDate) {
     return {
@@ -137,7 +137,7 @@ export const formatReminderTime = (reminderDateTime: string, sent = false): {
   text: string
   color: 'green' | 'blue' | 'yellow' | 'red' | 'gray'
 } => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
 
   if (sent) {
     return {
@@ -210,7 +210,7 @@ export const formatText = (text: string, maxLength = 100): string => {
  * Format list of items with proper conjunctions
  */
 export const formatList = (items: string[], conjunction?: string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const conj = conjunction || t('formatters.listConjunction')
 
   if (items.length === 0) return ''
@@ -237,7 +237,7 @@ export const formatSearchHighlight = (text: string, query: string): string => {
  * Format validation error message
  */
 export const formatValidationError = (field: string, error: string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const fieldKey = `formatters.fieldNames.${field}`
   const fieldName = t(fieldKey, field) // fallback to field name if key not found
   return `${fieldName}: ${error}`
@@ -247,7 +247,7 @@ export const formatValidationError = (field: string, error: string): string => {
  * Format API error for display
  */
 export const formatApiError = (error: any): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
 
   if (error?.response?.data?.message) {
     return error.response.data.message
@@ -431,7 +431,7 @@ export const formatSafeHtml = (html: string): string => {
  * Note: For Vue components, use useFormatters() composable for i18n support
  */
 export const formatTableCell = (value: any, type: 'text' | 'number' | 'date' | 'boolean' = 'text'): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
 
   if (value == null) return '-'
 

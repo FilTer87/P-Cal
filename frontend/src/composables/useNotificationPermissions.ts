@@ -9,7 +9,7 @@ import {
   sendBrowserNotification,
   type NotificationOptions
 } from '../services/notificationService'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 export function useNotificationPermissions() {
   // Reactive state
@@ -27,7 +27,7 @@ export function useNotificationPermissions() {
 
   // Permission status labels
   const permissionLabel = computed(() => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     switch (permission.value) {
       case 'granted':
         return t('composables.useNotificationPermissions.permissionLabels.granted')
@@ -41,7 +41,7 @@ export function useNotificationPermissions() {
   })
 
   const permissionDescription = computed(() => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     switch (permission.value) {
       case 'granted':
         return t('composables.useNotificationPermissions.permissionDescriptions.granted')
@@ -62,7 +62,7 @@ export function useNotificationPermissions() {
   }
 
   const requestPermission = async (): Promise<NotificationPermission> => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     if (!isSupported.value) {
       const error = t('composables.useNotificationPermissions.errors.notSupported')
       lastError.value = error
@@ -107,20 +107,20 @@ export function useNotificationPermissions() {
     options?: NotificationOptions
   ): Promise<Notification | void> => {
     if (!isEnabled.value) {
-      throw new Error(i18n.global.t('composables.useNotificationPermissions.errors.notAuthorized'))
+      throw new Error(i18nGlobal.t('composables.useNotificationPermissions.errors.notAuthorized'))
     }
 
     try {
       return await notificationService.sendNotification(title, options)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : i18n.global.t('composables.useNotificationPermissions.errors.sendError')
+      const errorMessage = error instanceof Error ? error.message : i18nGlobal.t('composables.useNotificationPermissions.errors.sendError')
       lastError.value = errorMessage
       throw error
     }
   }
 
   const sendTestNotification = async (): Promise<void> => {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     await sendBrowserNotification(
       t('composables.useNotificationPermissions.testNotification.title'),
       {
@@ -139,7 +139,7 @@ export function useNotificationPermissions() {
   // Browser-specific permission guides
   const getPermissionGuide = () => {
     const userAgent = navigator.userAgent.toLowerCase()
-    const t = i18n.global.t
+    const t = i18nGlobal.t
 
     if (userAgent.includes('chrome')) {
       return {

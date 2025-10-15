@@ -7,9 +7,10 @@ import type {
   RegisterCredentials,
   AuthResponse
 } from '../types/auth'
+import type { ApiError } from '../types/api'
 import { authApi } from '../services/authApi'
 import { useCustomToast } from '../composables/useCustomToast'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -145,7 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       setAuthData(response)
-      showSuccess(i18n.global.t('stores.auth.loginSuccess'))
+      showSuccess(i18nGlobal.t('stores.auth.loginSuccess'))
       return true
     } catch (error: any) {
       // Check if this is a 2FA requirement (status 202)
@@ -155,7 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw error
       }
 
-      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.loginError')
+      const errorMessage = error.response?.data?.message || i18nGlobal.t('stores.auth.loginError')
       showError(errorMessage)
       return false
     } finally {
@@ -182,7 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       setAuthData(response)
-      showSuccess(i18n.global.t('stores.auth.registerSuccess'))
+      showSuccess(i18nGlobal.t('stores.auth.registerSuccess'))
       return true
     } catch (error: any) {
       // Re-throw email verification required to be handled by the register component
@@ -190,7 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw error
       }
 
-      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.registerError')
+      const errorMessage = error.response?.data?.message || i18nGlobal.t('stores.auth.registerError')
       showError(errorMessage)
       return false
     } finally {
@@ -207,7 +208,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('Error during logout:', error)
     } finally {
       clearAuthData()
-      showSuccess(i18n.global.t('stores.auth.logoutSuccess'))
+      showSuccess(i18nGlobal.t('stores.auth.logoutSuccess'))
     }
   }
 
@@ -252,10 +253,11 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     } catch (error) {
       console.error('Token verification failed:', error)
-      
+
       // During initialization, be more lenient with errors
       // Don't clear auth data immediately - the token might still work for other endpoints
-      if (!duringInitialization && (error.status === 401)) {
+      const apiError = error as ApiError
+      if (!duringInitialization && apiError.status === 401) {
         console.log('🧹 Clearing auth data due to 401 error (not during initialization)')
         clearAuthData()
       } else if (duringInitialization) {
@@ -273,10 +275,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = updatedUser
       localStorage.setItem('user', JSON.stringify(updatedUser))
 
-      showSuccess(i18n.global.t('stores.auth.profileUpdateSuccess'))
+      showSuccess(i18nGlobal.t('stores.auth.profileUpdateSuccess'))
       return true
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || i18n.global.t('stores.auth.profileUpdateError')
+      const errorMessage = error.response?.data?.message || i18nGlobal.t('stores.auth.profileUpdateError')
       showError(errorMessage)
       return false
     } finally {

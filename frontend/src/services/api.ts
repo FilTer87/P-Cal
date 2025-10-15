@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import type { ApiResponse, ApiError } from '../types/api'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 // Extended config for API requests with notification control
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
@@ -218,7 +218,7 @@ class ApiClient {
   }
 
   private handleError(error: any, showNotification = true): ApiError {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     const apiError: ApiError = {
       message: t('api.errors.unexpected'),
       timestamp: new Date().toISOString()
@@ -258,11 +258,11 @@ class ApiClient {
   }
 
   private getStatusMessage(status: number): string {
-    const t = i18n.global.t
+    const t = i18nGlobal.t
     const statusKey = `api.errors.status.${status}`
 
     // Check if translation exists for this specific status
-    if (i18n.global.te(statusKey)) {
+    if (i18nGlobal.te(statusKey)) {
       return t(statusKey)
     }
 
