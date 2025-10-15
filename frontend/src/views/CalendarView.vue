@@ -1,43 +1,28 @@
 <template>
   <div class="h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm border-b-2 border-gray-200 dark:border-gray-700" style="height: 3.9rem;">
-      <div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header - Mobile Only (< 768px) -->
+    <header class="md:hidden bg-white dark:bg-gray-800 shadow-sm border-b-2 border-gray-200 dark:border-gray-700" style="height: 3.9rem;">
+      <div class="px-4 sm:px-6">
         <div class="flex justify-between items-center h-16">
-          <!-- Mobile Menu Button + Logo and Title -->
+          <!-- Mobile Menu Button + Logo -->
           <div class="flex items-center">
             <!-- Mobile Sidebar Toggle -->
             <button @click="showMobileSidebar = !showMobileSidebar"
-              class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
+              class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
               :title="t('calendar.navigation.toggleMenu')">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
-            <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              P-Cal
-            </h1>
-            <span class="ml-2 text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
-              {{ formatDisplayDate(currentDate) }}
-            </span>
+            <!-- Logo - Mobile Only -->
+            <img src="/icons/icon.svg" alt="P-Cal" class="h-8 w-8 md:hidden" />
           </div>
 
           <!-- Navigation Controls -->
-          <div class="flex items-center space-x-2 md:space-x-4">
-            <!-- View Mode Selector -->
-            <div class="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-md p-1">
-              <button v-for="view in CALENDAR_VIEWS" :key="view.value" @click="setViewMode(view.value)"
-                class="px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded transition-colors" :class="{
-                  'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm': viewMode === view.value,
-                  'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white': viewMode !== view.value
-                }" :title="`${t(view.labelKey)} (${view.shortcut})`">
-                {{ t(view.labelKey) }}
-              </button>
-            </div>
-
+          <div class="flex items-center space-x-2">
             <!-- Mobile View Mode Dropdown -->
-            <div class="sm:hidden relative">
+            <div class="relative">
               <select :value="viewMode" @change="setViewMode(($event.target as HTMLSelectElement)?.value as CalendarView)"
                 class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 text-sm rounded-md border-0 focus:ring-2 focus:ring-blue-500">
                 <option v-for="view in CALENDAR_VIEWS" :key="view.value" :value="view.value">
@@ -55,10 +40,9 @@
               </button>
 
               <button @click="goToToday"
-                class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                class="px-2 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
                 :title="t('calendar.navigation.goToToday')">
-                <span class="hidden sm:inline">{{ t('calendar.today') }}</span>
-                <span class="sm:hidden">•</span>
+                <span>•</span>
               </button>
 
               <button @click="navigateNext"
@@ -67,17 +51,16 @@
                 <ChevronRightIcon class="h-5 w-5" />
               </button>
             </div>
-
           </div>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <div class="flex h-[calc(100vh-4rem)] relative">
+    <div class="flex h-[calc(100vh-4rem)] md:h-screen relative">
       <!-- Mobile Sidebar Overlay -->
       <div v-if="showMobileSidebar" @click="showMobileSidebar = false"
-        class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 md:hidden"></div>
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden"></div>
 
       <!-- Sidebar -->
       <CalendarSidebar
@@ -93,24 +76,81 @@
       />
 
       <!-- Calendar Area -->
-      <main class="flex-1 flex flex-col overflow-hidden md:ml-0">
-        <!-- Calendar Header -->
-        <div class="p-3 md:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <main class="flex-1 flex flex-col overflow-hidden lg:ml-0">
+        <!-- Unified Calendar Header -->
+        <div class="p-3 lg:p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div class="flex items-center justify-between">
-            <div v-if="isAgendaView">
-              <h2 class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
-                {{ t('calendar.views.agenda') }}
-              </h2>
-              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {{ t('calendar.agendaDescription', { days: agendaDays }) }}
-              </p>
+            <!-- Left Side: Logo + Date Range / Agenda Description -->
+            <div class="flex items-center space-x-3">
+              <!-- Hamburger Menu - Tablet (768px - 1024px) -->
+              <button @click="showMobileSidebar = !showMobileSidebar"
+                class="hidden md:block lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                :title="t('calendar.navigation.toggleMenu')">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              <!-- Logo - Tablet/Desktop (≥ 768px) -->
+              <img src="/icons/icon.svg" alt="P-Cal" class="hidden md:block h-8 w-8" />
+
+              <!-- Content: Date Range or Agenda Description -->
+              <div>
+                <!-- Mobile: Show date range for all views (< 768px) -->
+                <h2 class="md:hidden text-base font-medium text-gray-900 dark:text-white">
+                  {{ formatDisplayDate(currentDate) }}
+                </h2>
+
+                <!-- Tablet/Desktop: Show agenda description or date range (≥ 768px) -->
+                <div v-if="isAgendaView" class="hidden md:block">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('calendar.agendaDescription', { days: agendaDays }) }}
+                  </p>
+                </div>
+                <h2 v-else class="hidden md:block text-base font-medium text-gray-900 dark:text-white">
+                  {{ formatDisplayDate(currentDate) }}
+                </h2>
+              </div>
             </div>
-            <h2 v-else class="text-base md:text-lg font-medium text-gray-900 dark:text-white">
-              {{ currentMonthName }}
-            </h2>
+
+            <!-- Right Side: Navigation Controls - Tablet/Desktop (≥ 768px) -->
+            <div class="hidden md:flex items-center space-x-2">
+              <!-- View Mode Selector - Compact -->
+              <div class="flex bg-gray-100 dark:bg-gray-700 rounded-md p-1">
+                <button v-for="view in CALENDAR_VIEWS" :key="view.value" @click="setViewMode(view.value)"
+                  class="px-2 py-1 text-xs font-medium rounded transition-colors" :class="{
+                    'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm': viewMode === view.value,
+                    'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white': viewMode !== view.value
+                  }" :title="`${t(view.labelKey)} (${view.shortcut})`">
+                  {{ t(view.labelKey) }}
+                </button>
+              </div>
+
+              <!-- Navigation Buttons - Compact -->
+              <div class="flex items-center space-x-1">
+                <button @click="navigatePrevious"
+                  class="p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  :title="t('calendar.navigation.previousPeriod')">
+                  <ChevronLeftIcon class="h-4 w-4" />
+                </button>
+
+                <button @click="goToToday"
+                  class="px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  :title="t('calendar.navigation.goToToday')">
+                  {{ t('calendar.today') }}
+                </button>
+
+                <button @click="navigateNext"
+                  class="p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  :title="t('calendar.navigation.nextPeriod')">
+                  <ChevronRightIcon class="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
             <!-- Mobile Close Sidebar Button (only visible when sidebar is open) -->
             <button v-if="showMobileSidebar" @click="showMobileSidebar = false"
-              class="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+              class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -119,7 +159,7 @@
         </div>
 
         <!-- Calendar Content -->
-        <div class="flex-1 p-2 md:p-4 overflow-auto">
+        <div class="flex-1 p-2 lg:p-4 overflow-auto">
           <!-- Month View -->
           <MonthView
             v-if="isMonthView"
@@ -976,34 +1016,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Calendar Grid Styles */
-.calendar-grid {
-  @apply grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden;
-}
-
-.calendar-grid-mobile {
-  @apply grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden;
-}
-
-.calendar-day-header {
-  @apply bg-gray-50 dark:bg-gray-700 p-2 md:p-3 text-center text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300;
-}
-
-.calendar-day {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex flex-col;
-}
-
-/* Mobile specific adjustments */
-@media (max-width: 768px) {
-  .calendar-day-header {
-    @apply p-2 text-xs;
-  }
-
-  .calendar-day {
-    @apply text-xs;
-  }
-}
-
 /* Responsive modal positioning */
 .modal-overlay {
   @apply fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4;

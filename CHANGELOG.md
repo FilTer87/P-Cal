@@ -10,11 +10,15 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Changed
 
+- UX improvements: condensed headers/navigation and space optimization
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- frontend: existing reminder update without array change (always recalculate offset)
 
 ### Security
 
