@@ -66,6 +66,7 @@ export interface Reminder {
 }
 
 export interface CreateReminderRequest {
+  id?: number  // Optional: if present, updates existing reminder; if absent, creates new one
   reminderOffsetMinutes: number
   notificationType?: NotificationType
 }
