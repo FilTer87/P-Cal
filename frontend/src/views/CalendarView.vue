@@ -38,7 +38,7 @@
 
             <!-- Mobile View Mode Dropdown -->
             <div class="sm:hidden relative">
-              <select :value="viewMode" @change="setViewMode($event.target.value)"
+              <select :value="viewMode" @change="setViewMode(($event.target as HTMLSelectElement)?.value as CalendarView)"
                 class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 text-sm rounded-md border-0 focus:ring-2 focus:ring-blue-500">
                 <option v-for="view in CALENDAR_VIEWS" :key="view.value" :value="view.value">
                   {{ t(view.labelKey) }}
@@ -83,7 +83,6 @@
       <CalendarSidebar
         :show-mobile="showMobileSidebar"
         :user="user"
-        :task-stats="taskStats"
         :today-tasks="todayTasks"
         :upcoming-reminders="upcomingReminders"
         :current-view-mode="viewMode"
@@ -125,7 +124,7 @@
           <MonthView
             v-if="isMonthView"
             :calendar-days="calendarDays"
-            :selected-date="selectedDate"
+            :selected-date="selectedDate ?? undefined"
             @select-date="selectDate"
             @task-click="handleMonthViewTaskClick"
             @create-task="openCreateTaskModalWithDate"
@@ -228,6 +227,7 @@ import DayView from '../components/Calendar/DayView.vue'
 import AgendaView from '../components/Calendar/AgendaView.vue'
 import CalendarSidebar from '../components/Calendar/CalendarSidebar.vue'
 import type { Task } from '../types/task'
+import type { CalendarView } from '../types/calendar'
 
 // Composables
 import { useAuth } from '../composables/useAuth'
@@ -253,9 +253,11 @@ import {
   formatTime as formatTimeUtil,
   getDayName,
   getDateDescription,
-  isToday as isDateToday
+  isToday as isTodayUtil
 } from '../utils/dateHelpers'
-import { it } from 'date-fns/locale'
+import { format as formatDateFns } from 'date-fns'
+import { it, enUS, es } from 'date-fns/locale'
+import { i18nGlobal } from '../i18n'
 // import { formatTaskPriority } from '../utils/formatters' // Removed as priority is not handled
 import { CALENDAR_VIEWS } from '../utils/constants'
 
@@ -335,6 +337,7 @@ const {
   navigatePrevious,
   navigateNext,
   goToToday,
+  goToDate,
   selectDate,
   openTaskModal,
   closeTaskModal,
@@ -346,7 +349,6 @@ const {
 } = calendar
 
 const {
-  taskStats,
   getTaskById
 } = tasks
 
@@ -435,8 +437,8 @@ const sortedTasksByDateInRange = computed(() => {
     .sort(([dateA], [dateB]) => {
       return new Date(dateA).getTime() - new Date(dateB).getTime()
     })
-    .map(([date, dayTasks]) => [
-      date, 
+    .map(([date, dayTasks]): [string, Task[]] => [
+      date,
       // Also sort tasks within each day by start time
       (dayTasks || []).sort((a, b) => {
         return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
@@ -444,7 +446,7 @@ const sortedTasksByDateInRange = computed(() => {
     ])
 
   // Convert back to object
-  const sortedResult: Record<string, any[]> = {}
+  const sortedResult: Record<string, Task[]> = {}
   sortedEntries.forEach(([date, dayTasks]) => {
     sortedResult[date] = dayTasks
   })
@@ -463,7 +465,7 @@ const isDateToday = (date: string) => {
 }
 
 // Methods
-const isToday = (date: Date) => isDateToday(date)
+const isToday = (date: Date) => isTodayUtil(date)
 
 // Use composable functions for task display
 const getTaskDisplayClasses = (task: any, detailed = false) => {
@@ -772,8 +774,22 @@ const formatTaskTime = (task: Task) => {
   return startTime
 }
 
+// Get date-fns locale based on current i18n locale
+const getDateFnsLocale = () => {
+  const currentLocale = i18nGlobal.locale.value
+  switch (currentLocale) {
+    case 'it-IT':
+      return it
+    case 'es-ES':
+      return es
+    case 'en-US':
+    default:
+      return enUS
+  }
+}
+
 const getWeekDayName = (date: Date, short = false) => {
-  return formatDate(date, short ? 'EEE' : 'EEEE', { locale: it })
+  return formatDateFns(date, short ? 'EEE' : 'EEEE', { locale: getDateFnsLocale() })
 }
 
 // Use settings-aware time formatting
@@ -781,23 +797,20 @@ const formatTime = (date: Date | string): string => {
   return settings.formatTime(date)
 }
 
-// Handle task click from MonthView - CalendarTask only has id, need to get full Task
-const handleMonthViewTaskClick = (calendarTask: any) => {
-  const fullTask = getTaskById(calendarTask.id)
-  if (fullTask) {
-    openTaskModal(fullTask)
-  }
+// Handle task click from MonthView
+const handleMonthViewTaskClick = (task: Task) => {
+  openTaskModal(task)
 }
 
 // Handle switch to day view from sidebar
 const handleSwitchToDayView = () => {
-  currentDate.value = new Date()
+  goToDate(new Date())
   setViewMode('day')
 }
 
 // Open day view for a specific date (from month view)
 const openDayView = (date: Date) => {
-  currentDate.value = date
+  goToDate(date)
   setViewMode('day')
 }
 

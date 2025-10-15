@@ -52,7 +52,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Task } from '@/types/task'
-import type { CalendarDate, CalendarTask } from '@/types/calendar'
+import type { CalendarDate } from '@/types/calendar'
 import { useTaskDisplay } from '@/composables/useTaskDisplay'
 import { useSettingsStore } from '@/stores/settings'
 import { getTaskKey } from '@/utils/recurrence'
@@ -74,7 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   'select-date': [date: Date]
-  'task-click': [task: CalendarTask]
+  'task-click': [task: Task]
   'create-task': [date: Date]
   'open-day-view': [date: Date]
 }>()
@@ -118,21 +118,21 @@ const getDayNumberClasses = (day: CalendarDate): string => {
   return 'text-gray-400 dark:text-gray-600'
 }
 
-const getVisibleTasks = (tasks: CalendarTask[]): CalendarTask[] => {
+const getVisibleTasks = (tasks: Task[]): Task[] => {
   if (!tasks || tasks.length === 0) return []
   return tasks.slice(0, props.maxVisibleTasks)
 }
 
-const hasMoreTasks = (tasks: CalendarTask[]): boolean => {
+const hasMoreTasks = (tasks: Task[]): boolean => {
   return tasks ? tasks.length > props.maxVisibleTasks : false
 }
 
-const taskDisplayClasses = (task: CalendarTask): string => {
-  return getTaskDisplayClasses(task as any)
+const taskDisplayClasses = (task: Task): string => {
+  return getTaskDisplayClasses(task)
 }
 
-const taskDisplayStyle = (task: CalendarTask): Record<string, string> => {
-  return getTaskDisplayStyle(task as any)
+const taskDisplayStyle = (task: Task): Record<string, string> => {
+  return getTaskDisplayStyle(task)
 }
 
 // Event handlers
@@ -144,8 +144,8 @@ const handleDateDoubleClick = (date: Date): void => {
   emit('create-task', date)
 }
 
-const handleTaskClick = (task: CalendarTask): void => {
-  emit('task-click', task as any)
+const handleTaskClick = (task: Task): void => {
+  emit('task-click', task)
 }
 
 const handleMoreClick = (date: Date): void => {

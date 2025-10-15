@@ -44,20 +44,21 @@ import {
   getMonth,
   getYear
 } from 'date-fns'
-import { it, enUS } from 'date-fns/locale'
-import { i18n } from '../i18n'
+import { it, enUS, es, type Locale } from 'date-fns/locale'
+import { i18nGlobal } from '../i18n'
 
 // Map of supported locales for date-fns
 const dateFnsLocales: Record<string, Locale> = {
   'it-IT': it,
-  'en-US': enUS
+  'en-US': enUS,
+  'es-ES': es
 }
 
 /**
  * Get date-fns locale from current i18n locale
  */
 const getDateFnsLocale = (): Locale => {
-  const currentLocale = i18n.global.locale.value
+  const currentLocale = i18nGlobal.locale.value
   return dateFnsLocales[currentLocale] || it
 }
 
@@ -68,7 +69,7 @@ const getDateFnsLocale = (): Locale => {
  * @returns Formatted date in local timezone
  */
 export const formatDate = (date: Date | string, pattern = 'dd/MM/yyyy'): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -83,7 +84,7 @@ export const formatDate = (date: Date | string, pattern = 'dd/MM/yyyy'): string 
  * @returns Formatted datetime in local timezone
  */
 export const formatDateTime = (date: Date | string, pattern = 'dd/MM/yyyy HH:mm'): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -98,7 +99,7 @@ export const formatDateTime = (date: Date | string, pattern = 'dd/MM/yyyy HH:mm'
  * @returns Formatted time in local timezone
  */
 export const formatTime = (date: Date | string, pattern = 'HH:mm'): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidTime')
 
@@ -140,7 +141,7 @@ export const formatDateTimeForAPI = (date: Date | string): string => {
  * Format relative time (e.g., "2 hours ago", "in 3 days")
  */
 export const formatRelativeTime = (date: Date | string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -155,7 +156,7 @@ export const formatRelativeTime = (date: Date | string): string => {
  * Format distance between two dates
  */
 export const formatDateDistance = (startDate: Date | string, endDate: Date | string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
   const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
 
@@ -168,7 +169,7 @@ export const formatDateDistance = (startDate: Date | string, endDate: Date | str
  * Format date relative to today (e.g., "today", "yesterday", "Monday")
  */
 export const formatRelativeDate = (date: Date | string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -179,7 +180,7 @@ export const formatRelativeDate = (date: Date | string): string => {
  * Get human-readable date description
  */
 export const getDateDescription = (date: Date | string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -203,7 +204,7 @@ export const getDateDescription = (date: Date | string): string => {
  * Get day name with locale support
  */
 export const getDayName = (date: Date | string, short = false): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -214,7 +215,7 @@ export const getDayName = (date: Date | string, short = false): string => {
  * Get month name with locale support
  */
 export const getMonthName = (date: Date | string, short = false): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -225,7 +226,7 @@ export const getMonthName = (date: Date | string, short = false): string => {
  * Get month and year string with locale support
  */
 export const getMonthYear = (date: Date | string): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
@@ -433,11 +434,11 @@ export const getTimezone = (): string => {
 }
 
 export const formatInTimezone = (date: Date | string, timezone: string, pattern = 'yyyy-MM-dd HH:mm'): string => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return t('errors.invalidDate')
 
-  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
+  const locale = i18nGlobal.locale.value
   return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
     year: 'numeric',

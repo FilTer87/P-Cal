@@ -390,11 +390,11 @@ const formData = ref<TaskFormData>(createEmptyTaskForm())
 const isEditing = computed(() => !!props.task)
 
 const isEditingAllOccurrences = computed(() => {
-  return props.task && (props.task as any)._editMode === 'all' && props.task.recurrenceRule
+  return !!(props.task && (props.task as any)._editMode === 'all' && props.task.recurrenceRule)
 })
 
 const isEditingSingleOccurrence = computed(() => {
-  return props.task && (props.task as any)._editMode === 'single' && props.task.recurrenceRule
+  return !!(props.task && (props.task as any)._editMode === 'single' && props.task.recurrenceRule)
 })
 
 const isFormValid = computed(() => {
@@ -426,9 +426,9 @@ const loadTaskData = () => {
     // If editing single occurrence, force non-recurring
     if (isEditingSingleOccurrence.value) {
       formData.value.isRecurring = false
-      formData.value.recurrenceFrequency = 'daily'
+      formData.value.recurrenceFrequency = RecurrenceFrequency.DAILY
       formData.value.recurrenceInterval = 1
-      formData.value.recurrenceEndType = 'never'
+      formData.value.recurrenceEndType = RecurrenceEndType.NEVER
       formData.value.recurrenceCount = undefined
       formData.value.recurrenceEndDate = undefined
       formData.value.recurrenceByDay = []
@@ -449,7 +449,7 @@ const addReminder = () => {
     notificationType: NotificationType.PUSH,
     // Computed property for backward compatibility
     get offsetMinutes() {
-      const multipliers = { minutes: 1, hours: 60, days: 24 * 60 }
+      const multipliers: Record<string, number> = { minutes: 1, hours: 60, days: 24 * 60 }
       return this.offsetValue * multipliers[this.offsetUnit]
     }
   }

@@ -1,13 +1,15 @@
 import { createI18n } from 'vue-i18n'
-import type { I18n, I18nOptions } from 'vue-i18n'
+import type { Composer } from 'vue-i18n'
+import type { I18n } from 'vue-i18n'
 import itIT from './locales/it-IT.json'
 import enUS from './locales/en-US.json'
+import esES from './locales/es-ES.json'
 
 // Type for locale messages
 export type MessageSchema = typeof itIT
 
 // Available locales
-export const AVAILABLE_LOCALES = ['it-IT', 'en-US'] as const
+export const AVAILABLE_LOCALES = ['it-IT', 'en-US', 'es-ES'] as const
 export type Locale = typeof AVAILABLE_LOCALES[number]
 
 // Default locale (fallback when browser locale is not supported)
@@ -37,13 +39,16 @@ export const i18n: I18n = createI18n({
   globalInjection: true,
   messages: {
     'it-IT': itIT,
-    'en-US': enUS
+    'en-US': enUS,
+    'es-ES': esES
   },
   missingWarn: import.meta.env.DEV,
   fallbackWarn: import.meta.env.DEV,
   // Ensure no message compilation at runtime (CSP-safe)
   warnHtmlMessage: false
 })
+
+export const i18nGlobal = i18n.global as Composer
 
 // Helper to change locale
 export function setLocale(locale: Locale) {
@@ -52,7 +57,7 @@ export function setLocale(locale: Locale) {
     locale = DEFAULT_LOCALE
   }
 
-  i18n.global.locale.value = locale
+  i18nGlobal.locale.value = locale
 
   // Persist locale preference
   if (typeof localStorage !== 'undefined') {
@@ -99,8 +104,8 @@ export function setupLocaleWatcher() {
   window.addEventListener('storage', (e) => {
     if (e.key === 'locale' && e.newValue) {
       const newLocale = e.newValue as Locale
-      if (AVAILABLE_LOCALES.includes(newLocale) && i18n.global.locale.value !== newLocale) {
-        i18n.global.locale.value = newLocale
+      if (AVAILABLE_LOCALES.includes(newLocale) && i18nGlobal.locale.value !== newLocale) {
+        i18nGlobal.locale.value = newLocale
       }
     }
   })

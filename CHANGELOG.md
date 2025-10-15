@@ -8,7 +8,15 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+- Spanish language:
+  - enabled selection on frontend
+  - added missing translations keys and templates
+
 ### Changed
+
+- frontend refactoring:
+  - clean-up: removed dead code related to old implementations or modified features
+  - type-safety fix and improvement: resolved 100+ type-check errors
 
 ### Deprecated
 
@@ -17,7 +25,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 ### Fixed
 
 ### Security
-
 
 ---
 

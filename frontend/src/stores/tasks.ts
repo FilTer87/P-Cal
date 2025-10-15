@@ -6,12 +6,11 @@ import type {
   CreateTaskRequest,
   UpdateTaskRequest,
   TaskFilters,
-  TaskStats,
   DailyTasks
 } from '../types/task'
 import { taskApi } from '../services/taskApi'
 import { useCustomToast } from '../composables/useCustomToast'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 import { getTaskKey } from '../utils/recurrence'
 
 export const useTasksStore = defineStore('tasks', () => {
@@ -25,7 +24,6 @@ export const useTasksStore = defineStore('tasks', () => {
   
   // Cached statistics from dedicated API endpoints
   const cachedTodayTasks = ref<Task[]>([])
-  const cachedStats = ref<TaskStats | null>(null)
 
   // Getters
   const filteredTasks = computed(() => {
@@ -98,13 +96,6 @@ export const useTasksStore = defineStore('tasks', () => {
     })
   })
 
-  const taskStats = computed((): TaskStats => {
-    return {
-      total: tasks.value?.length || 0,
-      today: (cachedTodayTasks.value && Array.isArray(cachedTodayTasks.value)) ? cachedTodayTasks.value.length : (todayTasks.value?.length || 0),
-      thisWeek: thisWeekTasks.value?.length || 0
-    }
-  })
 
   const tasksByDate = computed((): DailyTasks => {
     const dailyTasks: DailyTasks = {};
@@ -150,7 +141,7 @@ export const useTasksStore = defineStore('tasks', () => {
       tasks.value = response
       isInitialized.value = true
     } catch (err: any) {
-      error.value = err.message || i18n.global.t('stores.tasks.loadError')
+      error.value = err.message || i18nGlobal.t('stores.tasks.loadError')
     } finally {
       isLoading.value = false
     }
@@ -366,30 +357,15 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const fetchTaskStats = async () => {
-    try {
-      const stats = await taskApi.getTaskStats()
-      cachedStats.value = stats
-      return stats
-    } catch (err: any) {
-      // If API endpoint doesn't exist, just return null and use local calculations
-      return null
-    }
-  }
-
   const refreshTasks = () => fetchTasks(true)
-  
+
   const refreshStatistics = async () => {
-    await Promise.all([
-      fetchTodayTasks(),
-      fetchTaskStats()
-    ])
+    await fetchTodayTasks()
   }
 
   const resetStore = () => {
     tasks.value = []
     cachedTodayTasks.value = []
-    cachedStats.value = null
     isInitialized.value = false
     clearFilters()
   }
@@ -408,13 +384,11 @@ export const useTasksStore = defineStore('tasks', () => {
     searchQuery,
     isInitialized,
     cachedTodayTasks,
-    cachedStats,
-    
+
     // Getters
     filteredTasks,
     todayTasks,
     thisWeekTasks,
-    taskStats,
     tasksByDate,
     urgentTasks,
     highPriorityTasks,
@@ -423,7 +397,6 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchTasks,
     fetchTasksByDateRange,
     fetchTodayTasks,
-    fetchTaskStats,
     createTask,
     updateTask,
     deleteTask,

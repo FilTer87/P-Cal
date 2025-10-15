@@ -11,6 +11,18 @@ import type {
 } from '../types/auth'
 import { API_ENDPOINTS } from '../types/api'
 
+// User preferences update type (API contract)
+export interface UserPreferencesUpdate {
+  theme?: 'light' | 'dark' | 'system'
+  language?: string
+  timezone?: string
+  timeFormat?: '12h' | '24h'
+  calendarView?: 'month' | 'week' | 'day' | 'agenda'
+  emailNotifications?: boolean
+  reminderNotifications?: boolean
+  weekStartDay?: 0 | 1
+}
+
 export class AuthApi {
   /**
    * Login with username and password
@@ -139,16 +151,7 @@ export class AuthApi {
   /**
    * Update user preferences
    */
-  async updatePreferences(preferences: {
-    theme?: 'light' | 'dark' | 'system'
-    language?: string
-    timezone?: string
-    timeFormat?: '12h' | '24h'
-    calendarView?: 'month' | 'week' | 'day' | 'agenda'
-    emailNotifications?: boolean
-    reminderNotifications?: boolean
-    weekStartDay?: 0 | 1
-  }): Promise<{
+  async updatePreferences(preferences: UserPreferencesUpdate): Promise<{
     theme: 'light' | 'dark' | 'system'
     language: string
     timezone: string

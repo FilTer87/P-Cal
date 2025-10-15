@@ -9,6 +9,7 @@ export interface User {
   displayName?: string
   timezone?: string
   twoFactorEnabled?: boolean
+  avatar?: string
   createdAt: string
   updatedAt: string
 }

@@ -83,6 +83,12 @@
     "backToHome": "Volver al inicio",
     "home": "Inicio",
     "memberSince": "Miembro desde {date}",
+    "tabs": {
+      "personalInfo": "Información personal",
+      "security": "Seguridad",
+      "preferences": "Preferencias",
+      "dangerZone": "Zona peligrosa"
+    },
     "personalInfo": "Información personal",
     "security": "Seguridad",
     "preferences": "Preferencias",
@@ -132,6 +138,7 @@
     "languageDescription": "Idioma de la interfaz de usuario",
     "languageItalian": "Italiano",
     "languageEnglish": "Inglés",
+    "languageSpanish": "Español",
     "timeFormatLabel": "Formato de hora",
     "timeFormatDescription": "Formato de visualización de la hora",
     "timeFormat24h": "24 horas (15:30)",
@@ -181,6 +188,33 @@
     "deleteAccountWarning3": "La cuenta no podrá recuperarse una vez eliminada",
     "deleteAccountConfirmMessage": "Para confirmar la eliminación, introduce tu contraseña actual:",
     "deleteAccountPasswordPlaceholder": "Introduce tu contraseña",
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordMinLength": "La contraseña debe tener al menos {min} caracteres",
+    "passwordMaxLength": "La contraseña no puede exceder {max} caracteres",
+    "passwordLowercase": "La contraseña debe contener al menos una letra minúscula",
+    "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula",
+    "passwordNumber": "La contraseña debe contener al menos un número",
+    "passwordSpecial": "La contraseña debe contener al menos un carácter especial",
+    "passwordCommon": "Esta contraseña es muy común. Elige una más segura.",
+    "passwordMatch": "Las contraseñas no coinciden",
+    "passwordStrengthSuggestion1": "Usa una combinación de letras mayúsculas y minúsculas",
+    "passwordStrengthSuggestion2": "Incluye números y caracteres especiales",
+    "passwordStrengthSuggestion3": "Evita palabras comunes o información personal",
+    "passwordStrengthSuggestion4": "Usa al menos 12 caracteres para mayor seguridad",
+    "passwordStrengthSuggestion5": "Considera usar una frase de contraseña o un gestor de contraseñas",
+    "messages": {
+      "personalInfoUpdated": "Información personal actualizada correctamente",
+      "passwordChanged": "Contraseña cambiada correctamente",
+      "twoFactorEnabled": "Autenticación de dos factores activada",
+      "twoFactorDisabled": "Autenticación de dos factores desactivada",
+      "preferencesUpdated": "Preferencias actualizadas correctamente",
+      "dataExported": "Datos exportados correctamente",
+      "accountDeleted": "Cuenta eliminada correctamente",
+      "updateError": "Error al actualizar el perfil",
+      "passwordError": "Error al cambiar la contraseña",
+      "exportError": "Error al exportar datos",
+      "deleteError": "Error al eliminar la cuenta"
+    },
     "profileUpdateSuccess": "¡Información personal actualizada correctamente!",
     "profileUpdateError": "Error al actualizar el perfil"
   },
@@ -292,6 +326,40 @@
     "location": "Ubicación",
     "locationPlaceholder": "Introduce la ubicación (opcional)",
     "color": "Color",
+    "recurrence": "Repetición",
+    "isRecurring": "Repetir evento",
+    "recurrenceFrequency": "Frecuencia",
+    "recurrenceInterval": "Intervalo",
+    "recurrenceEndType": "Finaliza",
+    "recurrenceCount": "Número de ocurrencias",
+    "recurrenceEndDate": "Fecha de finalización",
+    "recurrenceByDay": "Días de la semana",
+    "frequencies": {
+      "daily": "Diariamente",
+      "weekly": "Semanalmente",
+      "monthly": "Mensualmente",
+      "yearly": "Anualmente"
+    },
+    "endTypes": {
+      "never": "Nunca",
+      "count": "Después de",
+      "date": "En fecha"
+    },
+    "intervalLabel": "Cada {count} {unit}",
+    "intervalUnits": {
+      "day": "día",
+      "days": "días",
+      "week": "semana",
+      "weeks": "semanas",
+      "month": "mes",
+      "months": "meses",
+      "year": "año",
+      "years": "años"
+    },
+    "occurrences": "ocurrencias",
+    "selectDays": "Seleccionar días",
+    "editingAllOccurrences": "Editando todas las ocurrencias",
+    "editingAllOccurrencesDescription": "Las fechas y horas están bloqueadas porque estás editando todas las ocurrencias del evento. Los cambios se aplicarán a toda la serie recurrente.",
     "reminders": "Recordatorios",
     "addReminder": "Agregar recordatorio",
     "reminderType": "Tipo",
@@ -593,6 +661,11 @@
           "step1": "Haz clic en el icono del candado en la barra de direcciones",
           "step2": "Selecciona \"Notificaciones\" y elige \"Permitir\"",
           "step3": "Recarga la página para aplicar cambios"
+        },
+        "default": {
+          "step1": "Abre la configuración de tu navegador",
+          "step2": "Busca la sección de Notificaciones o Permisos",
+          "step3": "Permite las notificaciones para este sitio"
         }
       }
     }
@@ -709,6 +782,14 @@
       "repeatedChars": "Evita caracteres repetidos",
       "commonSequences": "Evita secuencias comunes (123, abc, etc.)"
     }
+  },
+  "recurringEdit": {
+    "title": "Editar evento recurrente",
+    "description": "Este es un evento recurrente. ¿Qué deseas editar?",
+    "singleOccurrence": "Solo esta ocurrencia",
+    "singleOccurrenceDesc": "Editar solo este evento y dejarlo separado de la serie",
+    "allOccurrences": "Todas las ocurrencias",
+    "allOccurrencesDesc": "Editar toda la serie de eventos recurrentes"
   }
 }
 

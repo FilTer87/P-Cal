@@ -14,18 +14,18 @@ import {
   transformTaskForUpdate,
   transformTaskToFormData
 } from '../services/taskDateService'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 export function useTasks() {
   const tasksStore = useTasksStore()
   const { showSuccess, showError } = useCustomToast()
 
   const showTaskCompleted = (taskTitle: string) => {
-    showSuccess(i18n.global.t('composables.useTasks.taskCompleted', { title: taskTitle }))
+    showSuccess(i18nGlobal.t('composables.useTasks.taskCompleted', { title: taskTitle }))
   }
 
   const showTaskCreated = (taskTitle: string) => {
-    showSuccess(i18n.global.t('composables.useTasks.taskCreated', { title: taskTitle }))
+    showSuccess(i18nGlobal.t('composables.useTasks.taskCreated', { title: taskTitle }))
   }
 
   // Form state
@@ -92,7 +92,7 @@ export function useTasks() {
     try {
       const task = await tasksStore.updateTask(taskId, taskData, occurrenceStart)
       if (task) {
-        showSuccess(i18n.global.t('composables.useTasks.taskUpdated'))
+        showSuccess(i18nGlobal.t('composables.useTasks.taskUpdated'))
         return task
       }
       return null
@@ -109,7 +109,7 @@ export function useTasks() {
     try {
       const success = await tasksStore.deleteTask(taskId)
       if (success) {
-        showSuccess(i18n.global.t('composables.useTasks.taskDeleted'))
+        showSuccess(i18nGlobal.t('composables.useTasks.taskDeleted'))
       }
       return success
     } catch (error: any) {
@@ -165,7 +165,7 @@ export function useTasks() {
     errors: Record<string, string>
   } => {
     const errors: Record<string, string> = {}
-    const t = i18n.global.t
+    const t = i18nGlobal.t
 
     if (!formData.title.trim()) {
       errors.title = t('composables.useTasks.validation.titleRequired')
@@ -255,32 +255,6 @@ export function useTasks() {
     }
   }
 
-  // Reminder helpers
-  const addReminderToForm = (formData: TaskFormData): ReminderFormData => {
-    const newReminder: ReminderFormData = {
-      date: formData.dueDate,
-      time: '09:00'
-    }
-    formData.reminders.push(newReminder)
-    return newReminder
-  }
-
-  const removeReminderFromForm = (formData: TaskFormData, index: number) => {
-    formData.reminders.splice(index, 1)
-  }
-
-  const createReminderFromPreset = (dueDate: string, dueTime: string, offsetMinutes: number): ReminderFormData => {
-    const dueDateTime = parseISO(`${dueDate}T${dueTime}:00`)
-    const reminderDateTime = addMinutes(dueDateTime, -offsetMinutes)
-    
-    return {
-      date: format(reminderDateTime, 'yyyy-MM-dd'),
-      time: format(reminderDateTime, 'HH:mm'),
-      reminderDateTime: reminderDateTime.toISOString()
-    }
-  }
-
-
   // Utility functions
   const isDueSoon = (task: Task, hours = 24): boolean => {
     const startDate = new Date(task.startDatetime)
@@ -327,11 +301,6 @@ export function useTasks() {
 
     // Validation
     validateTaskForm,
-
-    // Reminder helpers (keep for form functionality)
-    addReminderToForm,
-    removeReminderFromForm,
-    createReminderFromPreset,
 
     // Utilities (only used ones)
     isDueSoon,

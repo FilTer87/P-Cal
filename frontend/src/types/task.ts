@@ -14,6 +14,10 @@ export interface Task {
   updatedAt: string
   userId: number
   reminders: Reminder[]
+  // Temporary properties for calendar views
+  _splitIndex?: string | number  // String for date-based splits, number for index-based splits
+  _visualStartTime?: string
+  _visualEndTime?: string
 }
 
 export interface CreateTaskRequest {

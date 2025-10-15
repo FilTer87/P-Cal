@@ -1,5 +1,5 @@
 import { isValidDate, isValidDateString, isValidTimeString } from './dateHelpers'
-import { i18n } from '../i18n'
+import { i18nGlobal } from '../i18n'
 
 export interface ValidationResult {
   isValid: boolean
@@ -16,7 +16,7 @@ export interface FormValidationResult {
  */
 export const rules = {
   required: (value: any): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: value !== null && value !== undefined && value !== '',
       message: t('validation.required')
@@ -24,7 +24,7 @@ export const rules = {
   },
 
   email: (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!value) return { isValid: true }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return {
@@ -34,7 +34,7 @@ export const rules = {
   },
 
   minLength: (length: number) => (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: !value || value.length >= length,
       message: t('validation.minLength', { length })
@@ -42,7 +42,7 @@ export const rules = {
   },
 
   maxLength: (length: number) => (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: !value || value.length <= length,
       message: t('validation.maxLength', { length })
@@ -55,7 +55,7 @@ export const rules = {
   }),
 
   numeric: (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: !value || /^\d+$/.test(value),
       message: t('validation.numeric')
@@ -63,7 +63,7 @@ export const rules = {
   },
 
   alphanumeric: (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: !value || /^[a-zA-Z0-9]+$/.test(value),
       message: t('validation.alphanumeric')
@@ -71,7 +71,7 @@ export const rules = {
   },
 
   minValue: (min: number) => (value: number): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: value == null || value >= min,
       message: t('validation.minValue', { min })
@@ -79,7 +79,7 @@ export const rules = {
   },
 
   maxValue: (max: number) => (value: number): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     return {
       isValid: value == null || value <= max,
       message: t('validation.maxValue', { max })
@@ -97,7 +97,7 @@ export const rules = {
   }),
 
   url: (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!value) return { isValid: true }
     try {
       new URL(value)
@@ -111,7 +111,7 @@ export const rules = {
   },
 
   phone: (value: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!value) return { isValid: true }
     const phoneRegex = /^[\+]?[1-9][\d]{5,15}$/
     return {
@@ -131,7 +131,7 @@ export const rules = {
  */
 export const authValidators = {
   username: (username: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     const trimmed = username?.trim()
 
     if (!trimmed) {
@@ -154,7 +154,7 @@ export const authValidators = {
   },
 
   password: (password: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
 
     if (!password) {
       return { isValid: false, message: t('validation.auth.passwordRequired') }
@@ -184,7 +184,7 @@ export const authValidators = {
   },
 
   confirmPassword: (password: string, confirmPassword: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
 
     if (!confirmPassword) {
       return { isValid: false, message: t('validation.auth.confirmPasswordRequired') }
@@ -198,7 +198,7 @@ export const authValidators = {
   },
 
   email: (email: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     const trimmed = email?.trim()
 
     if (!trimmed) {
@@ -218,7 +218,7 @@ export const authValidators = {
   },
 
   name: (name: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!name) return { isValid: true } // Name is optional
 
     const trimmed = name.trim()
@@ -240,7 +240,7 @@ export const authValidators = {
  */
 export const taskValidators = {
   title: (title: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     const trimmed = title?.trim()
 
     if (!trimmed) {
@@ -255,7 +255,7 @@ export const taskValidators = {
   },
 
   description: (description: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!description) return { isValid: true } // Description is optional
 
     if (description.length > 1000) {
@@ -266,7 +266,7 @@ export const taskValidators = {
   },
 
   priority: (priority: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
     if (!priority) {
@@ -281,7 +281,7 @@ export const taskValidators = {
   },
 
   dueDate: (dueDate: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!dueDate) return { isValid: true } // Due date is optional
 
     if (!isValidDateString(dueDate)) {
@@ -292,32 +292,11 @@ export const taskValidators = {
   },
 
   dueTime: (dueTime: string): ValidationResult => {
-    const { t } = i18n.global
+    const { t } = i18nGlobal
     if (!dueTime) return { isValid: true } // Due time is optional
 
     if (!isValidTimeString(dueTime)) {
       return { isValid: false, message: t('validation.task.dueTimeInvalid') }
-    }
-
-    return { isValid: true }
-  },
-
-  reminderDateTime: (reminderDateTime: string): ValidationResult => {
-    const { t } = i18n.global
-
-    if (!reminderDateTime) {
-      return { isValid: false, message: t('validation.reminder.dateRequired') }
-    }
-
-    if (!isValidDate(reminderDateTime)) {
-      return { isValid: false, message: t('validation.reminder.dateInvalid') }
-    }
-
-    const reminderDate = new Date(reminderDateTime)
-    const now = new Date()
-
-    if (reminderDate <= now) {
-      return { isValid: false, message: t('validation.reminder.timeFuture') }
     }
 
     return { isValid: true }
@@ -353,7 +332,7 @@ export const validateLoginForm = (data: {
   username: string
   password: string
 }): FormValidationResult => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   return validateForm(data, {
     username: (value: string) => {
       if (!value?.trim()) {
@@ -452,43 +431,6 @@ export const validateTaskForm = (data: {
     dueDate: taskValidators.dueDate,
     dueTime: taskValidators.dueTime
   })
-}
-
-/**
- * Reminder form validation
- */
-export const validateReminderForm = (data: {
-  date: string
-  time: string
-}): FormValidationResult => {
-  const errors: Record<string, string> = {}
-  
-  if (!data.date) {
-    errors.date = 'Data del promemoria è obbligatoria'
-  } else if (!isValidDateString(data.date)) {
-    errors.date = 'Data del promemoria non valida'
-  }
-  
-  if (!data.time) {
-    errors.time = 'Orario del promemoria è obbligatorio'
-  } else if (!isValidTimeString(data.time)) {
-    errors.time = 'Orario del promemoria non valido'
-  }
-  
-  // Check if reminder is in the future
-  if (data.date && data.time && isValidDateString(data.date) && isValidTimeString(data.time)) {
-    const reminderDateTime = new Date(`${data.date}T${data.time}:00`)
-    const now = new Date()
-    
-    if (reminderDateTime <= now) {
-      errors.time = 'Il promemoria deve essere impostato per il futuro'
-    }
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  }
 }
 
 /**
@@ -607,7 +549,7 @@ export const checkPasswordStrength = (password: string): {
   feedback: string[]
   isStrong: boolean
 } => {
-  const { t } = i18n.global
+  const { t } = i18nGlobal
   const feedback: string[] = []
   let score = 0
 

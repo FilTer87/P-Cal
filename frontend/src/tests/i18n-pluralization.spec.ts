@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createI18n } from 'vue-i18n'
+import { createI18n, type Composer } from 'vue-i18n'
 import itIT from '../i18n/locales/it-IT.json'
 import enUS from '../i18n/locales/en-US.json'
 
 describe('i18n Pluralization', () => {
   describe('Italian (it-IT)', () => {
     let i18n: ReturnType<typeof createI18n>
+    let i18nGlobal: Composer
 
     beforeEach(() => {
       i18n = createI18n({
@@ -17,10 +18,11 @@ describe('i18n Pluralization', () => {
           'en-US': enUS
         }
       })
+      i18nGlobal = i18n.global as unknown as Composer
     })
 
     it('should pluralize remindersCount correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('tasks.remindersCount', 0)).toBe('0 Promemoria')
       expect(t('tasks.remindersCount', 1)).toBe('1 Promemoria')
@@ -29,7 +31,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize completedActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('calendar.completedActivities', 0)).toBe('0 Attività completate')
       expect(t('calendar.completedActivities', 1)).toBe('1 Attività completata')
@@ -38,7 +40,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize moreActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('calendar.moreActivities', 1)).toBe('+1 altra')
       expect(t('calendar.moreActivities', 2)).toBe('+2 altre')
@@ -46,7 +48,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize showMoreActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('calendar.sidebar.showMoreActivities', 1)).toBe('Mostra 1 altra attività')
       expect(t('calendar.sidebar.showMoreActivities', 2)).toBe('Mostra 2 altre attività')
@@ -54,7 +56,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize remindersCreated correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('composables.useReminders.remindersCreated', 1)).toBe('1 promemoria creato con successo!')
       expect(t('composables.useReminders.remindersCreated', 2)).toBe('2 promemoria creati con successo!')
@@ -62,7 +64,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize remindersDeleted correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('composables.useReminders.remindersDeleted', 1)).toBe('1 promemoria eliminato con successo!')
       expect(t('composables.useReminders.remindersDeleted', 2)).toBe('2 promemoria eliminati con successo!')
@@ -72,6 +74,7 @@ describe('i18n Pluralization', () => {
 
   describe('English (en-US)', () => {
     let i18n: ReturnType<typeof createI18n>
+    let i18nGlobal: Composer
 
     beforeEach(() => {
       i18n = createI18n({
@@ -83,10 +86,11 @@ describe('i18n Pluralization', () => {
           'en-US': enUS
         }
       })
+      i18nGlobal = i18n.global as unknown as Composer
     })
 
     it('should pluralize remindersCount correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('tasks.remindersCount', 0)).toBe('0 Reminders')
       expect(t('tasks.remindersCount', 1)).toBe('1 Reminder')
@@ -95,7 +99,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize completedActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('calendar.completedActivities', 0)).toBe('0 Completed activities')
       expect(t('calendar.completedActivities', 1)).toBe('1 Completed activity')
@@ -104,7 +108,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize moreActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       // "more" is invariant in English
       expect(t('calendar.moreActivities', 1)).toBe('+1 more')
@@ -113,7 +117,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize showMoreActivities correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('calendar.sidebar.showMoreActivities', 1)).toBe('Show 1 more activity')
       expect(t('calendar.sidebar.showMoreActivities', 2)).toBe('Show 2 more activities')
@@ -121,7 +125,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize remindersCreated correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('composables.useReminders.remindersCreated', 1)).toBe('1 reminder created successfully!')
       expect(t('composables.useReminders.remindersCreated', 2)).toBe('2 reminders created successfully!')
@@ -129,7 +133,7 @@ describe('i18n Pluralization', () => {
     })
 
     it('should pluralize remindersDeleted correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('composables.useReminders.remindersDeleted', 1)).toBe('1 reminder deleted successfully!')
       expect(t('composables.useReminders.remindersDeleted', 2)).toBe('2 reminders deleted successfully!')
@@ -139,6 +143,7 @@ describe('i18n Pluralization', () => {
 
   describe('Edge Cases', () => {
     let i18n: ReturnType<typeof createI18n>
+    let i18nGlobal: Composer
 
     beforeEach(() => {
       i18n = createI18n({
@@ -150,10 +155,11 @@ describe('i18n Pluralization', () => {
           'en-US': enUS
         }
       })
+      i18nGlobal = i18n.global as unknown as Composer
     })
 
     it('should handle zero count correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       // Zero uses plural form in Italian (and most languages)
       expect(t('tasks.remindersCount', 0)).toBe('0 Promemoria')
@@ -161,14 +167,14 @@ describe('i18n Pluralization', () => {
     })
 
     it('should handle large numbers correctly', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       expect(t('tasks.remindersCount', 100)).toBe('100 Promemoria')
       expect(t('calendar.completedActivities', 1000)).toBe('1000 Attività completate')
     })
 
     it('should handle negative numbers gracefully', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       // Negative numbers should still work (even if not semantically correct)
       expect(t('tasks.remindersCount', -1)).toBe('-1 Promemoria')
@@ -177,6 +183,7 @@ describe('i18n Pluralization', () => {
 
   describe('Locale Switching', () => {
     let i18n: ReturnType<typeof createI18n>
+    let i18nGlobal: Composer
 
     beforeEach(() => {
       i18n = createI18n({
@@ -188,17 +195,18 @@ describe('i18n Pluralization', () => {
           'en-US': enUS
         }
       })
+      i18nGlobal = i18n.global as unknown as Composer
     })
 
     it('should use correct pluralization rules when switching locales', () => {
-      const { t } = i18n.global
+      const { t } = i18nGlobal
 
       // Italian
       expect(t('calendar.completedActivities', 1)).toBe('1 Attività completata')
       expect(t('calendar.completedActivities', 2)).toBe('2 Attività completate')
 
       // Switch to English
-      i18n.global.locale.value = 'en-US'
+      i18nGlobal.locale.value = 'en-US'
 
       expect(t('calendar.completedActivities', 1)).toBe('1 Completed activity')
       expect(t('calendar.completedActivities', 2)).toBe('2 Completed activities')

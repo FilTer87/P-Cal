@@ -118,7 +118,7 @@ import { isToday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
 import { useOverlapLayout } from '../../composables/useOverlapLayout'
-import { i18n } from '../../i18n'
+import { i18nGlobal } from '../../i18n'
 import type { Task } from '../../types/task'
 import { getTaskKey } from '../../utils/recurrence'
 
@@ -159,7 +159,7 @@ const overlaps = useOverlapLayout()
 const getWeekDays = calendar.getWeekDays
 
 const getWeekDayName = (date: Date, short = false) => {
-  const locale = i18n.global.locale.value === 'en-US' ? 'en-US' : 'it-IT'
+  const locale = i18nGlobal.locale.value
   if (short) {
     return date.toLocaleDateString(locale, { weekday: 'short' })
   }

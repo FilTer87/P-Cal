@@ -1,4 +1,4 @@
-import { CalendarView } from '../types/calendar'
+import type { CalendarView } from '../types/calendar'
 
 /**
  * Calendar views configuration
@@ -6,62 +6,30 @@ import { CalendarView } from '../types/calendar'
  */
 export const CALENDAR_VIEWS: { value: CalendarView; labelKey: string; icon: string; shortcut: string }[] = [
   {
-    value: CalendarView.MONTH,
+    value: 'month',
     labelKey: 'calendar.views.month',
     icon: 'CalendarIcon',
     shortcut: 'M'
   },
   {
-    value: CalendarView.WEEK,
+    value: 'week',
     labelKey: 'calendar.views.week',
     icon: 'CalendarDaysIcon',
     shortcut: 'W'
   },
   {
-    value: CalendarView.DAY,
+    value: 'day',
     labelKey: 'calendar.views.day',
     icon: 'ClockIcon',
     shortcut: 'D'
   },
   {
-    value: CalendarView.AGENDA,
+    value: 'agenda',
     labelKey: 'calendar.views.agenda',
     icon: 'ListBulletIcon',
     shortcut: 'A'
   }
 ] as const
-
-/**
- * @deprecated LOCALE_STRINGS is deprecated. Use i18n keys instead:
- * - For dates: use date-fns with locale from i18n
- * - For text: use t('dateTime.today'), t('dateTime.yesterday'), etc.
- * This will be removed in a future version.
- */
-export const LOCALE_STRINGS = {
-  months: [
-    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-  ],
-  monthsShort: [
-    'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
-    'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'
-  ],
-  weekdays: [
-    'Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'
-  ],
-  today: 'Oggi',
-  yesterday: 'Ieri',
-  tomorrow: 'Domani',
-  thisWeek: 'Questa settimana',
-  lastWeek: 'Settimana scorsa',
-  nextWeek: 'Settimana prossima',
-  thisMonth: 'Questo mese',
-  lastMonth: 'Mese scorso',
-  nextMonth: 'Mese prossimo',
-  thisYear: 'Quest\'anno',
-  lastYear: 'Anno scorso',
-  nextYear: 'Anno prossimo'
-} as const
 
 /**
  * Default settings
