@@ -24,6 +24,19 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ---
 
+## [0.13.2-beta] - 2025-10-14
+
+### Fixed
+
+- Reminders create and update: calculate the next occurrence from now for recurring events to setup the correct reminder time
+- Retrieve reminders correctly in case of recurring events with past end date (orginal task)
+
+### Security
+
+- updated happy-DOM dependency to fix RCE attacks issue (https://github.com/advisories/GHSA-37j7-fg3j-429f)
+
+---
+
 ## [0.13.1-beta] - 2025-10-13
 Small fixes and improvements
 

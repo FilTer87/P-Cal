@@ -4,7 +4,6 @@ import com.privatecal.dto.*;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
 import com.privatecal.repository.ReminderRepository;
-import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
 import com.privatecal.service.TaskService;
@@ -43,9 +42,6 @@ public class TaskReminderUpdateWithFlushTest {
 
     @Autowired
     private ReminderRepository reminderRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
 
     @Autowired
     private UserRepository userRepository;

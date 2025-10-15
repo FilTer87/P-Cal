@@ -7,7 +7,6 @@ import com.privatecal.entity.User;
 import com.privatecal.entity.PasswordResetToken;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
-import com.privatecal.service.AuthService;
 import com.privatecal.service.PasswordResetService;
 import com.privatecal.config.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,9 +53,6 @@ class PasswordResetIntegrationTest {
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private PasswordResetService passwordResetService;

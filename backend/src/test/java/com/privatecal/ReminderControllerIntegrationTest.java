@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -460,5 +461,73 @@ class ReminderControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.reminderOffsetMinutes").value(10080))
                 .andExpect(jsonPath("$.notificationType").value("EMAIL"));
+    }
+
+    @Test
+    void createReminderForRecurringTask_ShouldUseNextOccurrence() throws Exception {
+        // Create a recurring task that started in the past (7 days ago + 1 hour)
+        // Daily recurrence, so next occurrence should be today
+        Instant now = Instant.now();
+        Instant pastStart = now.minus(java.time.Duration.ofDays(7)).plus(Duration.ofHours(1));
+        Instant pastEnd = pastStart.plus(java.time.Duration.ofHours(1));
+
+        System.out.println("📅 TEST: Creating recurring task:");
+        System.out.println("  now = " + now);
+        System.out.println("  pastStart = " + pastStart);
+        System.out.println("  pastEnd = " + pastEnd);
+
+        Task recurringTask = new Task();
+        recurringTask.setTitle("Past Recurring Task");
+        recurringTask.setDescription("Daily task that started a week ago");
+        recurringTask.setStartDatetime(pastStart);
+        recurringTask.setEndDatetime(pastEnd);
+        recurringTask.setRecurrenceRule("FREQ=DAILY");
+        recurringTask.setUser(testUser);
+        recurringTask.setCreatedAt(Instant.now());
+
+        System.out.println("📅 TEST: Before save:");
+        System.out.println("  task.getStartDatetime() = " + recurringTask.getStartDatetime());
+
+        recurringTask = taskRepository.save(recurringTask);
+
+        System.out.println("📅 TEST: After save:");
+        System.out.println("  task.getStartDatetime() = " + recurringTask.getStartDatetime());
+
+        // Create a reminder: 30 minutes before
+        ReminderRequest reminderRequest = new ReminderRequest(5, NotificationType.PUSH);
+
+        String response = mockMvc.perform(post("/api/reminders/task/{taskId}", recurringTask.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reminderRequest))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reminderOffsetMinutes").value(5))
+                .andExpect(jsonPath("$.notificationType").value("PUSH"))
+                .andExpect(jsonPath("$.reminderTime").exists())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Parse the response to check reminder time
+        Map<String, Object> reminderResponse = objectMapper.readValue(response, Map.class);
+        String reminderTimeStr = (String) reminderResponse.get("reminderTime");
+        Instant reminderTime = Instant.parse(reminderTimeStr);
+
+        // Instant now = Instant.now();
+
+        // Reminder should be in the future (or very close to now for today's occurrence)
+        // Allow 35 minutes in the past to account for today's occurrence that might be happening soon
+        assert reminderTime.isAfter(now.minus(java.time.Duration.ofMinutes(35))) :
+            "Reminder should be based on next occurrence, not past start date. ReminderTime: " + reminderTime + ", Now: " + now;
+
+        // Reminder should not be more than 24 hours in the future (for daily recurrence)
+        assert reminderTime.isBefore(now.plus(java.time.Duration.ofHours(6))) :
+            "Reminder should be within next 24 hours for daily task. ReminderTime: " + reminderTime + ", Now: " + now;
+
+        System.out.println("✓ Recurring task reminder correctly calculated for next occurrence");
+        System.out.println("  Task start (7 days ago): " + pastStart);
+        System.out.println("  Reminder time: " + reminderTime);
+        System.out.println("  Now: " + now);
     }
 }

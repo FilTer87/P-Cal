@@ -69,8 +69,11 @@ public class Reminder {
 
     @PrePersist
     private void onPrePersist() {
-        // Only calculate on creation
-        calculateReminderTime();
+        // Only calculate if reminderTime hasn't been set manually
+        // (ReminderService sets it manually for recurring tasks based on next occurrence)
+        if (this.reminderTime == null) {
+            calculateReminderTime();
+        }
     }
 
     @PreUpdate
@@ -84,7 +87,9 @@ public class Reminder {
             return;
         }
         // For non-recurring tasks or initial setup, recalculate
-        calculateReminderTime();
+        if (this.reminderTime == null) {
+            calculateReminderTime();
+        }
     }
     
     // Getters and Setters
