@@ -139,7 +139,7 @@ docker compose up --build -d
 ### 🎯 Roadmap Future
 
 #### 🔧 Possibili funzionalità future (nessun ordine specifico)
-- **Traduzioni in altre lingue** (prossime: Spagnolo, Francese)
+- **Traduzioni in altre lingue** (attualmente gestite: Inglese, Italiano e Spagnolo)
 - **Canali di notifica aggiuntivi**: Telegram / Discord / Slack / Gotify / ...
 - **Categorie eventi** con filtro di visualizzazione globale (alternativa a calendari multipli)
 - **Drag & Drop** per spostamento evento/attività nelle griglie ed update automatico

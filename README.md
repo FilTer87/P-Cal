@@ -137,7 +137,7 @@ docker compose up --build -d
 ### 🎯 Future Roadmap
 
 #### 🔧 Possible future features (no specific order)
-- **Additional Languages** (next: spanish, french)
+- **Additional Languages** (currently supported: English, Italian, Spanish)
 - **Additional notification channels**: Telegram / Discord / Slack / Gotify / ...
 - **Event categories** with global filter (alternative to "multi-calendars")
 - **Drag & Drop** to move events/tasks within grids with automatic update
