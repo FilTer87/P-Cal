@@ -191,6 +191,27 @@
         </div>
       </div>
 
+      <!-- Telegram Settings -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {{ t('telegram.title') }}
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {{ t('telegram.description') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Telegram Setup Component -->
+        <TelegramSetup
+          :bot-username="telegramBotUsername"
+          @registered="onTelegramRegistered"
+          @unlinked="onTelegramUnlinked"
+        />
+      </div>
+
       <!-- Test Notifications -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
@@ -244,6 +265,7 @@ import { useAuth } from '../../composables/useAuth'
 import { useCustomToast } from '../../composables/useCustomToast'
 import { useNotificationPermissions } from '../../composables/useNotificationPermissions'
 import LoadingSpinner from '../Common/LoadingSpinner.vue'
+import TelegramSetup from '../Telegram/TelegramSetup.vue'
 import {
   BellIcon,
   QrCodeIcon,
@@ -295,6 +317,7 @@ const isTesting = ref<'browser' | 'ntfy' | null>(null)
 const isRequestingPermissions = ref(false)
 const isLoadingConfig = ref(false)
 const isUpdatingTopic = ref(false)
+const telegramBotUsername = ref<string>('')
 
 // Computed properties
 const ntfySubscriptionUrl = computed(() => {
@@ -542,9 +565,35 @@ const resetSettings = async () => {
   showSuccess(t('notifications.settingsReset'))
 }
 
+const fetchTelegramBotInfo = async () => {
+  try {
+    const response = await fetch('/api/telegram/bot-info', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      telegramBotUsername.value = data.botUsername || ''
+    }
+  } catch (error) {
+    console.error('Error fetching Telegram bot info:', error)
+  }
+}
+
+const onTelegramRegistered = () => {
+  showSuccess(t('telegram.registrationSuccess'))
+}
+
+const onTelegramUnlinked = () => {
+  showSuccess(t('telegram.unlinkSuccess'))
+}
+
 // Lifecycle
 onMounted(async () => {
   await loadSettings()
+  await fetchTelegramBotInfo()
 })
 </script>
 
