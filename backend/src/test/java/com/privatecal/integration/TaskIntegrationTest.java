@@ -1,4 +1,4 @@
-package com.privatecal;
+package com.privatecal.integration;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;

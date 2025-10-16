@@ -1,4 +1,4 @@
-package com.privatecal;
+package com.privatecal.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.privatecal.entity.User;

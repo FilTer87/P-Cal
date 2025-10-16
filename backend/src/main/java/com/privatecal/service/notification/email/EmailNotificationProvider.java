@@ -1,8 +1,10 @@
-package com.privatecal.service.notification;
+package com.privatecal.service.notification.email;
 
 import com.privatecal.entity.Reminder;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.service.EmailService;
+import com.privatecal.service.notification.NotificationData;
+import com.privatecal.service.notification.NotificationProvider;
 import com.privatecal.util.TimezoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.privatecal;
+package com.privatecal.integration;
 
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;

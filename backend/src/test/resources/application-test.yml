@@ -45,6 +45,13 @@ app:
     from-address: test@example.com
     from-name: P-Cal Test
     base-url: http://localhost:3000
+  
+  telegram:
+    enabled: ${TELEGRAM_ENABLED:true}
+    bot-token: ${TELEGRAM_BOT_TOKEN:telegram-bot-test-token}
+    api-url: https://api.telegram.org
+    webhook-url: ${TELEGRAM_WEBHOOK_URL:}  # Public HTTPS domain is needed; If empty, uses polling instead
+    polling-interval: 2000
 
 management:
   health:

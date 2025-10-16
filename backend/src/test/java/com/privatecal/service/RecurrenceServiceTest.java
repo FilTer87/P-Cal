@@ -1,8 +1,7 @@
-package com.privatecal;
+package com.privatecal.service;
 
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
-import com.privatecal.service.RecurrenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

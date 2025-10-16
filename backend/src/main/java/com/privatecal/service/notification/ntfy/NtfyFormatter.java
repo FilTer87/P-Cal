@@ -1,6 +1,8 @@
-package com.privatecal.service.notification;
+package com.privatecal.service.notification.ntfy;
 
 import com.privatecal.dto.NotificationMessage;
+import com.privatecal.service.notification.NotificationFormatter;
+
 import org.springframework.stereotype.Component;
 
 /**
