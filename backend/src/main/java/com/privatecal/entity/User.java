@@ -83,6 +83,10 @@ public class User {
     @Column(name = "ntfy_topic", unique = true, length = 100)
     private String ntfyTopic;
 
+    @Size(max = 100)
+    @Column(name = "telegram_chat_id", unique = true, length = 100)
+    private String telegramChatId;
+
     @Size(max = 10)
     @Column(length = 10)
     private String locale;
@@ -291,6 +295,14 @@ public class User {
 
     public void setLocale(String locale) {
         this.locale = locale;
+    }
+
+    public String getTelegramChatId() {
+        return telegramChatId;
+    }
+
+    public void setTelegramChatId(String telegramChatId) {
+        this.telegramChatId = telegramChatId;
     }
 
     @Override

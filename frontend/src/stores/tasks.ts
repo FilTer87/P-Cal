@@ -206,6 +206,31 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const fetchTaskById = async (taskId: number): Promise<Task | null> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const task = await taskApi.getTaskById(taskId)
+
+      if (task && task.id) {
+        // Add to store if not already present
+        const exists = tasks.value.some(t => t.id === taskId)
+        if (!exists) {
+          tasks.value.push(task)
+        }
+        return task
+      }
+      return null
+    } catch (err: any) {
+      console.error('📅 Error fetching task by ID:', err)
+      error.value = err.message || 'Errore nel caricamento dell\'attività'
+      return null
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const createTask = async (taskData: CreateTaskRequest): Promise<Task | null> => {
     isLoading.value = true
     error.value = null
@@ -396,6 +421,7 @@ export const useTasksStore = defineStore('tasks', () => {
     // Actions
     fetchTasks,
     fetchTasksByDateRange,
+    fetchTaskById,
     fetchTodayTasks,
     createTask,
     updateTask,

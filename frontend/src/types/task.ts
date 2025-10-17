@@ -66,6 +66,7 @@ export interface Reminder {
 }
 
 export interface CreateReminderRequest {
+  id?: number  // Optional: if present, updates existing reminder; if absent, creates new one
   reminderOffsetMinutes: number
   notificationType?: NotificationType
 }
@@ -77,8 +78,9 @@ export interface UpdateReminderRequest {
 }
 
 export enum NotificationType {
-  PUSH = 'PUSH',
-  EMAIL = 'EMAIL'
+  PUSH = 'PUSH',       // NTFY push notifications (maintained for backend compatibility)
+  EMAIL = 'EMAIL',
+  TELEGRAM = 'TELEGRAM'
 }
 
 export enum RecurrenceFrequency {
@@ -147,12 +149,16 @@ export interface NotificationTypeConfig {
 
 export const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, NotificationTypeConfig> = {
   [NotificationType.PUSH]: {
-    label: 'Notifica Push',
+    label: 'NTFY',  // Renamed from "Notifica Push" for clarity
     icon: '🔔'
   },
   [NotificationType.EMAIL]: {
     label: 'Email',
     icon: '📧'
+  },
+  [NotificationType.TELEGRAM]: {
+    label: 'Telegram',
+    icon: '📱'
   }
 }
 

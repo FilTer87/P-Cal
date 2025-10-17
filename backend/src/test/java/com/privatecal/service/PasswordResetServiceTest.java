@@ -1,4 +1,4 @@
-package com.privatecal;
+package com.privatecal.service;
 
 import com.privatecal.dto.ForgotPasswordRequest;
 import com.privatecal.dto.ResetPasswordRequest;
@@ -7,9 +7,6 @@ import com.privatecal.entity.User;
 import com.privatecal.entity.PasswordResetToken;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
-import com.privatecal.service.PasswordResetService;
-import com.privatecal.service.EmailService;
-import com.privatecal.service.EmailTemplateBuilder;
 import com.privatecal.config.EmailConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,13 +1,13 @@
 <template>
   <aside :class="[
     'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 ease-in-out z-50',
-    'md:relative md:translate-x-0 md:w-80',
+    'lg:relative lg:translate-x-0 lg:w-80',
     'fixed inset-y-0 left-0 w-80 transform',
-    showMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+    showMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   ]">
     <div class="p-4">
       <!-- Mobile Close Button -->
-      <div class="md:hidden flex justify-end mb-4">
+      <div class="lg:hidden flex justify-end mb-4">
         <button @click="handleCloseSidebar" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" :aria-label="t('calendar.sidebar.closeMenu')">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

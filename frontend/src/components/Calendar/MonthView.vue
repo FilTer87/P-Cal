@@ -172,7 +172,7 @@ const handleMoreClick = (date: Date): void => {
 }
 
 /* Mobile specific adjustments */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .calendar-day-header {
     @apply p-2 text-xs;
   }

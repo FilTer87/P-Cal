@@ -44,6 +44,10 @@ export function useTasks() {
     await tasksStore.fetchTasksByDateRange(startDate, endDate)
   }
 
+  const fetchTaskById = async (taskId: number): Promise<Task | null> => {
+    return await tasksStore.fetchTaskById(taskId)
+  }
+
   const refreshStatistics = async () => {
     await tasksStore.refreshStatistics()
   }
@@ -288,6 +292,7 @@ export function useTasks() {
     // Actions (only used ones)
     fetchTasks,
     fetchTasksByDateRange,
+    fetchTaskById,
     refreshStatistics,
     createTask,
     updateTask,

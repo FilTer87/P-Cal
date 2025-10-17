@@ -1,4 +1,4 @@
-package com.privatecal.service.notification;
+package com.privatecal.service.notification.ntfy;
 
 import java.util.Optional;
 
@@ -20,6 +20,9 @@ import com.privatecal.dto.NotificationType;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
 import com.privatecal.repository.UserRepository;
+import com.privatecal.service.notification.NotificationData;
+import com.privatecal.service.notification.NotificationMessageBuilder;
+import com.privatecal.service.notification.NotificationProvider;
 
 /**
  * NTFY notification provider implementation

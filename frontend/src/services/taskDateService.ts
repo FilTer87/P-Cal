@@ -71,11 +71,13 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     recurrenceRule,
     recurrenceEnd,
     reminders: formData.reminders?.map(reminder => {
-      const offsetMinutes = reminder.offsetMinutes ||
-                           (reminder.offsetValue && reminder.offsetUnit ?
+      // Priority: calculate from offsetValue/offsetUnit if present (user may have changed these)
+      // Fallback: use pre-calculated values
+      const offsetMinutes = (reminder.offsetValue && reminder.offsetUnit ?
                             convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
-                            reminder.reminderOffsetMinutes) || 15
+                            reminder.offsetMinutes || reminder.reminderOffsetMinutes) || 15
       return {
+        id: reminder.id,  // Include ID if present (for updates)
         reminderOffsetMinutes: offsetMinutes,
         notificationType: reminder.notificationType
       }
@@ -127,11 +129,13 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     recurrenceRule,
     recurrenceEnd,
     reminders: formData.reminders?.map(reminder => {
-      const offsetMinutes = reminder.offsetMinutes ||
-                           (reminder.offsetValue && reminder.offsetUnit ?
+      // Priority: calculate from offsetValue/offsetUnit if present (user may have changed these)
+      // Fallback: use pre-calculated values
+      const offsetMinutes = (reminder.offsetValue && reminder.offsetUnit ?
                             convertToMinutes(reminder.offsetValue, reminder.offsetUnit) :
-                            reminder.reminderOffsetMinutes) || 15
+                            reminder.offsetMinutes || reminder.reminderOffsetMinutes) || 15
       return {
+        id: reminder.id,  // Include ID if present (for updates)
         reminderOffsetMinutes: offsetMinutes,
         notificationType: reminder.notificationType
       }
@@ -167,6 +171,7 @@ export function transformTaskToFormData(task: Task): TaskFormData {
       const offsetMinutes = reminder.reminderOffsetMinutes || 15
       const { offsetValue, offsetUnit } = convertFromMinutes(offsetMinutes)
       return {
+        id: reminder.id,  // Include reminder ID for updates
         offsetMinutes,
         reminderOffsetMinutes: offsetMinutes,
         offsetValue,

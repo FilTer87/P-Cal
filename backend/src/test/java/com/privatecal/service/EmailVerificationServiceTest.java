@@ -1,13 +1,10 @@
-package com.privatecal;
+package com.privatecal.service;
 
 import com.privatecal.dto.PasswordResetResponse;
 import com.privatecal.entity.User;
 import com.privatecal.entity.EmailVerificationToken;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.EmailVerificationTokenRepository;
-import com.privatecal.service.EmailVerificationService;
-import com.privatecal.service.EmailService;
-import com.privatecal.service.EmailTemplateBuilder;
 import com.privatecal.config.EmailConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

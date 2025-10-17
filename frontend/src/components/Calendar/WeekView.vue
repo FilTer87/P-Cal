@@ -1,7 +1,7 @@
 <template>
   <div class="h-full flex flex-col">
     <!-- Week Header -->
-    <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 mb-4">
+    <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600 border-b-2">
       <div class="bg-white dark:bg-gray-800 p-2 text-sm font-medium text-center">
         {{ t('calendar.weekView.hourLabel') }}
       </div>
@@ -10,7 +10,7 @@
           'bg-blue-50 dark:bg-blue-900/20': isToday(day),
           'text-blue-600 dark:text-blue-400': isToday(day)
         }">
-        <div>{{ getWeekDayName(day, true) }}</div>
+        <div>{{ formatWeekday(day, true) }}</div>
         <div class="text-lg font-bold">{{ day.getDate() }}</div>
       </div>
     </div>
@@ -114,11 +114,11 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { format } from 'date-fns'
-import { isToday } from '../../utils/dateHelpers'
+import { isToday, formatWeekday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
 import { useOverlapLayout } from '../../composables/useOverlapLayout'
-import { i18nGlobal } from '../../i18n'
+import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
 import { getTaskKey } from '../../utils/recurrence'
 
@@ -157,14 +157,6 @@ const overlaps = useOverlapLayout()
 
 // Use the settings-aware getWeekDays from composable
 const getWeekDays = calendar.getWeekDays
-
-const getWeekDayName = (date: Date, short = false) => {
-  const locale = i18nGlobal.locale.value
-  if (short) {
-    return date.toLocaleDateString(locale, { weekday: 'short' })
-  }
-  return date.toLocaleDateString(locale, { weekday: 'long' })
-}
 
 // Task filtering and splitting logic
 const getTasksWithSplitsForDate = (date: Date) => {

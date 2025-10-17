@@ -57,7 +57,7 @@ const dateFnsLocales: Record<string, Locale> = {
 /**
  * Get date-fns locale from current i18n locale
  */
-const getDateFnsLocale = (): Locale => {
+export const getDateFnsLocale = (): Locale => {
   const currentLocale = i18nGlobal.locale.value
   return dateFnsLocales[currentLocale] || it
 }
@@ -108,12 +108,23 @@ export const formatTime = (date: Date | string, pattern = 'HH:mm'): string => {
 }
 
 /**
+ * Format weekday name with locale support
+ * @param date - Date object
+ * @param short - Use short format (e.g. "Mon" instead of "Monday")
+ * @returns Localized weekday name
+ */
+export const formatWeekday = (date: Date, short = false): string => {
+  const pattern = short ? 'EEE' : 'EEEE'
+  return format(date, pattern, { locale: getDateFnsLocale() })
+}
+
+/**
  * Format date for HTML input fields
  */
 export const formatDateForInput = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   if (!isValid(dateObj)) return ''
-  
+
   return format(dateObj, 'yyyy-MM-dd')
 }
 

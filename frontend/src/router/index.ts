@@ -54,6 +54,20 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/'
   },
   {
+    path: '/tasks/:taskId',
+    name: 'TaskDetail',
+    redirect: (to) => {
+      // Redirect to calendar with taskId as query parameter to open the detail modal
+      return {
+        name: 'Calendar',
+        query: { taskId: to.params.taskId }
+      }
+    },
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('../components/Auth/UserProfile.vue'),
