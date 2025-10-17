@@ -66,6 +66,8 @@ app:
     enabled: ${TELEGRAM_ENABLED:false}
     bot-token: ${TELEGRAM_BOT_TOKEN:your-telegram-bot-token}
     api-url: https://api.telegram.org
+    use-inline-buttons: ${TELEGRAM_USE_INLINE_BUTTONS:false} # Enable this **ONLY IF the app is publicly accessible via HTTPS** or notifications will not works
+    # NOTE: Telegram will block notifications with action link who are not publicly accessible via HTTPS
 
   # CORS Configuration
   cors:

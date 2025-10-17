@@ -4,7 +4,7 @@ import com.privatecal.dto.TelegramRegistrationResponse;
 import com.privatecal.dto.TelegramStatusResponse;
 import com.privatecal.entity.User;
 import com.privatecal.repository.UserRepository;
-import com.privatecal.service.TelegramService;
+import com.privatecal.service.notification.telegram.TelegramNotificationProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +27,11 @@ public class TelegramController {
 
     private static final Logger logger = LoggerFactory.getLogger(TelegramController.class);
 
-    private final TelegramService telegramService;
+    private final TelegramNotificationProvider telegramProvider;
     private final UserRepository userRepository;
 
-    public TelegramController(TelegramService telegramService, UserRepository userRepository) {
-        this.telegramService = telegramService;
+    public TelegramController(TelegramNotificationProvider telegramProvider, UserRepository userRepository) {
+        this.telegramProvider = telegramProvider;
         this.userRepository = userRepository;
     }
 
@@ -48,10 +48,10 @@ public class TelegramController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalStateException("User not found"));
 
-            String token = telegramService.generateRegistrationToken(user.getId());
+            String token = telegramProvider.generateRegistrationToken(user.getId());
 
             // Get bot info
-            Map<String, Object> botInfo = telegramService.getBotInfo();
+            Map<String, Object> botInfo = telegramProvider.getBotInfo();
             String botUsername = botInfo.containsKey("username") ?
                     (String) botInfo.get("username") : "PrivateCalBot";
 
@@ -87,7 +87,7 @@ public class TelegramController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalStateException("User not found"));
 
-            boolean registered = telegramService.isUserRegistered(user.getId());
+            boolean registered = telegramProvider.isUserRegistered(user.getId());
             String chatId = registered ? user.getTelegramChatId() : null;
 
             return ResponseEntity.ok(new TelegramStatusResponse(registered, chatId));
@@ -112,7 +112,7 @@ public class TelegramController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalStateException("User not found"));
 
-            boolean success = telegramService.unregisterUser(user.getId());
+            boolean success = telegramProvider.unregisterUser(user.getId());
 
             if (success) {
                 return ResponseEntity.ok(Map.of("message", "Telegram account unlinked successfully"));
@@ -138,7 +138,7 @@ public class TelegramController {
     public ResponseEntity<Void> handleWebhook(@RequestBody String update) {
         try {
             logger.debug("Received Telegram webhook update");
-            telegramService.processWebhookUpdate(update);
+            telegramProvider.processWebhookUpdate(update);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
@@ -156,7 +156,7 @@ public class TelegramController {
                description = "Get Telegram bot information (admin/debug)")
     public ResponseEntity<?> getBotInfo() {
         try {
-            Map<String, Object> botInfo = telegramService.getBotInfo();
+            Map<String, Object> botInfo = telegramProvider.getBotInfo();
 
             if (botInfo.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)

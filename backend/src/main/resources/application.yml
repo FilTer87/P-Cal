@@ -119,6 +119,8 @@ app:
     api-url: https://api.telegram.org
     webhook-url: ${TELEGRAM_WEBHOOK_URL:}  # Public HTTPS domain is needed; If empty, uses polling instead
     polling-interval: 2000  # Polling interval in milliseconds (used only if webhook-url is empty)
+    use-inline-buttons: ${TELEGRAM_USE_INLINE_BUTTONS:false} # Enable this **ONLY IF the app is publicly accessible via HTTPS** or notifications will not works
+    # NOTE: Telegram will block notifications with action link who are not publicly accessible via HTTPS
 
   cors:
     allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost,http://localhost:3000,http://localhost:5173,http://frontend}"

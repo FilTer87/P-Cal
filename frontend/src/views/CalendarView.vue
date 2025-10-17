@@ -444,6 +444,27 @@ watch([currentDate, viewMode], async ([newDate, newViewMode]) => {
   await tasks.fetchTasksByDateRange(startDate, endDate)
 }, { immediate: true })
 
+// Watch for taskId query parameter (deep linking support)
+watch(
+  () => $router.currentRoute.value.query.taskId,
+  async (taskId) => {
+    if (taskId) {
+      const taskIdNum = parseInt(taskId as string, 10)
+      if (!isNaN(taskIdNum)) {
+        // Fetch the task by ID from API
+        const task = await tasks.fetchTaskById(taskIdNum)
+        if (task) {
+          // Open the task detail modal
+          openTaskModal(task)
+        }
+        // Remove the query parameter from the URL
+        await $router.replace({ query: {} })
+      }
+    }
+  },
+  { immediate: true }
+)
+
 // Additional computed properties
 const tasksByDateInRange = computed(() => {
   const range = calendar.viewDateRange.value

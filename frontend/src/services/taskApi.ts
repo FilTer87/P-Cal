@@ -45,6 +45,13 @@ export class TaskApi {
   }
 
   /**
+   * Get a single task by ID
+   */
+  async getTaskById(id: number): Promise<Task> {
+    return apiClient.get<Task>(API_ENDPOINTS.TASKS.BY_ID(id))
+  }
+
+  /**
    * Delete a task
    */
   async deleteTask(id: number): Promise<void> {
