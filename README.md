@@ -8,36 +8,6 @@ A simple and modern **personal calendar** web application, featuring advanced ev
 
 The software is **free and privacy-oriented**: completely free of trackers or data collection, it can be installed on your own servers to guarantee maximum confidentiality.  
 
-**NOTE:** *As this is a personal project, maintenance and new features implementation will depends on my free available time. Receiving a tip or donation is definitely the best way to keep me on track!* 🙂 
-
-
-### 📸 Screenshots
-
-#### Desktop
-<p>
-    <img src="docs/images/month_dark.png" width="45%" alt="Month view" style="margin: 0.5rem;">
-    <img src="docs/images/month_light.png" width="45%" alt="Month view light" style="margin: 0.5rem;">
-    <img src="docs/images/week_dark.png" width="45%" alt="Week view" style="margin: 0.5rem;">
-    <img src="docs/images/week_light.png" width="45%" alt="Week view light" style="margin: 0.5rem;">
-    <img src="docs/images/agenda_dark.png" width="45%" alt="Agenda view" style="margin: 0.5rem;">
-    <img src="docs/images/day_dark.png" width="45%" alt="Day view" style="margin: 0.5rem;">
-    <img src="docs/images/user-settings_1.png" width="45%" alt="settings-1" style="margin: 0.5rem;">
-    <img src="docs/images/user-settings_2.png" width="45%" alt="settings-2" style="margin: 0.5rem;">
-    <img src="docs/images/update.png" width="45%" alt="Update" style="margin: 0.5rem;">
-    <img src="docs/images/detail.png" width="45%" alt="Detail" style="margin: 0.5rem;">
-</p>
-
-#### Mobile
-<p>
-   <img src="docs/images/month_mobile.png" width="32%" alt="Month view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/week_mobile.png" width="32%" alt="Week view mobile" style="margin: 0.2rem;">
-   <img src="docs/images/agenda_mobile.png" width="32%" alt="Agenda view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/day_mobile.png" width="32%" alt="Day view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/user-settings_dark_mobile.png" width="32%" alt="Settings mobile 1" style="margin: 0.5rem;">
-   <img src="docs/images/user-settings_light_mobile.png" width="32%" alt="Settings mobile 2" style="margin: 0.5rem;">
-</p>
-
-
 ### ✨ Main Features
 
 #### 📊 **Complete Calendar Management**
@@ -50,7 +20,7 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 - **Informative tooltips**
 
 #### ⏰ **Advanced Reminder System**
-- **Multi-channel notifications**: currently implemented Email and NTFY server
+- **Multi-channel notifications** currently implemented: Email, Telegram Bot and NTFY server
 - **Multiple reminders** per activity
 - **Flexible scheduling** (minutes, hours, days before the event)
 - **Automatic management** of expired notifications
@@ -63,13 +33,12 @@ The software is **free and privacy-oriented**: completely free of trackers or da
 - **Account deletion** with data removal
 
 #### ⚙️ **Preferences** (per user):
-  - **Theme** (light/dark/automatic)
-  - **Language** with browser default
-  - **Time zone** with DST
-  - **Time format** (12h/24h)
-  - **First day of the week** (Monday/Sunday)
-  - **Enable/disable notifications** by type
-  - **Edit personal NTFY topic**
+- **Theme** (light/dark/system)
+- **Language** with browser default
+- **Time zone** with DST
+- **Time format** (12h/24h)
+- **First day of the week** (Monday/Sunday)
+- **Full notifications settings** by type/channel (Email, telegram, Ntfy)
 
 #### 🎨 **User Experience**
 - **Responsive design** optimized for desktop and mobile
@@ -138,7 +107,7 @@ docker compose up --build -d
 
 #### 🔧 Possible future features (no specific order)
 - **Additional Languages** (currently supported: English, Italian, Spanish)
-- **Additional notification channels**: Telegram / Discord / Slack / Gotify / ...
+- **Additional notification channels**: Discord / Slack / Gotify / ...
 - **Event categories** with global filter (alternative to "multi-calendars")
 - **Drag & Drop** to move events/tasks within grids with automatic update
 - **Advanced user session management**
@@ -152,6 +121,33 @@ docker compose up --build -d
 - **Shared calendar** for multiple users
 - **Plugin system** for integrations
 
+**NOTE:** *As this is a personal project, maintenance and new features implementation will depends on my free available time. Receiving a tip or donation is definitely the best way to keep me on track!* 🙂 
+
+### 📸 Screenshots
+
+#### Desktop
+<p>
+    <img src="docs/images/month_dark.png" width="45%" alt="Month view" style="margin: 0.5rem;">
+    <img src="docs/images/month_light.png" width="45%" alt="Month view light" style="margin: 0.5rem;">
+    <img src="docs/images/week_dark.png" width="45%" alt="Week view" style="margin: 0.5rem;">
+    <img src="docs/images/week_light.png" width="45%" alt="Week view light" style="margin: 0.5rem;">
+    <img src="docs/images/agenda_dark.png" width="45%" alt="Agenda view" style="margin: 0.5rem;">
+    <img src="docs/images/day_dark.png" width="45%" alt="Day view" style="margin: 0.5rem;">
+    <img src="docs/images/user-settings_1.png" width="45%" alt="settings-1" style="margin: 0.5rem;">
+    <img src="docs/images/user-settings_2.png" width="45%" alt="settings-2" style="margin: 0.5rem;">
+    <img src="docs/images/update.png" width="45%" alt="Update" style="margin: 0.5rem;">
+    <img src="docs/images/detail.png" width="45%" alt="Detail" style="margin: 0.5rem;">
+</p>
+
+#### Mobile
+<p>
+   <img src="docs/images/month_mobile.png" width="32%" alt="Month view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/week_mobile.png" width="32%" alt="Week view mobile" style="margin: 0.2rem;">
+   <img src="docs/images/agenda_mobile.png" width="32%" alt="Agenda view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/day_mobile.png" width="32%" alt="Day view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/user-settings_dark_mobile.png" width="32%" alt="Settings mobile 1" style="margin: 0.5rem;">
+   <img src="docs/images/user-settings_light_mobile.png" width="32%" alt="Settings mobile 2" style="margin: 0.5rem;">
+</p>
 
 ### 📄 License
 

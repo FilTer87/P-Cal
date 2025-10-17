@@ -80,12 +80,26 @@ Configure **at least one** notification method:
 | `MAIL_PASSWORD` | SMTP password | Use [App Password](https://support.google.com/accounts/answer/185833) for Gmail |
 | `EMAIL_FROM_ADDRESS` | From email address | `noreply@p-cal.me` |
 
-**OR Push notifications (ntfy):**
+**Push notifications (ntfy):**
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `NTFY_ENABLED` | Enable push notifications | `true` |
 | `NTFY_SERVER_URL` | Ntfy server for push notifications | `https://ntfy.sh` (public) or your self-hosted instance |
 | `NTFY_AUTH_TOKEN` | Authentication token | Optional, only for custom servers with auth |
+
+**Telegram notifications:**
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `TELEGRAM_ENABLED` | Enable Telegram bot notifications | `true` |
+| `TELEGRAM_BOT_TOKEN` | Bot token from [@BotFather](https://t.me/botfather) | `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` |
+| `TELEGRAM_WEBHOOK_URL` | Webhook URL (requires public HTTPS) | `https://yourdomain.com/api/telegram/webhook` |
+| `TELEGRAM_USE_INLINE_BUTTONS` | Enable action buttons in notifications | `true` (only if app is publicly accessible via HTTPS) |
+
+> **Note:** Telegram notifications work in two modes:
+> - **Polling mode** (default): Works with any deployment (localhost, private networks)
+> - **Webhook mode**: Requires a public HTTPS domain. Set `TELEGRAM_WEBHOOK_URL` to enable it
+>
+> **Inline buttons** (`TELEGRAM_USE_INLINE_BUTTONS=true`) can **only** be enabled when the app is publicly accessible via HTTPS. If enabled with HTTP or localhost, Telegram will block the notifications entirely.
 
 ### Recommended Variables
 
@@ -179,6 +193,41 @@ NTFY_AUTH_TOKEN=your-auth-token  # Optional for hosted servers with auth
 
 See [NTFY Documentation](https://docs.ntfy.sh/) for server setup and details
 
+#### Telegram Bot Configuration
+P-Cal can send notifications via Telegram using a bot.
+
+**Setup steps:**
+
+1. **Create a bot with [@BotFather](https://t.me/botfather)**:
+   - Send `/newbot` to BotFather
+   - Follow the instructions to name your bot
+   - Copy the bot token provided
+
+2. **Configure in `.env`**:
+   ```bash
+   TELEGRAM_ENABLED=true
+   TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+
+   # For local/development (polling mode - default):
+   # Leave TELEGRAM_WEBHOOK_URL empty
+
+   # For production with public HTTPS domain (webhook mode):
+   TELEGRAM_WEBHOOK_URL=https://yourdomain.com/api/telegram/webhook
+
+   # Enable inline buttons ONLY if using public HTTPS:
+   TELEGRAM_USE_INLINE_BUTTONS=true
+   ```
+
+3. **Link user accounts**:
+   - Users can link their Telegram account in Profile Settings
+   - Generate a registration token and send the `/start` command to the bot
+   - The bot will confirm the registration
+
+**Important notes:**
+- **Polling mode** (default): Works everywhere, including localhost and private networks
+- **Webhook mode**: Requires a publicly accessible HTTPS domain. More efficient for production
+- **Inline buttons**: Can ONLY be enabled with public HTTPS URLs. If enabled incorrectly, notifications will be blocked by Telegram
+
 ---
 
 ### Troubleshooting
@@ -196,6 +245,12 @@ See [NTFY Documentation](https://docs.ntfy.sh/) for server setup and details
 - For Gmail, ensure you're using an App Password, not your regular password
 - Check `EMAIL_ENABLED=true` in `.env`
 - Verify SMTP settings with your email provider
+
+#### Telegram notifications not working
+- Ensure `TELEGRAM_ENABLED=true` and bot token is correct
+- Check bot logs: `docker compose logs -f backend | grep Telegram`
+- If using webhook mode, verify `TELEGRAM_WEBHOOK_URL` is publicly accessible via HTTPS
+- If notifications are blocked, disable `TELEGRAM_USE_INLINE_BUTTONS` (set to `false`)
 
 #### Frontend shows "Connection refused"
 - Check that `VITE_API_URL=/api` (relative path for Docker deployment)

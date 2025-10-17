@@ -8,6 +8,22 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+---
+
+## [0.14.0-beta] - 2025-10-17
+
+### Added
+
 - Telegram Bot notification support:
   - enabled telegram notification type
   - user registration flow to custom bot (bot config admin-side, user registration in settings page)
@@ -17,15 +33,9 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 - UI improvements: condensed headers/navigation and space optimization
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - frontend: existing reminder update without array change (always recalculate offset)
-
-### Security
 
 ---
 

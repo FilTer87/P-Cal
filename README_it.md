@@ -7,35 +7,6 @@ Una semplice e moderna applicazione web di **calendario personale**, con gestion
 
 Il software è **libero e orientato alla privacy**: completamente privo di tracker o raccolta dati, può essere installato sui tuoi server per garantire massima riservatezza.
 
-**NOTA:** *Trattandosi di un progetto personale, il mantenimento e l'implementazione di nuove funzionalità dipenderanno dal tempo libero che ho a disposizione. Sicuramente ricevere una mancia o una donazione è il modo migliore per tenermi sul pezzo!* 🙂
-
-### 📸 Screenshots
-
-#### Desktop
-<p>
-    <img src="docs/images/month_dark.png" width="45%" alt="Month view" style="margin: 0.5rem;">
-    <img src="docs/images/month_light.png" width="45%" alt="Month view light" style="margin: 0.5rem;">
-    <img src="docs/images/week_dark.png" width="45%" alt="Week view" style="margin: 0.5rem;">
-    <img src="docs/images/week_light.png" width="45%" alt="Week view light" style="margin: 0.5rem;">
-    <img src="docs/images/agenda_dark.png" width="45%" alt="Agenda view" style="margin: 0.5rem;">
-    <img src="docs/images/day_dark.png" width="45%" alt="Day view" style="margin: 0.5rem;">
-    <img src="docs/images/user-settings_1.png" width="45%" alt="settings-1" style="margin: 0.5rem;">
-    <img src="docs/images/user-settings_2.png" width="45%" alt="settings-2" style="margin: 0.5rem;">
-    <img src="docs/images/update.png" width="45%" alt="Update" style="margin: 0.5rem;">
-    <img src="docs/images/detail.png" width="45%" alt="Detail" style="margin: 0.5rem;">
-</p>
-
-#### SmartPhone
-<p>
-   <img src="docs/images/month_mobile.png" width="32%" alt="Month view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/week_mobile.png" width="32%" alt="Week view mobile" style="margin: 0.2rem;">
-   <img src="docs/images/agenda_mobile.png" width="32%" alt="Agenda view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/day_mobile.png" width="32%" alt="Day view mobile" style="margin: 0.5rem;">
-   <img src="docs/images/user-settings_dark_mobile.png" width="32%" alt="Settings mobile 1" style="margin: 0.5rem;">
-   <img src="docs/images/user-settings_light_mobile.png" width="32%" alt="Settings mobile 2" style="margin: 0.5rem;">
-</p>
-
-
 ### ✨ Funzionalità Principali
 
 #### 📊 **Gestione Calendario Completa**
@@ -48,7 +19,7 @@ Il software è **libero e orientato alla privacy**: completamente privo di track
 - **Tooltips informativi**
 
 #### ⏰ **Sistema di Reminder Avanzato**
-- **Notifiche multi-canale**: attualmente implementati Email e NTFY server
+- **Notifiche multi-canale** attualmente implementati: Email, Telegram bot e NTFY server
 - **Reminder multipli** per ogni attività
 - **Scheduling flessibile** (minuti, ore, giorni prima dell'evento)
 - **Gestione automatica** delle notifiche scadute
@@ -61,13 +32,12 @@ Il software è **libero e orientato alla privacy**: completamente privo di track
 - **Eliminazione account** con cancellazione dati
 
 #### ⚙️ **Preferenze** (per utente):
-  - **Tema** (chiaro/scuro/automatico)
-  - **Lingua** con default da browser 
-  - **Fuso orario** con ora solare/legale automatica
-  - **Formato orario** (12h/24h)
-  - **Primo giorno della settimana** (Lunedì/Domenica)
-  - **Abilitaz/disabilita notifiche** per tipologia
-  - **Modifica NTFY topic** personale
+- **Tema** (chiaro/scuro/automatico)
+- **Lingua** con default da browser 
+- **Fuso orario** con ora solare/legale automatica
+- **Formato orario** (12h/24h)
+- **Primo giorno della settimana** (Lunedì/Domenica)
+- **Confugurazione notifiche completa** per tipologia/canale (Email, Telegram, Ntfy)
 
 #### 🎨 **Esperienza Utente**
 - **Design responsivo** ottimizzato per desktop e mobile
@@ -140,7 +110,7 @@ docker compose up --build -d
 
 #### 🔧 Possibili funzionalità future (nessun ordine specifico)
 - **Traduzioni in altre lingue** (attualmente gestite: Inglese, Italiano e Spagnolo)
-- **Canali di notifica aggiuntivi**: Telegram / Discord / Slack / Gotify / ...
+- **Canali di notifica aggiuntivi**: Discord / Slack / Gotify / ...
 - **Categorie eventi** con filtro di visualizzazione globale (alternativa a calendari multipli)
 - **Drag & Drop** per spostamento evento/attività nelle griglie ed update automatico
 - **Gestione avanzata sessioni utente**
@@ -154,6 +124,33 @@ docker compose up --build -d
 - **Calendario condiviso** multi-utente
 - **Plugin system** per integrazioni
 
+**NOTA:** *Trattandosi di un progetto personale, il mantenimento e l'implementazione di nuove funzionalità dipenderanno dal tempo libero che ho a disposizione. Sicuramente ricevere una mancia o una donazione è il modo migliore per tenermi sul pezzo!* 🙂
+
+### 📸 Screenshots
+
+#### Desktop
+<p>
+    <img src="docs/images/month_dark.png" width="45%" alt="Month view" style="margin: 0.5rem;">
+    <img src="docs/images/month_light.png" width="45%" alt="Month view light" style="margin: 0.5rem;">
+    <img src="docs/images/week_dark.png" width="45%" alt="Week view" style="margin: 0.5rem;">
+    <img src="docs/images/week_light.png" width="45%" alt="Week view light" style="margin: 0.5rem;">
+    <img src="docs/images/agenda_dark.png" width="45%" alt="Agenda view" style="margin: 0.5rem;">
+    <img src="docs/images/day_dark.png" width="45%" alt="Day view" style="margin: 0.5rem;">
+    <img src="docs/images/user-settings_1.png" width="45%" alt="settings-1" style="margin: 0.5rem;">
+    <img src="docs/images/user-settings_2.png" width="45%" alt="settings-2" style="margin: 0.5rem;">
+    <img src="docs/images/update.png" width="45%" alt="Update" style="margin: 0.5rem;">
+    <img src="docs/images/detail.png" width="45%" alt="Detail" style="margin: 0.5rem;">
+</p>
+
+#### SmartPhone
+<p>
+   <img src="docs/images/month_mobile.png" width="32%" alt="Month view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/week_mobile.png" width="32%" alt="Week view mobile" style="margin: 0.2rem;">
+   <img src="docs/images/agenda_mobile.png" width="32%" alt="Agenda view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/day_mobile.png" width="32%" alt="Day view mobile" style="margin: 0.5rem;">
+   <img src="docs/images/user-settings_dark_mobile.png" width="32%" alt="Settings mobile 1" style="margin: 0.5rem;">
+   <img src="docs/images/user-settings_light_mobile.png" width="32%" alt="Settings mobile 2" style="margin: 0.5rem;">
+</p>
 
 ### 📄 Licenza
 
