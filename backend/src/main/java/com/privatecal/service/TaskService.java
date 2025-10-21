@@ -58,6 +58,7 @@ public class TaskService {
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
         task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
@@ -269,6 +270,7 @@ public class TaskService {
 
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
         task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
@@ -345,6 +347,7 @@ public class TaskService {
         newTask.setEndDatetime(taskRequest.getEndDatetime());
         newTask.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : masterTask.getColor());
         newTask.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        newTask.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         // No recurrence for single occurrence
         newTask.setRecurrenceRule(null);
         newTask.setRecurrenceEnd(null);

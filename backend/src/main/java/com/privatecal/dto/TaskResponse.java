@@ -25,6 +25,7 @@ public class TaskResponse {
 
     private String color;
     private String location;
+    private Boolean isAllDay;
 
     private String recurrenceRule;
     private Instant recurrenceEnd;
@@ -59,6 +60,7 @@ public class TaskResponse {
         this.endDatetime = task.getEndDatetime();
         this.color = task.getColor();
         this.location = task.getLocation();
+        this.isAllDay = task.getIsAllDay();
         this.recurrenceRule = task.getRecurrenceRule();
         this.recurrenceEnd = task.getRecurrenceEnd();
         this.createdAt = task.getCreatedAt();
@@ -202,9 +204,17 @@ public class TaskResponse {
     public String getLocation() {
         return location;
     }
-    
+
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Boolean getIsAllDay() {
+        return isAllDay;
+    }
+
+    public void setIsAllDay(Boolean isAllDay) {
+        this.isAllDay = isAllDay;
     }
 
     public String getRecurrenceRule() {

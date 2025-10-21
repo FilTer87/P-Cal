@@ -31,6 +31,8 @@ public class TaskRequest {
     @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
 
+    private Boolean isAllDay = false;
+
     @Size(max = 500, message = "Recurrence rule must be at most 500 characters")
     private String recurrenceRule;
 
@@ -125,6 +127,14 @@ public class TaskRequest {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Boolean getIsAllDay() {
+        return isAllDay;
+    }
+
+    public void setIsAllDay(Boolean isAllDay) {
+        this.isAllDay = isAllDay;
     }
 
     public String getRecurrenceRule() {
