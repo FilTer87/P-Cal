@@ -114,6 +114,7 @@ export interface TaskFormData {
   endTime: string
   location: string
   color: string
+  isAllDay: boolean
   isRecurring: boolean
   recurrenceFrequency?: RecurrenceFrequency
   recurrenceInterval?: number

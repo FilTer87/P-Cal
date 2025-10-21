@@ -63,11 +63,25 @@
           </div>
         </div>
 
-        <!-- Start Date and Time -->
+        <!-- All-Day Event Checkbox -->
+        <div class="flex items-center">
+          <input
+            id="isAllDay"
+            v-model="formData.isAllDay"
+            type="checkbox"
+            :disabled="isFormLoading"
+            class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <label for="isAllDay" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('tasks.allDayEvent') }}
+          </label>
+        </div>
+
+        <!-- Start Date (and Time if not all-day) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {{ t('tasks.startDate') }} <span class="text-red-500">*</span>
+              {{ formData.isAllDay ? t('tasks.date') : t('tasks.startDate') }} <span class="text-red-500">*</span>
             </label>
             <input
               id="startDate"
@@ -80,8 +94,8 @@
             />
             <p v-if="formErrors.startDate" class="mt-1 text-sm text-red-500">{{ formErrors.startDate }}</p>
           </div>
-          
-          <div>
+
+          <div v-if="!formData.isAllDay">
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.startTime') }}
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
@@ -101,8 +115,8 @@
           </div>
         </div>
 
-        <!-- End Date and Time -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- End Date and Time (hidden for all-day events) -->
+        <div v-if="!formData.isAllDay" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.endDate') }} <span class="text-red-500">*</span>
@@ -118,7 +132,7 @@
             />
             <p v-if="formErrors.endDate" class="mt-1 text-sm text-red-500">{{ formErrors.endDate }}</p>
           </div>
-          
+
           <div>
             <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.endTime') }}

@@ -140,6 +140,7 @@ export function useTasks() {
       endTime: format(oneHourLater, 'HH:mm'),
       location: '',
       color: '#3788d8',
+      isAllDay: false,
       isRecurring: false,
       recurrenceFrequency: undefined,
       recurrenceInterval: undefined,

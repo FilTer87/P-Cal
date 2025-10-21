@@ -17,8 +17,8 @@
 
     <!-- Week Grid -->
     <div class="flex-1 relative overflow-hidden">
-      <!-- All-Day Banner (Fixed Layer) -->
-      <div class="absolute top-0 left-0 right-0 z-40 pointer-events-none">
+      <!-- All-Day Banner (Fixed Layer) - Only rendered if there are all-day tasks -->
+      <div v-if="hasAnyAllDayTasks" class="absolute top-0 left-0 right-0 z-40 pointer-events-none">
         <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600">
           <!-- Time Column (Empty spacer to match grid) -->
           <div class="bg-white dark:bg-gray-800">
@@ -37,7 +37,7 @@
       <!-- Scrollable Content -->
       <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll"
            class="absolute overflow-auto"
-           style="top: 32px; bottom: 0; left: 0; right: 0; margin-right: -6px;">
+           :style="{ top: hasAnyAllDayTasks ? '32px' : '0', bottom: '0', left: '0', right: '0', marginRight: '-6px' }">
         <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600" style="min-height: 1536px;">
           <!-- Time Column -->
           <div class="bg-white dark:bg-gray-800">
@@ -132,12 +132,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { format, isSameDay, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { isToday, formatWeekday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
 import { useOverlapLayout } from '../../composables/useOverlapLayout'
-import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
 import { getTaskKey } from '../../utils/recurrence'
 import AllDayBanner from './AllDayBanner.vue'
@@ -281,9 +280,6 @@ const getTaskTimeDisplayClasses = (task: Task) => {
     'shadow-sm'
   ]
 
-  // Color based on task color or default
-  const color = task.color || '#3788d8'
-  const bgColor = `${color}CC` // Add transparency
   const isPast = new Date(task.endDatetime) < new Date()
 
   return [
@@ -292,18 +288,6 @@ const getTaskTimeDisplayClasses = (task: Task) => {
       'opacity-50': isPast
     }
   ]
-}
-
-const getTaskTimeStyle = (task: Task) => {
-  const position = getTaskTimePosition(task)
-  const color = task.color || '#3788d8'
-
-  return {
-    ...position,
-    backgroundColor: `${color}CC`,
-    borderLeftColor: color,
-    zIndex: 10
-  }
 }
 
 const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[], calculatedLayouts: Map<string | number, any>) => {
@@ -517,6 +501,11 @@ const weekDaysWithAllDay = computed(() => {
       timedTasks: dayTasks.filter(t => !t.isAllDay)
     }
   })
+})
+
+// Check if there are any all-day tasks in the entire week
+const hasAnyAllDayTasks = computed(() => {
+  return weekDaysWithAllDay.value.some(dayInfo => dayInfo.allDayTasks.length > 0)
 })
 
 const weekDaysWithIndicators = computed(() => {
