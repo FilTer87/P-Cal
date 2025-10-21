@@ -3,7 +3,7 @@
  * Automatically converts between UTC (backend) and local timezone (frontend)
  */
 
-import { localDateTimeToUTC, localDateToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
+import { localDateTimeToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
 import { buildRRule, parseRRule } from '../utils/recurrence'
 import { RecurrenceEndType } from '../types/task'
@@ -37,10 +37,9 @@ function convertFromMinutes(offsetMinutes: number): { offsetValue: number, offse
  * Transform task form data from frontend (local) to backend (UTC) format for creation
  */
 export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequest {
-  // For all-day events: use start of day for startDatetime and end of day for endDatetime
-  const startDatetime = formData.isAllDay
-    ? localDateToUTC(formData.startDate)
-    : localDateTimeToUTC(formData.startDate, formData.startTime)
+  // Use user-selected time for all events (including all-day)
+  // For all-day events, the time is used for reminder calculations only
+  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
   const endDatetime = formData.isAllDay
     ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
     : localDateTimeToUTC(formData.endDate, formData.endTime)
@@ -95,10 +94,9 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
  * Transform task form data from frontend (local) to backend (UTC) format for update
  */
 export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskRequest {
-  // For all-day events: use start of day for startDatetime and end of day for endDatetime
-  const startDatetime = formData.isAllDay
-    ? localDateToUTC(formData.startDate)
-    : localDateTimeToUTC(formData.startDate, formData.startTime)
+  // Use user-selected time for all events (including all-day)
+  // For all-day events, the time is used for reminder calculations only
+  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
   const endDatetime = formData.isAllDay
     ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
     : localDateTimeToUTC(formData.endDate, formData.endTime)

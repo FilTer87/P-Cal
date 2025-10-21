@@ -331,6 +331,7 @@
     "endDate": "End date",
     "endTime": "End time",
     "allDayEvent": "All-day event",
+    "allDayTimeHelper": "Used for reminder calculations only",
     "location": "Location",
     "locationPlaceholder": "Enter location (optional)",
     "color": "Color",

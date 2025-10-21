@@ -325,6 +325,7 @@
     "endDate": "Fecha de fin",
     "endTime": "Hora de fin",
     "allDayEvent": "Evento de todo el día",
+    "allDayTimeHelper": "Utilizado solo para cálculos de recordatorios",
     "location": "Ubicación",
     "locationPlaceholder": "Introduce la ubicación (opcional)",
     "color": "Color",

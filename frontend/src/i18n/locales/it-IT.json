@@ -331,6 +331,7 @@
     "endDate": "Data di fine",
     "endTime": "Ora di fine",
     "allDayEvent": "Evento tutto il giorno",
+    "allDayTimeHelper": "Utilizzato solo per il calcolo dei promemoria",
     "location": "Luogo",
     "locationPlaceholder": "Inserisci il luogo (opzionale)",
     "color": "Colore",

@@ -77,7 +77,7 @@
           </label>
         </div>
 
-        <!-- Start Date (and Time if not all-day) -->
+        <!-- Start Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -95,7 +95,7 @@
             <p v-if="formErrors.startDate" class="mt-1 text-sm text-red-500">{{ formErrors.startDate }}</p>
           </div>
 
-          <div v-if="!formData.isAllDay">
+          <div>
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.startTime') }}
               <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
@@ -112,6 +112,13 @@
               :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startTime, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.startTime" class="mt-1 text-sm text-red-500">{{ formErrors.startTime }}</p>
+            <!-- Helper text for all-day events -->
+            <p v-if="formData.isAllDay" class="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {{ t('tasks.allDayTimeHelper') }}
+            </p>
           </div>
         </div>
 
