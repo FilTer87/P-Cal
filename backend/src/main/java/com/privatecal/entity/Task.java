@@ -32,7 +32,7 @@ public class Task {
     @Column(nullable = false, length = 100)
     private String title;
     
-    @Size(max = 500)
+    @Size(max = 2500)
     private String description;
     
     @NotNull

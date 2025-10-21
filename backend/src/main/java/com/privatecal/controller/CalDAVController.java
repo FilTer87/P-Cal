@@ -49,6 +49,7 @@ public class CalDAVController {
      * @return iCalendar file as downloadable attachment
      */
     @GetMapping("/export")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportCalendar() {
         logger.info("Calendar export requested");
 

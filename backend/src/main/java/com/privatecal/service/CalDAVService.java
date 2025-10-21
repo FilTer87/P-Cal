@@ -37,6 +37,9 @@ public class CalDAVService {
     private static final Logger logger = LoggerFactory.getLogger(CalDAVService.class);
     private static final String PRODID = "-//PrivateCal//PrivateCal v0.11.0//EN";
     private static final int DEFAULT_TODO_DURATION_MINUTES = 30;
+    private static final int MAX_DESCRIPTION_LENGTH = 2500;
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_LOCATION_LENGTH = 200;
 
     /**
      * Export tasks to iCalendar format (.ics)
@@ -56,14 +59,23 @@ public class CalDAVService {
         calendar.getProperties().add(CalScale.GREGORIAN);
 
         // Add tasks as VEVENTs
+        int successCount = 0;
+        int failedCount = 0;
         for (Task task : tasks) {
             try {
+                logger.debug("Converting task {} to VEVENT: {}", task.getId(), task.getTitle());
                 VEvent event = taskToVEvent(task);
                 calendar.getComponents().add(event);
+                successCount++;
+                logger.debug("Successfully added task {} to calendar", task.getId());
             } catch (Exception e) {
-                logger.error("Error converting task {} to VEVENT: {}", task.getId(), e.getMessage(), e);
+                failedCount++;
+                logger.error("Error converting task {} ('{}') to VEVENT: {}",
+                    task.getId(), task.getTitle(), e.getMessage(), e);
             }
         }
+        logger.info("Export conversion summary: {} succeeded, {} failed out of {} total tasks",
+            successCount, failedCount, tasks.size());
 
         // Output to byte array
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -227,18 +239,24 @@ public class CalDAVService {
 
         // Get SUMMARY (title)
         Summary summary = event.getSummary();
-        taskRequest.setTitle(summary != null ? summary.getValue() : "Untitled Event");
+        String title = summary != null ? summary.getValue() : "Untitled Event";
+        String eventId = event.getUid() != null ? event.getUid().getValue() : "unknown";
+        taskRequest.setTitle(truncateField(title, MAX_TITLE_LENGTH, "title", "event " + eventId));
 
         // Get DESCRIPTION
         Description description = event.getDescription();
         if (description != null) {
-            taskRequest.setDescription(description.getValue());
+            String descValue = truncateField(description.getValue(), MAX_DESCRIPTION_LENGTH,
+                "description", "event " + eventId);
+            taskRequest.setDescription(descValue);
         }
 
         // Get LOCATION
         net.fortuna.ical4j.model.property.Location location = event.getLocation();
         if (location != null) {
-            taskRequest.setLocation(location.getValue());
+            String locValue = truncateField(location.getValue(), MAX_LOCATION_LENGTH,
+                "location", "event " + eventId);
+            taskRequest.setLocation(locValue);
         }
 
         // Get dates (DTSTART and DTEND)
@@ -289,18 +307,25 @@ public class CalDAVService {
         // Get SUMMARY (title) with [TODO] prefix
         Summary summary = todo.getSummary();
         String title = summary != null ? summary.getValue() : "Untitled Task";
-        taskRequest.setTitle("[TODO] " + title);
+        String todoId = todo.getUid() != null ? todo.getUid().getValue() : "unknown";
+        // Add [TODO] prefix and truncate if necessary (accounting for prefix length)
+        String prefixedTitle = "[TODO] " + title;
+        taskRequest.setTitle(truncateField(prefixedTitle, MAX_TITLE_LENGTH, "title", "todo " + todoId));
 
         // Get DESCRIPTION
         Description description = todo.getDescription();
         if (description != null) {
-            taskRequest.setDescription(description.getValue());
+            String descValue = truncateField(description.getValue(), MAX_DESCRIPTION_LENGTH,
+                "description", "todo " + todoId);
+            taskRequest.setDescription(descValue);
         }
 
         // Get LOCATION
         net.fortuna.ical4j.model.property.Location location = todo.getLocation();
         if (location != null) {
-            taskRequest.setLocation(location.getValue());
+            String locValue = truncateField(location.getValue(), MAX_LOCATION_LENGTH,
+                "location", "todo " + todoId);
+            taskRequest.setLocation(locValue);
         }
 
         // Get DUE date/time
@@ -345,5 +370,18 @@ public class CalDAVService {
      */
     public String generateCalendarName(User user) {
         return user.getUsername() + "'s Calendar";
+    }
+
+    /**
+     * Truncate a string to a maximum length, logging if truncation occurs
+     */
+    private String truncateField(String value, int maxLength, String fieldName, String itemContext) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+
+        logger.warn("Truncating {} from {} to {} characters for {}",
+            fieldName, value.length(), maxLength, itemContext);
+        return value.substring(0, maxLength);
     }
 }

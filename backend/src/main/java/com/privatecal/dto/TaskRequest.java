@@ -16,7 +16,7 @@ public class TaskRequest {
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     private String title;
     
-    @Size(max = 500, message = "Description must be at most 500 characters")
+    @Size(max = 2500, message = "Description must be at most 2500 characters")
     private String description;
     
     @NotNull(message = "Start datetime is required")
