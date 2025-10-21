@@ -6,7 +6,7 @@
     <!-- CASE 2: Single task (expanded) -->
     <div v-else-if="tasks.length === 1"
          class="h-8 px-1 py-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded"
-         @click="handleTaskClick(tasks[0])">
+         @click.stop="handleTaskClick(tasks[0])">
       <div class="flex items-center gap-1 h-full">
         <!-- Colored side bar -->
         <div class="w-1 h-full rounded-full flex-shrink-0"
@@ -31,11 +31,11 @@
       <!-- Compact badge (collapsed) -->
       <div v-if="!isExpanded"
            class="h-8 px-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded"
-           @click="toggleExpanded">
+           @click.stop="toggleExpanded">
         <div class="flex items-center justify-between h-full">
           <!-- Color indicator dots (max 4 visible) -->
           <div class="flex gap-0.5">
-            <div v-for="(task, index) in tasks.slice(0, 4)"
+            <div v-for="task in tasks.slice(0, 4)"
                  :key="task.id"
                  class="w-2 h-2 rounded-full"
                  :style="{ backgroundColor: task.color }"
@@ -65,7 +65,7 @@
            class="absolute top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-600 rounded-b z-50 max-h-48 overflow-y-auto all-day-expanded-list">
         <!-- Expandable header -->
         <div class="sticky top-0 bg-gray-50 dark:bg-gray-700 px-2 py-1 flex items-center justify-between border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-             @click="toggleExpanded">
+             @click.stop="toggleExpanded">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ tasks.length }} all-day events</span>
           <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -76,7 +76,7 @@
         <div v-for="task in tasks"
              :key="task.id"
              class="px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
-             @click="handleTaskClickExpanded(task)">
+             @click.stop="handleTaskClickExpanded(task)">
           <div class="flex items-center gap-2">
             <!-- Colored bar -->
             <div class="w-1 h-6 rounded-full flex-shrink-0"

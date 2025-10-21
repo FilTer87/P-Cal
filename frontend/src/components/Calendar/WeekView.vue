@@ -18,18 +18,21 @@
     <!-- Week Grid -->
     <div class="flex-1 relative overflow-hidden">
       <!-- All-Day Banner (Fixed Layer) - Only rendered if there are all-day tasks -->
-      <div v-if="hasAnyAllDayTasks" class="absolute top-0 left-0 right-0 z-40 pointer-events-none">
+      <div v-if="hasAnyAllDayTasks" class="absolute top-0 left-0 right-0 z-40">
         <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600">
           <!-- Time Column (Empty spacer to match grid) -->
-          <div class="bg-white dark:bg-gray-800">
+          <div class="bg-white dark:bg-gray-800 pointer-events-none">
             <div class="h-8"></div>
           </div>
 
           <!-- All-Day Banners per Day -->
-          <div v-for="dayInfo in weekDaysWithAllDay"
-               :key="`allday-${dayInfo.day.getTime()}`"
-               class="bg-white dark:bg-gray-800 pointer-events-auto">
-            <AllDayBanner :tasks="dayInfo.allDayTasks" @task-click="handleTaskClick" />
+          <div v-for="(dayInfo, dayIndex) in weekDaysWithAllDay"
+               :key="`allday-${dayIndex}`"
+               class="bg-white dark:bg-gray-800">
+            <AllDayBanner
+              :key="`banner-${dayIndex}`"
+              :tasks="dayInfo.allDayTasks"
+              @task-click="handleTaskClick" />
           </div>
         </div>
       </div>
