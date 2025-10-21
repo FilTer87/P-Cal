@@ -443,6 +443,7 @@
     },
     "weekView": {
       "hourLabel": "Hour",
+      "allDayLabel": "All Day",
       "time": "Time",
       "location": "Location"
     },

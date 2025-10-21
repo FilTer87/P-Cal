@@ -443,6 +443,7 @@
     },
     "weekView": {
       "hourLabel": "Ora",
+      "allDayLabel": "Tutto il giorno",
       "time": "Orario",
       "location": "Luogo"
     },

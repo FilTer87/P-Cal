@@ -448,6 +448,7 @@
     },
     "weekView": {
       "hourLabel": "Hora",
+      "allDayLabel": "Todo el día",
       "time": "Hora",
       "location": "Ubicación"
     },

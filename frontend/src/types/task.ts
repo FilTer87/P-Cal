@@ -7,6 +7,7 @@ export interface Task {
   endDatetime: string
   location?: string
   color: string
+  isAllDay?: boolean // True for all-day events (DATE format), false for timed events (DATE-TIME)
   recurrenceRule?: string
   recurrenceEnd?: string
   isRecurring: boolean
@@ -27,6 +28,7 @@ export interface CreateTaskRequest {
   endDatetime: string
   location?: string
   color?: string
+  isAllDay?: boolean
   recurrenceRule?: string
   recurrenceEnd?: string
   reminders?: CreateReminderRequest[]
@@ -39,6 +41,7 @@ export interface UpdateTaskRequest {
   endDatetime?: string
   location?: string
   color?: string
+  isAllDay?: boolean
   recurrenceRule?: string
   recurrenceEnd?: string
   reminders?: CreateReminderRequest[]
