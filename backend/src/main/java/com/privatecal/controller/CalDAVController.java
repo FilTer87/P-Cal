@@ -1,5 +1,7 @@
 package com.privatecal.controller;
 
+import com.privatecal.dto.DuplicateStrategy;
+import com.privatecal.dto.ImportPreviewResponse;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
 import com.privatecal.entity.Task;
@@ -188,6 +190,174 @@ public class CalDAVController {
 
         } catch (Exception e) {
             logger.error("Error importing calendar: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("error", "Import failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Preview calendar import - analyze file for duplicates without importing
+     * POST /api/calendar/import/preview
+     *
+     * @param file ICS file to analyze
+     * @return Preview information with duplicate detection
+     */
+    @PostMapping(value = "/import/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> previewImport(@RequestParam("file") MultipartFile file) {
+        logger.info("Import preview requested: {}", file.getOriginalFilename());
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("error", "File is empty");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Validate file extension
+            String filename = file.getOriginalFilename();
+            if (filename == null || (!filename.endsWith(".ics") && !filename.endsWith(".ical"))) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("error", "Invalid file format. Only .ics or .ical files are supported");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Get current user
+            User currentUser = userService.getCurrentUser();
+
+            // Analyze file for duplicates
+            ImportPreviewResponse preview = calDAVService.analyzeIcsFile(file, currentUser);
+
+            logger.info("Preview complete: {} total, {} new, {} duplicates, {} errors",
+                preview.getTotalEvents(), preview.getNewEvents(),
+                preview.getDuplicateEvents(), preview.getErrorEvents());
+
+            return ResponseEntity.ok(preview);
+
+        } catch (Exception e) {
+            logger.error("Error previewing import: {}", e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Preview failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Confirm calendar import with duplicate handling strategy
+     * POST /api/calendar/import/confirm
+     *
+     * @param file ICS file to import
+     * @param strategy How to handle duplicates (SKIP, UPDATE, CREATE_ANYWAY)
+     * @return Import summary with statistics
+     */
+    @PostMapping(value = "/import/confirm", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> confirmImport(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("duplicateStrategy") DuplicateStrategy strategy) {
+
+        logger.info("Confirm import requested with strategy {}: {}", strategy, file.getOriginalFilename());
+
+        Map<String, Object> response = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "File is empty");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Validate file extension
+            String filename = file.getOriginalFilename();
+            if (filename == null || (!filename.endsWith(".ics") && !filename.endsWith(".ical"))) {
+                response.put("success", false);
+                response.put("error", "Invalid file format. Only .ics or .ical files are supported");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Get current user
+            User currentUser = userService.getCurrentUser();
+
+            // Import with duplicate handling
+            List<TaskRequest> taskRequests;
+            try {
+                taskRequests = calDAVService.importWithDuplicateHandling(file, currentUser, strategy);
+                logger.info("Import with strategy {} returned {} tasks to process", strategy, taskRequests.size());
+            } catch (IOException e) {
+                logger.error("Error importing with duplicate handling: {}", e.getMessage(), e);
+                response.put("success", false);
+                response.put("error", "Failed to import calendar file: " + e.getMessage());
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Process tasks (create or update based on ID presence)
+            int successCount = 0;
+            int failedCount = 0;
+            int updatedCount = 0;
+            int createdCount = 0;
+            List<TaskResponse> importedTasks = new ArrayList<>();
+
+            for (int i = 0; i < taskRequests.size(); i++) {
+                TaskRequest taskRequest = taskRequests.get(i);
+                try {
+                    // Validate and clean task request
+                    taskRequest.clean();
+
+                    TaskResponse taskResponse;
+                    if (taskRequest.getId() != null) {
+                        // Update existing task
+                        taskResponse = taskService.updateTask(taskRequest.getId(), taskRequest);
+                        updatedCount++;
+                        logger.debug("Updated task {}/{}: {}", i + 1, taskRequests.size(), taskRequest.getTitle());
+                    } else {
+                        // Create new task
+                        taskResponse = taskService.createTask(taskRequest);
+                        createdCount++;
+                        logger.debug("Created task {}/{}: {}", i + 1, taskRequests.size(), taskRequest.getTitle());
+                    }
+
+                    importedTasks.add(taskResponse);
+                    successCount++;
+
+                } catch (Exception e) {
+                    failedCount++;
+                    String errorMsg = String.format("Task '%s': %s",
+                        taskRequest.getTitle(), e.getMessage());
+                    errors.add(errorMsg);
+                    logger.warn("Failed to import task: {}", errorMsg);
+                }
+            }
+
+            // Prepare response
+            response.put("success", true);
+            response.put("totalParsed", taskRequests.size());
+            response.put("successCount", successCount);
+            response.put("failedCount", failedCount);
+            response.put("createdCount", createdCount);
+            response.put("updatedCount", updatedCount);
+            response.put("importedTasks", importedTasks);
+            response.put("strategy", strategy.toString());
+
+            if (!errors.isEmpty()) {
+                response.put("errors", errors);
+            }
+            if (!warnings.isEmpty()) {
+                response.put("warnings", warnings);
+            }
+
+            logger.info("Import confirmed: {} created, {} updated, {} failed (strategy: {})",
+                createdCount, updatedCount, failedCount, strategy);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error confirming import: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("error", "Import failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

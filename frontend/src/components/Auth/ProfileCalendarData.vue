@@ -170,13 +170,207 @@
         </div>
       </div>
     </div>
+
+    <!-- Import Preview Modal -->
+    <div
+      v-if="showPreviewModal && previewData"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      @click.self="cancelImport"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ t('profile.importPreviewTitle') }}
+          </h3>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="px-6 py-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+          <!-- Statistics -->
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                {{ previewData.newEvents }}
+              </div>
+              <div class="text-xs text-green-700 dark:text-green-300 mt-1">
+                {{ t('profile.importPreviewNewEvents') }}
+              </div>
+            </div>
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                {{ previewData.duplicateEvents }}
+              </div>
+              <div class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                {{ t('profile.importPreviewDuplicates') }}
+              </div>
+            </div>
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-red-600 dark:text-red-400">
+                {{ previewData.errorEvents }}
+              </div>
+              <div class="text-xs text-red-700 dark:text-red-300 mt-1">
+                {{ t('profile.importPreviewErrors') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Duplicates List -->
+          <div v-if="previewData.duplicateEvents > 0" class="mb-4">
+            <button
+              @click="toggleDuplicatesList"
+              class="w-full flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            >
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('profile.importPreviewShowDuplicates', { count: previewData.duplicateEvents }) }}
+              </span>
+              <svg
+                class="w-5 h-5 text-gray-500 transition-transform"
+                :class="{ 'transform rotate-180': showDuplicatesList }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <div v-if="showDuplicatesList" class="mt-2 space-y-2 max-h-48 overflow-y-auto">
+              <div
+                v-for="(dup, index) in previewData.duplicates"
+                :key="index"
+                class="p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="font-medium text-sm text-gray-900 dark:text-white">
+                      {{ dup.title }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {{ t('profile.importPreviewExistingDate') }}: {{ dup.existingDate }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('profile.importPreviewNewDate') }}: {{ dup.newDate }}
+                    </div>
+                  </div>
+                  <span
+                    v-if="dup.contentChanged"
+                    class="ml-2 px-2 py-1 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded"
+                  >
+                    {{ t('profile.duplicateContentChanged') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategy Selector -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              {{ t('profile.duplicateStrategyTitle') }}
+            </h4>
+            <div class="space-y-3">
+              <!-- SKIP Strategy -->
+              <label class="flex items-start p-3 border-2 rounded-lg cursor-pointer transition-colors"
+                :class="selectedStrategy === DuplicateStrategy.SKIP
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+              >
+                <input
+                  type="radio"
+                  v-model="selectedStrategy"
+                  :value="DuplicateStrategy.SKIP"
+                  class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div class="ml-3">
+                  <div class="font-medium text-sm text-gray-900 dark:text-white">
+                    {{ t('profile.duplicateStrategySkip') }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ t('profile.duplicateStrategySkipDescription') }}
+                  </div>
+                </div>
+              </label>
+
+              <!-- UPDATE Strategy -->
+              <label class="flex items-start p-3 border-2 rounded-lg cursor-pointer transition-colors"
+                :class="selectedStrategy === DuplicateStrategy.UPDATE
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+              >
+                <input
+                  type="radio"
+                  v-model="selectedStrategy"
+                  :value="DuplicateStrategy.UPDATE"
+                  class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div class="ml-3">
+                  <div class="font-medium text-sm text-gray-900 dark:text-white">
+                    {{ t('profile.duplicateStrategyUpdate') }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ t('profile.duplicateStrategyUpdateDescription') }}
+                  </div>
+                </div>
+              </label>
+
+              <!-- CREATE_ANYWAY Strategy -->
+              <label class="flex items-start p-3 border-2 rounded-lg cursor-pointer transition-colors"
+                :class="selectedStrategy === DuplicateStrategy.CREATE_ANYWAY
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+              >
+                <input
+                  type="radio"
+                  v-model="selectedStrategy"
+                  :value="DuplicateStrategy.CREATE_ANYWAY"
+                  class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div class="ml-3">
+                  <div class="font-medium text-sm text-gray-900 dark:text-white">
+                    {{ t('profile.duplicateStrategyCreateAnyway') }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ t('profile.duplicateStrategyCreateAnywayDescription') }}
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+          <button
+            @click="cancelImport"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            {{ t('common.cancel') }}
+          </button>
+          <button
+            @click="confirmImport"
+            :disabled="isImporting"
+            class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center"
+          >
+            <LoadingSpinner v-if="isImporting" class="w-4 h-4 mr-2" />
+            {{ isImporting ? t('profile.importing') : t('profile.confirmImportButton') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { calendarApi, type CalendarImportResult, type CalendarStats } from '@/services/calendarApi'
+import {
+  calendarApi,
+  type CalendarImportResult,
+  type CalendarStats,
+  type ImportPreviewResponse,
+  DuplicateStrategy
+} from '@/services/calendarApi'
 import { useCustomToast } from '@/composables/useCustomToast'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
 
@@ -190,6 +384,13 @@ const isExporting = ref(false)
 const isImporting = ref(false)
 const importResult = ref<CalendarImportResult | null>(null)
 const stats = ref<CalendarStats | null>(null)
+
+// Preview state
+const showPreviewModal = ref(false)
+const previewData = ref<ImportPreviewResponse | null>(null)
+const selectedFile = ref<File | null>(null)
+const selectedStrategy = ref<DuplicateStrategy>(DuplicateStrategy.SKIP)
+const showDuplicatesList = ref(false)
 
 // Load calendar stats
 const loadStats = async () => {
@@ -230,7 +431,7 @@ const triggerFileInput = () => {
   fileInput.value?.click()
 }
 
-// Handle file selection
+// Handle file selection - now with preview
 const handleFileSelect = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
@@ -244,16 +445,55 @@ const handleFileSelect = async (event: Event) => {
     return
   }
 
-  // Import file
+  // Store file for later use
+  selectedFile.value = file
   isImporting.value = true
   importResult.value = null
 
   try {
-    const result = await calendarApi.importCalendar(file)
+    // Step 1: Preview import to detect duplicates
+    const preview = await calendarApi.previewImport(file)
+    previewData.value = preview
+
+    // Step 2: Check if we need to show preview modal
+    if (preview.duplicateEvents > 0 || preview.errorEvents > 0) {
+      // Show preview modal for user to choose strategy
+      showPreviewModal.value = true
+      selectedStrategy.value = DuplicateStrategy.SKIP // Reset to default
+      isImporting.value = false
+    } else {
+      // No duplicates - import directly with SKIP strategy
+      await confirmImport()
+    }
+  } catch (error: any) {
+    console.error('Preview failed:', error)
+    showError(error.message || t('profile.importCalendarErrorMessage'))
+    isImporting.value = false
+  } finally {
+    target.value = '' // Reset input so same file can be selected again
+  }
+}
+
+// Confirm import with selected strategy
+const confirmImport = async () => {
+  if (!selectedFile.value) return
+
+  isImporting.value = true
+  showPreviewModal.value = false
+
+  try {
+    const result = await calendarApi.confirmImport(selectedFile.value, selectedStrategy.value)
     importResult.value = result
 
     if (result.success && result.successCount > 0) {
-      showSuccess(t('profile.importCalendarSuccessMessage', { count: result.successCount }))
+      const message = result.updatedCount && result.updatedCount > 0
+        ? t('profile.importCalendarSuccessWithUpdates', {
+            created: result.createdCount || 0,
+            updated: result.updatedCount
+          })
+        : t('profile.importCalendarSuccessMessage', { count: result.successCount })
+
+      showSuccess(message)
 
       // Reload stats
       await loadStats()
@@ -272,8 +512,22 @@ const handleFileSelect = async (event: Event) => {
     }
   } finally {
     isImporting.value = false
-    target.value = '' // Reset input so same file can be selected again
+    selectedFile.value = null
+    previewData.value = null
   }
+}
+
+// Cancel import preview
+const cancelImport = () => {
+  showPreviewModal.value = false
+  selectedFile.value = null
+  previewData.value = null
+  isImporting.value = false
+}
+
+// Toggle duplicates list visibility
+const toggleDuplicatesList = () => {
+  showDuplicatesList.value = !showDuplicatesList.value
 }
 
 // Helper functions for import result display

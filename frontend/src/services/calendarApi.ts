@@ -1,6 +1,37 @@
 import { apiClient } from './api'
 
 /**
+ * Duplicate handling strategy
+ */
+export enum DuplicateStrategy {
+  SKIP = 'SKIP',
+  UPDATE = 'UPDATE',
+  CREATE_ANYWAY = 'CREATE_ANYWAY'
+}
+
+/**
+ * Information about a duplicate event
+ */
+export interface DuplicateEventInfo {
+  uid: string
+  title: string
+  existingDate: string
+  newDate: string
+  contentChanged: boolean
+}
+
+/**
+ * Preview response for import
+ */
+export interface ImportPreviewResponse {
+  totalEvents: number
+  newEvents: number
+  duplicateEvents: number
+  errorEvents: number
+  duplicates: DuplicateEventInfo[]
+}
+
+/**
  * Import result from backend
  */
 export interface CalendarImportResult {
@@ -8,6 +39,9 @@ export interface CalendarImportResult {
   totalParsed: number
   successCount: number
   failedCount: number
+  createdCount?: number
+  updatedCount?: number
+  strategy?: string
   errors?: string[]
   warnings?: string[]
   importedTasks?: any[]
@@ -83,6 +117,60 @@ class CalendarApiService {
       return response.data
     } catch (error) {
       console.error('Failed to import calendar:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Preview calendar import - analyze for duplicates without importing
+   * @param file - The .ics file to analyze
+   */
+  async previewImport(file: File): Promise<ImportPreviewResponse> {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await apiClient.postRaw<ImportPreviewResponse>(
+        `${this.baseUrl}/import/preview`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error('Failed to preview import:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Confirm calendar import with duplicate handling strategy
+   * @param file - The .ics file to import
+   * @param strategy - How to handle duplicates (SKIP, UPDATE, CREATE_ANYWAY)
+   */
+  async confirmImport(file: File, strategy: DuplicateStrategy): Promise<CalendarImportResult> {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('duplicateStrategy', strategy)
+
+      const response = await apiClient.postRaw<CalendarImportResult>(
+        `${this.baseUrl}/import/confirm`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error('Failed to confirm import:', error)
       throw error
     }
   }

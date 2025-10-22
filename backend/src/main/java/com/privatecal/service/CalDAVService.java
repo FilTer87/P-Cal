@@ -1,8 +1,11 @@
 package com.privatecal.service;
 
+import com.privatecal.dto.DuplicateStrategy;
+import com.privatecal.dto.ImportPreviewResponse;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
+import com.privatecal.repository.TaskRepository;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.*;
@@ -13,19 +16,27 @@ import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service for CalDAV integration: import/export iCalendar (.ics) format
@@ -40,6 +51,9 @@ public class CalDAVService {
     private static final int MAX_DESCRIPTION_LENGTH = 2500;
     private static final int MAX_TITLE_LENGTH = 100;
     private static final int MAX_LOCATION_LENGTH = 200;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     /**
      * Export tasks to iCalendar format (.ics)
@@ -96,8 +110,13 @@ public class CalDAVService {
     private VEvent taskToVEvent(Task task) {
         logger.debug("Converting task {} to VEVENT", task.getId());
 
-        // Create event with UID
-        String uid = "task-" + task.getId() + "@privatecal.local";
+        // Create event with UID (use saved UID or fallback to generated)
+        String uid = task.getUid();
+        if (uid == null || uid.trim().isEmpty()) {
+            // Fallback for legacy tasks without UID
+            uid = "privatecal-" + task.getUser().getId() + "-" + task.getId() + "@privatecal.local";
+            logger.warn("Task {} missing UID, using fallback: {}", task.getId(), uid);
+        }
         VEvent event = new VEvent();
         event.getProperties().add(new Uid(uid));
 
@@ -237,10 +256,26 @@ public class CalDAVService {
     private TaskRequest veventToTaskRequest(VEvent event) {
         TaskRequest taskRequest = new TaskRequest();
 
+        // Get UID (preserve original or generate deterministic)
+        Uid eventUid = event.getUid();
+        if (eventUid != null && eventUid.getValue() != null) {
+            taskRequest.setUid(eventUid.getValue());
+        } else {
+            // Generate deterministic UID if missing
+            Summary summary = event.getSummary();
+            DtStart dtStart = event.getStartDate();
+            String generatedUid = generateDeterministicUid(
+                summary != null ? summary.getValue() : null,
+                dtStart != null ? dtStart.getDate() : null
+            );
+            taskRequest.setUid(generatedUid);
+            logger.warn("VEVENT missing UID, generated: {}", generatedUid);
+        }
+
         // Get SUMMARY (title)
         Summary summary = event.getSummary();
         String title = summary != null ? summary.getValue() : "Untitled Event";
-        String eventId = event.getUid() != null ? event.getUid().getValue() : "unknown";
+        String eventId = taskRequest.getUid(); // Use UID for logging
         taskRequest.setTitle(truncateField(title, MAX_TITLE_LENGTH, "title", "event " + eventId));
 
         // Get DESCRIPTION
@@ -304,10 +339,26 @@ public class CalDAVService {
     private TaskRequest vtodoToTaskRequest(VToDo todo) {
         TaskRequest taskRequest = new TaskRequest();
 
+        // Get UID (preserve original or generate deterministic)
+        Uid todoUid = todo.getUid();
+        if (todoUid != null && todoUid.getValue() != null) {
+            taskRequest.setUid(todoUid.getValue());
+        } else {
+            // Generate deterministic UID if missing
+            Summary summary = todo.getSummary();
+            Due due = todo.getProperty(Property.DUE);
+            String generatedUid = generateDeterministicUid(
+                summary != null ? summary.getValue() : null,
+                due != null ? due.getDate() : null
+            );
+            taskRequest.setUid(generatedUid);
+            logger.warn("VTODO missing UID, generated: {}", generatedUid);
+        }
+
         // Get SUMMARY (title) with [TODO] prefix
         Summary summary = todo.getSummary();
         String title = summary != null ? summary.getValue() : "Untitled Task";
-        String todoId = todo.getUid() != null ? todo.getUid().getValue() : "unknown";
+        String todoId = taskRequest.getUid(); // Use UID for logging
         // Add [TODO] prefix and truncate if necessary (accounting for prefix length)
         String prefixedTitle = "[TODO] " + title;
         taskRequest.setTitle(truncateField(prefixedTitle, MAX_TITLE_LENGTH, "title", "todo " + todoId));
@@ -383,5 +434,264 @@ public class CalDAVService {
         logger.warn("Truncating {} from {} to {} characters for {}",
             fieldName, value.length(), maxLength, itemContext);
         return value.substring(0, maxLength);
+    }
+
+    /**
+     * Generate a deterministic UID for an event/todo when none is present
+     * Format: privatecal-generated-[SHA256-hash]
+     *
+     * @param summary Event/Todo summary (title)
+     * @param dtStart Event/Todo start date
+     * @return Generated UID string
+     */
+    private String generateDeterministicUid(String summary, Date dtStart) {
+        try {
+            // Create hash from summary + start date
+            String input = (summary != null ? summary : "untitled") +
+                          (dtStart != null ? dtStart.toString() : "no-date");
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            // Convert to hex string (first 16 characters for brevity)
+            StringBuilder hexString = new StringBuilder();
+            for (int i = 0; i < Math.min(8, hash.length); i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return "privatecal-generated-" + hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            // Fallback to timestamp-based UID
+            logger.error("SHA-256 not available, using timestamp UID", e);
+            return "privatecal-generated-" + System.currentTimeMillis();
+        }
+    }
+
+    /**
+     * Analyze ICS file for import preview - detects duplicates without importing
+     *
+     * @param file ICS file to analyze
+     * @param user User for duplicate checking
+     * @return Preview information with duplicate detection
+     */
+    public ImportPreviewResponse analyzeIcsFile(MultipartFile file, User user) throws IOException {
+        logger.info("Analyzing ICS file for user: {}", user.getUsername());
+
+        ImportPreviewResponse response = new ImportPreviewResponse();
+        List<ImportPreviewResponse.DuplicateEventInfo> duplicates = new ArrayList<>();
+
+        try (InputStream inputStream = file.getInputStream()) {
+            CalendarBuilder builder = new CalendarBuilder();
+            Calendar calendar = builder.build(inputStream);
+
+            // Parse all events/todos
+            List<TaskRequest> parsedRequests = new ArrayList<>();
+            List<String> parseErrors = new ArrayList<>();
+
+            // Process VEVENTs
+            calendar.getComponents(Component.VEVENT).forEach(component -> {
+                try {
+                    VEvent event = (VEvent) component;
+                    TaskRequest taskRequest = veventToTaskRequest(event);
+                    parsedRequests.add(taskRequest);
+                } catch (Exception e) {
+                    parseErrors.add("VEVENT: " + e.getMessage());
+                    logger.warn("Failed to parse VEVENT: {}", e.getMessage());
+                }
+            });
+
+            // Process VTODOs
+            calendar.getComponents(Component.VTODO).forEach(component -> {
+                try {
+                    VToDo todo = (VToDo) component;
+                    TaskRequest taskRequest = vtodoToTaskRequest(todo);
+                    parsedRequests.add(taskRequest);
+                } catch (Exception e) {
+                    parseErrors.add("VTODO: " + e.getMessage());
+                    logger.warn("Failed to parse VTODO: {}", e.getMessage());
+                }
+            });
+
+            response.setTotalEvents(parsedRequests.size() + parseErrors.size());
+            response.setErrorEvents(parseErrors.size());
+
+            // Check for duplicates using UID
+            List<String> uids = parsedRequests.stream()
+                .map(TaskRequest::getUid)
+                .filter(uid -> uid != null && !uid.isEmpty())
+                .collect(Collectors.toList());
+
+            // Batch query to find existing tasks by UID
+            Map<String, Task> existingTasksByUid = new HashMap<>();
+            if (!uids.isEmpty()) {
+                List<Task> existingTasks = taskRepository.findByUserAndUidIn(user, uids);
+                existingTasksByUid = existingTasks.stream()
+                    .collect(Collectors.toMap(Task::getUid, task -> task));
+            }
+
+            // Categorize events as new or duplicate
+            int newCount = 0;
+            int duplicateCount = 0;
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                .withZone(ZoneOffset.UTC);
+
+            for (TaskRequest taskRequest : parsedRequests) {
+                String uid = taskRequest.getUid();
+                if (uid != null && existingTasksByUid.containsKey(uid)) {
+                    // Duplicate found
+                    duplicateCount++;
+                    Task existingTask = existingTasksByUid.get(uid);
+
+                    // Check if content changed
+                    boolean contentChanged = hasContentChanged(existingTask, taskRequest);
+
+                    ImportPreviewResponse.DuplicateEventInfo dupInfo =
+                        new ImportPreviewResponse.DuplicateEventInfo();
+                    dupInfo.setUid(uid);
+                    dupInfo.setTitle(taskRequest.getTitle());
+                    dupInfo.setExistingDate(dateFormatter.format(existingTask.getStartDatetime()));
+                    dupInfo.setNewDate(dateFormatter.format(taskRequest.getStartDatetime()));
+                    dupInfo.setContentChanged(contentChanged);
+
+                    duplicates.add(dupInfo);
+                } else {
+                    // New event
+                    newCount++;
+                }
+            }
+
+            response.setNewEvents(newCount);
+            response.setDuplicateEvents(duplicateCount);
+            response.setDuplicates(duplicates);
+
+            logger.info("Analysis complete: {} total, {} new, {} duplicates, {} errors",
+                response.getTotalEvents(), newCount, duplicateCount, parseErrors.size());
+
+            return response;
+        } catch (Exception e) {
+            logger.error("Error analyzing ICS file: {}", e.getMessage(), e);
+            throw new IOException("Failed to analyze ICS file", e);
+        }
+    }
+
+    /**
+     * Import ICS file with duplicate handling strategy
+     *
+     * @param file ICS file to import
+     * @param user User to import for
+     * @param strategy How to handle duplicates
+     * @return List of imported task requests
+     */
+    public List<TaskRequest> importWithDuplicateHandling(
+            MultipartFile file,
+            User user,
+            DuplicateStrategy strategy) throws IOException {
+
+        logger.info("Importing ICS file with strategy {} for user: {}", strategy, user.getUsername());
+
+        try (InputStream inputStream = file.getInputStream()) {
+            CalendarBuilder builder = new CalendarBuilder();
+            Calendar calendar = builder.build(inputStream);
+
+            List<TaskRequest> parsedRequests = new ArrayList<>();
+
+            // Process VEVENTs
+            calendar.getComponents(Component.VEVENT).forEach(component -> {
+                try {
+                    VEvent event = (VEvent) component;
+                    TaskRequest taskRequest = veventToTaskRequest(event);
+                    parsedRequests.add(taskRequest);
+                } catch (Exception e) {
+                    logger.warn("Failed to parse VEVENT: {}", e.getMessage());
+                }
+            });
+
+            // Process VTODOs
+            calendar.getComponents(Component.VTODO).forEach(component -> {
+                try {
+                    VToDo todo = (VToDo) component;
+                    TaskRequest taskRequest = vtodoToTaskRequest(todo);
+                    parsedRequests.add(taskRequest);
+                } catch (Exception e) {
+                    logger.warn("Failed to parse VTODO: {}", e.getMessage());
+                }
+            });
+
+            // Apply duplicate strategy
+            List<TaskRequest> resultRequests = new ArrayList<>();
+
+            for (TaskRequest taskRequest : parsedRequests) {
+                String uid = taskRequest.getUid();
+                if (uid == null || uid.isEmpty()) {
+                    // No UID, always import
+                    resultRequests.add(taskRequest);
+                    continue;
+                }
+
+                Optional<Task> existingTask = taskRepository.findByUserAndUid(user, uid);
+
+                if (existingTask.isPresent()) {
+                    // Duplicate found - apply strategy
+                    switch (strategy) {
+                        case SKIP:
+                            logger.debug("Skipping duplicate: {}", uid);
+                            // Don't add to result
+                            break;
+
+                        case UPDATE:
+                            logger.debug("Updating existing task: {}", uid);
+                            // Keep the existing task ID to trigger update
+                            taskRequest.setId(existingTask.get().getId());
+                            resultRequests.add(taskRequest);
+                            break;
+
+                        case CREATE_ANYWAY:
+                            logger.debug("Creating duplicate anyway: {}", uid);
+                            // Generate new UID to avoid constraint violation
+                            String newUid = "privatecal-dup-" + System.currentTimeMillis() + "-" +
+                                Math.abs(uid.hashCode());
+                            taskRequest.setUid(newUid);
+                            resultRequests.add(taskRequest);
+                            break;
+                    }
+                } else {
+                    // New event, always import
+                    resultRequests.add(taskRequest);
+                }
+            }
+
+            logger.info("Import complete: {} tasks to be imported (strategy: {})",
+                resultRequests.size(), strategy);
+
+            return resultRequests;
+        } catch (Exception e) {
+            logger.error("Error importing ICS file: {}", e.getMessage(), e);
+            throw new IOException("Failed to import ICS file", e);
+        }
+    }
+
+    /**
+     * Check if content has changed between existing task and imported request
+     */
+    private boolean hasContentChanged(Task existingTask, TaskRequest taskRequest) {
+        // Compare key fields
+        boolean titleChanged = !safeEquals(existingTask.getTitle(), taskRequest.getTitle());
+        boolean descChanged = !safeEquals(existingTask.getDescription(), taskRequest.getDescription());
+        boolean locationChanged = !safeEquals(existingTask.getLocation(), taskRequest.getLocation());
+        boolean startChanged = !safeEquals(existingTask.getStartDatetime(), taskRequest.getStartDatetime());
+        boolean endChanged = !safeEquals(existingTask.getEndDatetime(), taskRequest.getEndDatetime());
+
+        return titleChanged || descChanged || locationChanged || startChanged || endChanged;
+    }
+
+    /**
+     * Safe equality check handling nulls
+     */
+    private boolean safeEquals(Object a, Object b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.equals(b);
     }
 }

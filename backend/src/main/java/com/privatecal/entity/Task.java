@@ -56,6 +56,10 @@ public class Task {
     @Column(name = "is_all_day", nullable = false)
     private Boolean isAllDay = false;
 
+    @Size(max = 255)
+    @Column(name = "uid", length = 255)
+    private String uid;
+
     @Size(max = 500)
     @Column(name = "recurrence_rule", length = 500)
     private String recurrenceRule;
@@ -176,6 +180,14 @@ public class Task {
 
     public void setIsAllDay(Boolean isAllDay) {
         this.isAllDay = isAllDay;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getRecurrenceRule() {

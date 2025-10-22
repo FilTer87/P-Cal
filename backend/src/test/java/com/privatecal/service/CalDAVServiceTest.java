@@ -402,6 +402,185 @@ class CalDAVServiceTest {
         assertEquals("testuser's Calendar", calendarName);
     }
 
+    // ==================== UID PRESERVATION TESTS ====================
+
+    @Test
+    void testImportVEventPreservesExistingUid() throws IOException {
+        String ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//Test//EN
+            BEGIN:VEVENT
+            UID:existing-uid-12345@example.com
+            DTSTART:20251021T140000Z
+            DTEND:20251021T150000Z
+            SUMMARY:Meeting with UID
+            DESCRIPTION:This event has a UID that should be preserved
+            END:VEVENT
+            END:VCALENDAR
+            """;
+
+        List<TaskRequest> taskRequests = calDAVService.importFromICS(
+            new ByteArrayInputStream(ics.getBytes()), testUser);
+
+        assertEquals(1, taskRequests.size());
+
+        TaskRequest task = taskRequests.get(0);
+        assertEquals("Meeting with UID", task.getTitle());
+        assertEquals("existing-uid-12345@example.com", task.getUid(),
+            "UID from VEVENT should be preserved exactly as provided");
+    }
+
+    @Test
+    void testImportVEventGeneratesDeterministicUidWhenMissing() throws IOException {
+        String ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//Test//EN
+            BEGIN:VEVENT
+            DTSTART:20251021T140000Z
+            DTEND:20251021T150000Z
+            SUMMARY:Meeting without UID
+            DESCRIPTION:This event has no UID
+            END:VEVENT
+            END:VCALENDAR
+            """;
+
+        // Import twice to verify deterministic generation
+        List<TaskRequest> taskRequests1 = calDAVService.importFromICS(
+            new ByteArrayInputStream(ics.getBytes()), testUser);
+        List<TaskRequest> taskRequests2 = calDAVService.importFromICS(
+            new ByteArrayInputStream(ics.getBytes()), testUser);
+
+        assertEquals(1, taskRequests1.size());
+        assertEquals(1, taskRequests2.size());
+
+        TaskRequest task1 = taskRequests1.get(0);
+        TaskRequest task2 = taskRequests2.get(0);
+
+        assertNotNull(task1.getUid(), "UID should be generated when missing");
+        assertNotNull(task2.getUid(), "UID should be generated when missing");
+        assertTrue(task1.getUid().startsWith("privatecal-generated-"),
+            "Generated UID should have correct prefix");
+        assertEquals(task1.getUid(), task2.getUid(),
+            "Generated UID should be deterministic (same input → same UID)");
+    }
+
+    @Test
+    void testImportVTodoPreservesExistingUid() throws IOException {
+        String ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//Test//EN
+            BEGIN:VTODO
+            UID:todo-uid-67890@example.com
+            DUE:20251021T170000Z
+            SUMMARY:Task with UID
+            DESCRIPTION:This todo has a UID
+            END:VTODO
+            END:VCALENDAR
+            """;
+
+        List<TaskRequest> taskRequests = calDAVService.importFromICS(
+            new ByteArrayInputStream(ics.getBytes()), testUser);
+
+        assertEquals(1, taskRequests.size());
+
+        TaskRequest task = taskRequests.get(0);
+        assertTrue(task.getTitle().contains("Task with UID"));
+        assertEquals("todo-uid-67890@example.com", task.getUid(),
+            "UID from VTODO should be preserved exactly as provided");
+    }
+
+    @Test
+    void testExportTaskUsesSavedUid() throws IOException {
+        // Create a task with a specific UID
+        Task task = createTask(
+            "Task with saved UID",
+            "This task has a UID from import",
+            getInstant(2025, 10, 21, 14, 0),
+            getInstant(2025, 10, 21, 15, 0),
+            false
+        );
+        task.setUid("imported-uid-12345@external.com");
+
+        List<Task> tasks = List.of(task);
+
+        // Export to ICS
+        byte[] icsData = calDAVService.exportToICS(tasks, "Test Calendar");
+        String icsString = new String(icsData);
+
+        // Verify the saved UID is used in export
+        assertTrue(icsString.contains("UID:imported-uid-12345@external.com"),
+            "Export should use the saved UID from the task. Actual output:\n" + icsString);
+    }
+
+    @Test
+    void testExportTaskWithoutUidGeneratesFallback() throws IOException {
+        // Create a task without UID (legacy task)
+        Task task = createTask(
+            "Legacy task without UID",
+            "This task has no UID",
+            getInstant(2025, 10, 21, 14, 0),
+            getInstant(2025, 10, 21, 15, 0),
+            false
+        );
+        // Don't set UID (null)
+
+        List<Task> tasks = List.of(task);
+
+        // Export to ICS
+        byte[] icsData = calDAVService.exportToICS(tasks, "Test Calendar");
+        String icsString = new String(icsData);
+
+        // Verify a fallback UID is generated
+        assertTrue(icsString.contains("UID:privatecal-1-1@privatecal.local"),
+            "Export should generate fallback UID for legacy tasks. Actual output:\n" + icsString);
+    }
+
+    @Test
+    void testRoundTripPreservesUid() throws IOException {
+        // Step 1: Import event with UID
+        String originalIcs = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//Test//EN
+            BEGIN:VEVENT
+            UID:roundtrip-test-uid@example.com
+            DTSTART:20251021T140000Z
+            DTEND:20251021T150000Z
+            SUMMARY:Round Trip Test
+            DESCRIPTION:Testing UID preservation through import/export cycle
+            END:VEVENT
+            END:VCALENDAR
+            """;
+
+        List<TaskRequest> importedRequests = calDAVService.importFromICS(
+            new ByteArrayInputStream(originalIcs.getBytes()), testUser);
+
+        assertEquals(1, importedRequests.size());
+        TaskRequest importedRequest = importedRequests.get(0);
+        assertEquals("roundtrip-test-uid@example.com", importedRequest.getUid());
+
+        // Step 2: Create Task entity from TaskRequest (simulating save)
+        Task task = createTask(
+            importedRequest.getTitle(),
+            importedRequest.getDescription(),
+            importedRequest.getStartDatetime(),
+            importedRequest.getEndDatetime(),
+            importedRequest.getIsAllDay()
+        );
+        task.setUid(importedRequest.getUid()); // Preserve UID when saving
+
+        // Step 3: Export the task back to ICS
+        byte[] exportedIcs = calDAVService.exportToICS(List.of(task), "Test Calendar");
+        String exportedIcsString = new String(exportedIcs);
+
+        // Step 4: Verify UID is preserved in the export
+        assertTrue(exportedIcsString.contains("UID:roundtrip-test-uid@example.com"),
+            "UID should be preserved through complete import/export cycle");
+    }
+
     // ==================== HELPER METHODS ====================
 
     private Task createTask(String title, String description,

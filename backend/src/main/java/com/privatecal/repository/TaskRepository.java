@@ -138,6 +138,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "((t.startDatetime < :endTime AND t.endDatetime > :startTime))")
     long countConflictingTasksExcludingTask(@Param("userId") Long userId,
                                           @Param("excludeTaskId") Long excludeTaskId,
-                                          @Param("startTime") Instant startTime, 
+                                          @Param("startTime") Instant startTime,
                                           @Param("endTime") Instant endTime);
+
+    /**
+     * Find task by UID for a specific user
+     */
+    Optional<Task> findByUserAndUid(User user, String uid);
+
+    /**
+     * Find all tasks with UIDs in the provided list for a specific user (batch check)
+     */
+    List<Task> findByUserAndUidIn(User user, List<String> uids);
 }

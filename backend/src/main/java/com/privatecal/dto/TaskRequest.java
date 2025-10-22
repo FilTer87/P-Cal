@@ -11,7 +11,9 @@ import java.util.List;
  * Data Transfer Object for Task creation and update requests
  */
 public class TaskRequest {
-    
+
+    private Long id;  // For updates during duplicate handling
+
     @NotBlank(message = "Title is required")
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     private String title;
@@ -32,6 +34,9 @@ public class TaskRequest {
     private String location;
 
     private Boolean isAllDay = false;
+
+    @Size(max = 255, message = "UID must be at most 255 characters")
+    private String uid;
 
     @Size(max = 500, message = "Recurrence rule must be at most 500 characters")
     private String recurrenceRule;
@@ -79,8 +84,17 @@ public class TaskRequest {
         }
         return recurrenceEnd.isAfter(startDatetime);
     }
-    
+
     // Getters and Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -135,6 +149,14 @@ public class TaskRequest {
 
     public void setIsAllDay(Boolean isAllDay) {
         this.isAllDay = isAllDay;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getRecurrenceRule() {
