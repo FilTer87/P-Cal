@@ -12,8 +12,12 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - compatible with **Google Calendar**, **Apple Calendar**, **Outlook**, **Thunderbird** and RFC 5545 standards (.ics/.ical file format)
   - intelligent **preview** for duplicates or errors management
   - import **strategy option for duplicates**: prevent duplicates / update existing / import anyway
-  
-- **All-day events** management
+
+- **All-day events** management:
+  - CalDAV compatibility
+  - dedicated banner in week view (fixed scroll on grid)
+
+- Documentation files
 
 ### Changed
 
