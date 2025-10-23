@@ -44,10 +44,11 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
     Optional<Calendar> findBySlugAndUser(String slug, User user);
 
     /**
-     * Find calendar by slug and username (for CalDAV path resolution)
+     * Find calendar by slug and username/email (for CalDAV path resolution)
+     * Accepts both username or email for flexibility
      */
-    @Query("SELECT c FROM Calendar c WHERE c.slug = :slug AND c.user.username = :username")
-    Optional<Calendar> findBySlugAndUsername(@Param("slug") String slug, @Param("username") String username);
+    @Query("SELECT c FROM Calendar c WHERE c.slug = :slug AND (c.user.username = :usernameOrEmail OR c.user.email = :usernameOrEmail)")
+    Optional<Calendar> findBySlugAndUsername(@Param("slug") String slug, @Param("usernameOrEmail") String usernameOrEmail);
 
     /**
      * Find default calendar for a user

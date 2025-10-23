@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -716,6 +717,7 @@ public class CalDAVService {
      * @param taskId Task ID
      * @return iCalendar data as String
      */
+    @Transactional(readOnly = true)
     public String exportTaskAsICS(Long taskId) throws IOException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
@@ -743,11 +745,113 @@ public class CalDAVService {
      * @param taskId Task ID
      * @return ETag value (timestamp in millis)
      */
+    @Transactional(readOnly = true)
     public String getTaskETag(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
 
         Instant updated = task.getUpdatedAt() != null ? task.getUpdatedAt() : task.getCreatedAt();
         return String.valueOf(updated.toEpochMilli());
+    }
+
+    /**
+     * Import/update single event from ICS string
+     * Used by CalDAV PUT endpoint
+     *
+     * CalDAV standard: The URL identifies the resource, UID is for synchronization
+     * - If eventId exists in DB → Update that task (even if UID differs)
+     * - If eventId doesn't exist but UID exists → Update task by UID
+     * - Otherwise → Create new task with given eventId
+     *
+     * @param icsContent ICS content as string
+     * @param targetCalendar Target calendar
+     * @param currentUser Current authenticated user
+     * @param eventId Event ID from URL (CalDAV resource identifier)
+     * @param expectedETag Expected ETag for conflict detection (optional, can be null)
+     * @return Created or updated Task
+     * @throws IOException if parsing fails
+     * @throws RuntimeException if ETag mismatch (conflict)
+     */
+    @Transactional
+    public Task importSingleEventFromICS(String icsContent, com.privatecal.entity.Calendar targetCalendar, User currentUser, Long eventId, String expectedETag) throws IOException {
+        try {
+            // Parse ICS content
+            CalendarBuilder builder = new CalendarBuilder();
+            net.fortuna.ical4j.model.Calendar icalCalendar = builder.build(
+                new java.io.ByteArrayInputStream(icsContent.getBytes(StandardCharsets.UTF_8))
+            );
+
+            // Extract VEVENT (should be only one for CalDAV PUT)
+            var components = icalCalendar.getComponents(Component.VEVENT);
+            if (components.isEmpty()) {
+                throw new IOException("No VEVENT found in ICS content");
+            }
+            if (components.size() > 1) {
+                logger.warn("Multiple VEVENTs found in CalDAV PUT, using first one");
+            }
+
+            VEvent vevent = (VEvent) components.get(0);
+            TaskRequest taskRequest = veventToTaskRequest(vevent);
+            String uid = taskRequest.getUid();
+
+            // CalDAV standard: URL identifies the resource
+            // Priority: 1) eventId from URL, 2) UID match, 3) create new
+
+            Optional<Task> existingTaskById = taskRepository.findByIdAndUser(eventId, currentUser);
+            Optional<Task> existingTaskByUid = taskRepository.findByUserAndUid(currentUser, uid);
+
+            Task task;
+
+            if (existingTaskById.isPresent()) {
+                // UPDATE: Task exists at this URL location
+                task = existingTaskById.get();
+                logger.info("CalDAV PUT: Updating task at URL location {} (old UID: {}, new UID: {})",
+                    eventId, task.getUid(), uid);
+
+                // Update UID if changed (rare but possible)
+                task.setUid(uid);
+
+            } else if (existingTaskByUid.isPresent()) {
+                // UPDATE: Task exists with this UID but different ID (UID-based match)
+                task = existingTaskByUid.get();
+                logger.info("CalDAV PUT: Updating task {} by UID match ({}), URL was {}",
+                    task.getId(), uid, eventId);
+
+            } else {
+                // CREATE: New task with specified ID from URL
+                task = new Task();
+                task.setId(eventId);  // Use ID from URL
+                task.setUser(currentUser);
+                task.setCalendar(targetCalendar);
+                task.setUid(uid);
+                task.setCreatedAt(Instant.now());
+                logger.info("CalDAV PUT: Creating new task with ID {} (UID: {})", eventId, uid);
+            }
+
+            // Verify/update calendar
+            if (!task.getCalendar().getId().equals(targetCalendar.getId())) {
+                logger.warn("Task {} exists in different calendar, moving to {}", uid, targetCalendar.getSlug());
+                task.setCalendar(targetCalendar);
+            }
+
+            // Update all fields from ICS
+            task.setTitle(taskRequest.getTitle());
+            task.setDescription(taskRequest.getDescription());
+            task.setLocation(taskRequest.getLocation());
+            task.setStartDatetime(taskRequest.getStartDatetime());
+            task.setEndDatetime(taskRequest.getEndDatetime());
+            task.setIsAllDay(taskRequest.getIsAllDay());
+            task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+            task.setColor(taskRequest.getColor());
+            task.setUpdatedAt(Instant.now());
+
+            Task savedTask = taskRepository.save(task);
+            logger.info("CalDAV PUT successful: task {} (UID: {})", savedTask.getId(), savedTask.getUid());
+            return savedTask;
+
+        } catch (Exception e) {
+            logger.error("Error importing single event from ICS: {}", e.getMessage(), e);
+            throw new IOException("Failed to import event", e);
+        }
     }
 }

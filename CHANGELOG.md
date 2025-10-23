@@ -21,6 +21,14 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - default calendar creation for new users
   - automatic tests fix (missing default calendar)
 
+- **CalDAV Server** implementation:
+  - P-Cal can be accessed by your favourite CalDAV client (Thunderbird, Outlook, Apple Calendar, ...)
+  - Implemented functions:
+    - Discover calendars (OPTIONS, PROPFIND)
+    - Retrieve existing events (GET)
+    - Delete events (DELETE)
+    - Create / Update events (PUT with ID + ETag check for create/update)
+
 - Documentation files
 
 ### Changed
