@@ -111,12 +111,12 @@ docker compose up --build -d
 #### 🔧 Possibili funzionalità future (nessun ordine specifico)
 - **Traduzioni in altre lingue** (attualmente gestite: Inglese, Italiano e Spagnolo)
 - **Canali di notifica aggiuntivi**: Discord / Slack / Gotify / ...
-- **Categorie eventi** con filtro di visualizzazione globale (alternativa a calendari multipli)
+- **Gestion Calendari Multipli** - *Work In Progress!*
 - **Drag & Drop** per spostamento evento/attività nelle griglie ed update automatico
 - **Gestione avanzata sessioni utente**
-- **Integrazione CalDAV**
-- **Import dati** da export utente
-- **Import dati** da altri calendar
+- **Integrazione CalDAV** - *Work In Progress!*
+- **Import dati** da export utente - *Work In Progress!*
+- **Import dati** da altri calendar - *Work In Progress!*
 - **Condivisione eventi** tra gli utenti (gestione inviti)
 
 ### 📱 Possibili espansioni
