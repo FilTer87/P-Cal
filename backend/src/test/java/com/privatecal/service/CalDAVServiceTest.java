@@ -2,6 +2,7 @@ package com.privatecal.service;
 
 import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -26,6 +27,7 @@ class CalDAVServiceTest {
 
     private CalDAVService calDAVService;
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -35,6 +37,13 @@ class CalDAVServiceTest {
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
+
+        testCalendar = new Calendar();
+        testCalendar.setId(1L);
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Test Calendar");
+        testCalendar.setSlug("test");
+        testCalendar.setIsDefault(true);
     }
 
     // ==================== EXPORT TESTS ====================
@@ -588,6 +597,7 @@ class CalDAVServiceTest {
         Task task = new Task();
         task.setId(1L);
         task.setUser(testUser);
+        task.setCalendar(testCalendar);
         task.setTitle(title);
         task.setDescription(description);
         task.setStartDatetime(start);

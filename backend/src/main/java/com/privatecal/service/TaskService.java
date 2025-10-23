@@ -348,6 +348,7 @@ public class TaskService {
         // Create new non-recurring task for this specific occurrence
         Task newTask = new Task();
         newTask.setUser(currentUser);
+        newTask.setCalendar(masterTask.getCalendar()); // Use same calendar as master task
         newTask.setTitle(taskRequest.getTitle().trim());
         newTask.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
         newTask.setStartDatetime(taskRequest.getStartDatetime());

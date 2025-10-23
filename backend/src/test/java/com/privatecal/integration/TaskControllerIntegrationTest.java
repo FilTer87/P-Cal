@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.ReminderRepository;
@@ -61,12 +63,16 @@ class TaskControllerIntegrationTest {
     private TaskRepository taskRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private ReminderRepository reminderRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -80,6 +86,17 @@ class TaskControllerIntegrationTest {
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
 
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Set up security context
         UserDetailsImpl userDetails = UserDetailsImpl.build(testUser);
         UsernamePasswordAuthenticationToken authentication =
@@ -91,6 +108,7 @@ class TaskControllerIntegrationTest {
     void tearDown() {
         reminderRepository.deleteAll();
         taskRepository.deleteAll();
+        calendarRepository.deleteAll();
         userRepository.deleteAll();
         SecurityContextHolder.clearContext();
     }

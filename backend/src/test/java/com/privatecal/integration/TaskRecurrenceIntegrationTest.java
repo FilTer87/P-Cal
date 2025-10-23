@@ -2,7 +2,9 @@ package com.privatecal.integration;
 
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
@@ -46,9 +48,13 @@ class TaskRecurrenceIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -61,6 +67,17 @@ class TaskRecurrenceIntegrationTest {
         testUser.setLastName("User");
         testUser = userRepository.save(testUser);
 
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Set up security context with UserDetailsImpl
         UserDetailsImpl userDetails = UserDetailsImpl.build(testUser);
         UsernamePasswordAuthenticationToken authentication =
@@ -72,6 +89,7 @@ class TaskRecurrenceIntegrationTest {
     void tearDown() {
         SecurityContextHolder.clearContext();
         taskRepository.deleteAll();
+        calendarRepository.deleteAll();
         userRepository.deleteAll();
     }
 

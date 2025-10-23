@@ -22,8 +22,10 @@ import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
@@ -48,9 +50,13 @@ class TaskReminderUpdateTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -64,14 +70,17 @@ class TaskReminderUpdateTest {
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
 
-        // // Set up security context
-        // UsernamePasswordAuthenticationToken auth =
-        // new UsernamePasswordAuthenticationToken(
-        // testUser.getUsername(),
-        // null,
-        // List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        // );
-        // SecurityContextHolder.getContext().setAuthentication(auth);
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Set up security context with UserDetailsImpl
         UserDetailsImpl userDetails = UserDetailsImpl.build(testUser);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,

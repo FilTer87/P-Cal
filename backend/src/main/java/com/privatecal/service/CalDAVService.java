@@ -694,4 +694,60 @@ public class CalDAVService {
         if (a == null || b == null) return false;
         return a.equals(b);
     }
+
+    /**
+     * Export tasks from a specific calendar to iCalendar format
+     * Used by CalDAV server to export calendar-specific events
+     *
+     * @param calendar Calendar entity
+     * @return iCalendar data as byte array
+     */
+    public byte[] exportCalendarToICS(com.privatecal.entity.Calendar calendar) throws IOException {
+        logger.info("Exporting calendar '{}' (id={}) to iCalendar format", calendar.getName(), calendar.getId());
+
+        List<Task> tasks = taskRepository.findByCalendar_IdOrderByStartDatetimeAsc(calendar.getId());
+        return exportToICS(tasks, calendar.getName());
+    }
+
+    /**
+     * Export single task to iCalendar format
+     * Used by CalDAV server for GET /caldav/{user}/{calendar}/{eventId}.ics
+     *
+     * @param taskId Task ID
+     * @return iCalendar data as String
+     */
+    public String exportTaskAsICS(Long taskId) throws IOException {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+
+        // Create minimal calendar wrapper for single event
+        net.fortuna.ical4j.model.Calendar calendar = new net.fortuna.ical4j.model.Calendar();
+        calendar.getProperties().add(new ProdId(PRODID));
+        calendar.getProperties().add(Version.VERSION_2_0);
+        calendar.getProperties().add(CalScale.GREGORIAN);
+
+        VEvent event = taskToVEvent(task);
+        calendar.getComponents().add(event);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CalendarOutputter outputter = new CalendarOutputter();
+        outputter.output(calendar, out);
+
+        return out.toString("UTF-8");
+    }
+
+    /**
+     * Get ETag for a task (for CalDAV conflict detection)
+     * ETag is based on task's updatedAt timestamp
+     *
+     * @param taskId Task ID
+     * @return ETag value (timestamp in millis)
+     */
+    public String getTaskETag(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+
+        Instant updated = task.getUpdatedAt() != null ? task.getUpdatedAt() : task.getCreatedAt();
+        return String.valueOf(updated.toEpochMilli());
+    }
 }

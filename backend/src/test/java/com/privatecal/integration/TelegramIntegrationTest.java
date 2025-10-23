@@ -1,9 +1,11 @@
 package com.privatecal.integration;
 
 import com.privatecal.dto.NotificationType;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.service.notification.MockTelegramNotificationProvider;
 import com.privatecal.service.notification.NotificationProvider;
@@ -36,6 +38,9 @@ class TelegramIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CalendarRepository calendarRepository;
 
     @Autowired
     private List<NotificationProvider> providers;
@@ -203,8 +208,23 @@ class TelegramIntegrationTest {
     }
 
     private Task createTestTask(User user, String title) {
+        // Create or get default calendar for user
+        Calendar calendar = calendarRepository.findByUserAndIsDefaultTrue(user)
+                .orElseGet(() -> {
+                    Calendar newCalendar = new Calendar();
+                    newCalendar.setUser(user);
+                    newCalendar.setName("Default Calendar");
+                    newCalendar.setSlug("default");
+                    newCalendar.setColor("#3788d8");
+                    newCalendar.setIsDefault(true);
+                    newCalendar.setIsVisible(true);
+                    newCalendar.setTimezone("UTC");
+                    return calendarRepository.save(newCalendar);
+                });
+
         Task task = new Task();
         task.setUser(user);
+        task.setCalendar(calendar);
         task.setTitle(title);
         task.setStartDatetime(Instant.now().plus(1, ChronoUnit.HOURS));
         task.setEndDatetime(Instant.now().plus(2, ChronoUnit.HOURS));

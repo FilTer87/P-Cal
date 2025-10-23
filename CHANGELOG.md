@@ -18,6 +18,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - dedicated banner in week view (fixed scroll on grid)
 
 - **Multi Calendar** management capability (backend only, retro compatibility using a default)
+  - default calendar creation for new users
+  - automatic tests fix (missing default calendar)
 
 - Documentation files
 

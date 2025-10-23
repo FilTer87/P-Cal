@@ -37,7 +37,9 @@ import com.privatecal.config.TestConfig;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
@@ -66,10 +68,15 @@ class TaskIntegrationTest {
     private TaskRepository taskRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
     private User otherUser;
+    private Calendar testCalendar;
+    private Calendar otherCalendar;
 
     @BeforeEach
     void setUp() {
@@ -83,6 +90,17 @@ class TaskIntegrationTest {
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
 
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Create another user for access control tests
         otherUser = new User();
         otherUser.setUsername("otheruser@example.com");
@@ -92,6 +110,17 @@ class TaskIntegrationTest {
         otherUser.setLastName("User");
         otherUser.setCreatedAt(LocalDateTime.now());
         otherUser = userRepository.save(otherUser);
+
+        // Create default calendar for other user
+        otherCalendar = new Calendar();
+        otherCalendar.setUser(otherUser);
+        otherCalendar.setName("Default Calendar");
+        otherCalendar.setSlug("default");
+        otherCalendar.setColor("#3788d8");
+        otherCalendar.setIsDefault(true);
+        otherCalendar.setIsVisible(true);
+        otherCalendar.setTimezone("UTC");
+        otherCalendar = calendarRepository.save(otherCalendar);
 
         // Set up security context with UserDetailsImpl
         UserDetailsImpl userDetails = UserDetailsImpl.build(testUser);
@@ -104,6 +133,7 @@ class TaskIntegrationTest {
     void tearDown() {
         // Clean up test data since we removed @Transactional
         taskRepository.deleteAll();
+        calendarRepository.deleteAll();
         userRepository.deleteAll();
         SecurityContextHolder.clearContext();
     }
