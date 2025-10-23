@@ -17,6 +17,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - CalDAV compatibility
   - dedicated banner in week view (fixed scroll on grid)
 
+- **Multi Calendar** management capability (backend only, retro compatibility using a default)
+
 - Documentation files
 
 ### Changed

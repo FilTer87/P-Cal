@@ -36,6 +36,7 @@ public class TaskService {
     private final UserService userService;
     private final ReminderService reminderService;
     private final RecurrenceService recurrenceService;
+    private final CalendarService calendarService;
     
     /**
      * Create a new task
@@ -49,9 +50,13 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
+        // Get default calendar for user
+        com.privatecal.entity.Calendar defaultCalendar = calendarService.getDefaultCalendarEntity(currentUser);
+
         // Create task entity
         Task task = new Task();
         task.setUser(currentUser);
+        task.setCalendar(defaultCalendar);
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
         task.setStartDatetime(taskRequest.getStartDatetime());

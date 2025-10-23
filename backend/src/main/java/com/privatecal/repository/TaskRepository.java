@@ -150,4 +150,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      * Find all tasks with UIDs in the provided list for a specific user (batch check)
      */
     List<Task> findByUserAndUidIn(User user, List<String> uids);
+
+    /**
+     * Count tasks for a specific user and calendar
+     */
+    long countByUser_IdAndCalendar_Id(Long userId, Long calendarId);
+
+    /**
+     * Find all tasks for a specific calendar
+     */
+    List<Task> findByCalendar_IdOrderByStartDatetimeAsc(Long calendarId);
 }

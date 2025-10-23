@@ -26,6 +26,11 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     @NotNull
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calendar_id", nullable = false)
+    @NotNull(message = "Calendar is required")
+    private Calendar calendar;
     
     @NotBlank
     @Size(min = 1, max = 100)
@@ -125,7 +130,15 @@ public class Task {
     public void setUser(User user) {
         this.user = user;
     }
-    
+
+    public Calendar getCalendar() {
+        return calendar;
+    }
+
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
+    }
+
     public String getTitle() {
         return title;
     }
