@@ -316,11 +316,11 @@ public class CalDAVServerController {
 
             // Calendar collection resource
             xml.append("  <D:response>\n");
-            xml.append("    <D:href>/caldav/").append(username).append("/").append(calendarSlug).append("/</D:href>\n");
+            xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/").append(escapeXml(calendarSlug)).append("/</D:href>\n");
             xml.append("    <D:propstat>\n");
             xml.append("      <D:prop>\n");
             xml.append("        <D:resourcetype><D:collection/><C:calendar/></D:resourcetype>\n");
-            xml.append("        <D:displayname>").append(calendar.getName()).append("</D:displayname>\n");
+            xml.append("        <D:displayname>").append(escapeXml(calendar.getName())).append("</D:displayname>\n");
             xml.append("      </D:prop>\n");
             xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
             xml.append("    </D:propstat>\n");
@@ -331,11 +331,11 @@ public class CalDAVServerController {
                 for (Task task : tasks) {
                     String etag = calDAVService.getTaskETag(task.getUid());
                     xml.append("  <D:response>\n");
-                    xml.append("    <D:href>/caldav/").append(username).append("/").append(calendarSlug)
-                       .append("/").append(task.getUid()).append(".ics</D:href>\n");
+                    xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/").append(escapeXml(calendarSlug))
+                       .append("/").append(escapeXml(task.getUid())).append(".ics</D:href>\n");
                     xml.append("    <D:propstat>\n");
                     xml.append("      <D:prop>\n");
-                    xml.append("        <D:getetag>\"").append(etag).append("\"</D:getetag>\n");
+                    xml.append("        <D:getetag>\"").append(escapeXml(etag)).append("\"</D:getetag>\n");
                     xml.append("        <D:getcontenttype>text/calendar; component=VEVENT</D:getcontenttype>\n");
                     xml.append("      </D:prop>\n");
                     xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
@@ -356,5 +356,30 @@ public class CalDAVServerController {
             logger.error("Error handling CalDAV PROPFIND: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * Escapes XML special characters to prevent XML injection and XSS attacks.
+     *
+     * Escapes the following characters according to XML specification:
+     * - & (ampersand) → &amp;
+     * - < (less than) → &lt;
+     * - > (greater than) → &gt;
+     * - " (double quote) → &quot;
+     * - ' (apostrophe) → &apos;
+     *
+     * @param text The text to escape (can be null)
+     * @return Escaped text safe for XML inclusion, or empty string if input is null
+     */
+    private String escapeXml(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;")
+                   .replace("'", "&apos;");
     }
 }
