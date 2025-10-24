@@ -448,18 +448,15 @@ watch([currentDate, viewMode], async ([newDate, newViewMode]) => {
 watch(
   () => $router.currentRoute.value.query.taskId,
   async (taskId) => {
-    if (taskId) {
-      const taskIdNum = parseInt(taskId as string, 10)
-      if (!isNaN(taskIdNum)) {
-        // Fetch the task by ID from API
-        const task = await tasks.fetchTaskById(taskIdNum)
-        if (task) {
-          // Open the task detail modal
-          openTaskModal(task)
-        }
-        // Remove the query parameter from the URL
-        await $router.replace({ query: {} })
+    if (taskId && typeof taskId === 'string') {
+      // Fetch the task by ID from API
+      const task = await tasks.fetchTaskById(taskId)
+      if (task) {
+        // Open the task detail modal
+        openTaskModal(task)
       }
+      // Remove the query parameter from the URL
+      await $router.replace({ query: {} })
     }
   },
   { immediate: true }
@@ -620,7 +617,7 @@ const handleTaskUpdated = async (task: Task) => {
   await reloadCurrentDateRange()
 }
 
-const handleTaskDeleted = async (taskId: number) => {
+const handleTaskDeleted = async (taskId: string) => {
   // Close the detail modal
   closeTaskModal()
   // Refresh tasks data

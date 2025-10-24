@@ -37,12 +37,9 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - CalDAV URLs are now stable (UID in URL directly maps to database)
   - No more "resource URL may change" limitation
   - Breaking change: Task ID type changed from `Long` to `String` (UID)
-  - Frontend will need migration (Vue.js components using task IDs)
+  - Frontend adjustment to use UID string instead of number
 
 ### Deprecated
-
-- TaskRepository.findByIdAndUser(String id, User user) - Use findByUidAndUser instead
-- TaskRepository.findByIdAndUser_Id(String id, Long userId) - Use findByUidAndUser_Id instead
 
 ### Removed
 

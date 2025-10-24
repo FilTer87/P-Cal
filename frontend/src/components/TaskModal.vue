@@ -374,7 +374,7 @@ interface Emits {
   (e: 'close'): void
   (e: 'task-created', task: Task): void
   (e: 'task-updated', task: Task): void
-  (e: 'task-deleted', taskId: number): void
+  (e: 'task-deleted', taskId: string): void
 }
 
 const props = defineProps<Props>()

@@ -37,24 +37,6 @@ public interface TaskRepository extends JpaRepository<Task, String> {  // Change
     Optional<Task> findByUidAndUser_Id(String uid, Long userId);
 
     /**
-     * Backward compatibility: alias for findByUidAndUser
-     * @deprecated Use findByUidAndUser instead
-     */
-    @Deprecated
-    default Optional<Task> findByIdAndUser(String id, User user) {
-        return findByUidAndUser(id, user);
-    }
-
-    /**
-     * Backward compatibility: alias for findByUidAndUser_Id
-     * @deprecated Use findByUidAndUser_Id instead
-     */
-    @Deprecated
-    default Optional<Task> findByIdAndUser_Id(String id, Long userId) {
-        return findByUidAndUser_Id(id, userId);
-    }
-    
-    /**
      * Find tasks within a date range for a user
      * Includes recurring tasks regardless of their original date (they will be expanded later)
      */

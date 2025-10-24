@@ -297,7 +297,7 @@ interface Props {
 interface Emits {
   (e: 'close'): void
   (e: 'edit', task: Task, editMode?: 'single' | 'all'): void
-  (e: 'delete', taskId: number): void
+  (e: 'delete', taskId: string): void
 }
 
 const props = defineProps<Props>()

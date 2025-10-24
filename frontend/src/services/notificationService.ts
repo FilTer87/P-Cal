@@ -120,7 +120,7 @@ class BrowserNotificationService {
    */
   async sendReminderNotification(params: {
     taskTitle: string
-    taskId: number
+    taskId: string
     timeLeft: string
     dueDate: string
     baseUrl?: string

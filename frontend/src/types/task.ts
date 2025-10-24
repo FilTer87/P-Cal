@@ -1,5 +1,5 @@
 export interface Task {
-  id: number
+  id: string
   occurrenceId?: string // Unique ID for recurring task occurrences (format: "taskId-timestamp")
   title: string
   description?: string
@@ -49,7 +49,7 @@ export interface UpdateTaskRequest {
 
 export interface Reminder {
   id: number
-  taskId: number
+  taskId: string
   taskTitle?: string
   reminderTime: string
   reminderOffsetMinutes: number

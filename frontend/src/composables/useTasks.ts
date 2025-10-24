@@ -43,7 +43,7 @@ export function useTasks() {
     await tasksStore.fetchTasksByDateRange(startDate, endDate)
   }
 
-  const fetchTaskById = async (taskId: number): Promise<Task | null> => {
+  const fetchTaskById = async (taskId: string): Promise<Task | null> => {
     return await tasksStore.fetchTaskById(taskId)
   }
 
@@ -89,7 +89,7 @@ export function useTasks() {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
+  const updateTask = async (taskId: string, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isFormLoading.value = true
     formErrors.value = {}
 
@@ -107,7 +107,7 @@ export function useTasks() {
     }
   }
 
-  const deleteTask = async (taskId: number): Promise<boolean> => {
+  const deleteTask = async (taskId: string): Promise<boolean> => {
     isFormLoading.value = true
 
     try {
@@ -316,7 +316,7 @@ export function useTasks() {
     getTaskStatusColor,
 
     // Getters (used by CalendarView)
-    getTaskById: (taskId: number) => tasksStore.getTaskById(taskId),
+    getTaskById: (taskId: string) => tasksStore.getTaskById(taskId),
     getTasksForDate: (date: string) => tasksStore.getTasksByDate(date)
   }
 }

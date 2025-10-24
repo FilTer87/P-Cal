@@ -91,7 +91,7 @@ export const API_ENDPOINTS = {
   // Task endpoints
   TASKS: {
     BASE: '/tasks',
-    BY_ID: (id: number) => `/tasks/${id}`,
+    BY_ID: (id: string) => `/tasks/${id}`,
     BY_DATE_RANGE: '/tasks/date-range',
     SEARCH: '/tasks/search',
     STATS: '/tasks/stats'
@@ -100,7 +100,7 @@ export const API_ENDPOINTS = {
   REMINDERS: {
     BASE: '/reminders',
     BY_ID: (id: number) => `/reminders/${id}`,
-    BY_TASK: (taskId: number) => `/tasks/${taskId}/reminders`,
+    BY_TASK: (taskId: string) => `/tasks/${taskId}/reminders`,
     UPCOMING: '/reminders/upcoming'
   }
 } as const
