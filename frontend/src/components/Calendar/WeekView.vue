@@ -17,8 +17,30 @@
 
     <!-- Week Grid -->
     <div class="flex-1 relative overflow-hidden">
+      <!-- All-Day Banner (Fixed Layer) - Only rendered if there are all-day tasks -->
+      <div v-if="hasAnyAllDayTasks" class="absolute top-0 left-0 right-0 z-40">
+        <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600">
+          <!-- Time Column (Empty spacer to match grid) -->
+          <div class="bg-white dark:bg-gray-800 pointer-events-none">
+            <div class="h-8"></div>
+          </div>
+
+          <!-- All-Day Banners per Day -->
+          <div v-for="(dayInfo, dayIndex) in weekDaysWithAllDay"
+               :key="`allday-${dayIndex}`"
+               class="bg-white dark:bg-gray-800">
+            <AllDayBanner
+              :key="`banner-${dayIndex}`"
+              :tasks="dayInfo.allDayTasks"
+              @task-click="handleTaskClick" />
+          </div>
+        </div>
+      </div>
+
       <!-- Scrollable Content -->
-      <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll" class="absolute inset-0 overflow-auto" style="margin-right: -6px;">
+      <div ref="weeklyScrollContainer" @scroll="handleWeeklyScroll"
+           class="absolute overflow-auto"
+           :style="{ top: hasAnyAllDayTasks ? '32px' : '0', bottom: '0', left: '0', right: '0', marginRight: '-6px' }">
         <div class="grid grid-cols-8 gap-px bg-gray-200 dark:bg-gray-600" style="min-height: 1536px;">
           <!-- Time Column -->
           <div class="bg-white dark:bg-gray-800">
@@ -118,9 +140,9 @@ import { isToday, formatWeekday } from '../../utils/dateHelpers'
 import { useCalendar } from '../../composables/useCalendar'
 import { useSettingsStore } from '../../stores/settings'
 import { useOverlapLayout } from '../../composables/useOverlapLayout'
-import { i18n } from '../../i18n'
 import type { Task } from '../../types/task'
 import { getTaskKey } from '../../utils/recurrence'
+import AllDayBanner from './AllDayBanner.vue'
 
 // i18n
 const { t } = useI18n()
@@ -261,9 +283,6 @@ const getTaskTimeDisplayClasses = (task: Task) => {
     'shadow-sm'
   ]
 
-  // Color based on task color or default
-  const color = task.color || '#3788d8'
-  const bgColor = `${color}CC` // Add transparency
   const isPast = new Date(task.endDatetime) < new Date()
 
   return [
@@ -272,18 +291,6 @@ const getTaskTimeDisplayClasses = (task: Task) => {
       'opacity-50': isPast
     }
   ]
-}
-
-const getTaskTimeStyle = (task: Task) => {
-  const position = getTaskTimePosition(task)
-  const color = task.color || '#3788d8'
-
-  return {
-    ...position,
-    backgroundColor: `${color}CC`,
-    borderLeftColor: color,
-    zIndex: 10
-  }
 }
 
 const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[], calculatedLayouts: Map<string | number, any>) => {
@@ -478,11 +485,38 @@ const getTaskTimePositionIntelligent = (task: any, dayTasks: Task[]) => {
 }
 
 // Computed properties
+
+// Separate all-day tasks from timed tasks
+const weekDaysWithAllDay = computed(() => {
+  return getWeekDays(props.currentDate).map(day => {
+    const dayDate = format(day, 'yyyy-MM-dd')
+
+    // Filter tasks for this day
+    const dayTasks = props.tasks.filter(task => {
+      if (!task.startDatetime) return false
+      const taskDate = format(new Date(task.startDatetime), 'yyyy-MM-dd')
+      return taskDate === dayDate
+    })
+
+    return {
+      day,
+      allDayTasks: dayTasks.filter(t => t.isAllDay),
+      timedTasks: dayTasks.filter(t => !t.isAllDay)
+    }
+  })
+})
+
+// Check if there are any all-day tasks in the entire week
+const hasAnyAllDayTasks = computed(() => {
+  return weekDaysWithAllDay.value.some(dayInfo => dayInfo.allDayTasks.length > 0)
+})
+
 const weekDaysWithIndicators = computed(() => {
   indicatorsUpdateTrigger.value // Force reactivity
 
   return getWeekDays(props.currentDate).map(day => {
-    const dayTasks = getTasksWithSplitsForDate(day)
+    // Only process timed tasks (non all-day) for the grid
+    const dayTasks = getTasksWithSplitsForDate(day).filter(t => !t.isAllDay)
     const indicators = getTasksOverflowIndicators(dayTasks)
     const layouts = overlaps.calculateLayout(dayTasks)
 

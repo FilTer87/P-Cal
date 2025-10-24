@@ -6,9 +6,8 @@ import type {
   CreateTaskRequest,
   UpdateTaskRequest,
   TaskFormData,
-  ReminderFormData
 } from '../types/task'
-import { format, addMinutes, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import {
   transformTaskForCreation,
   transformTaskForUpdate,
@@ -44,7 +43,7 @@ export function useTasks() {
     await tasksStore.fetchTasksByDateRange(startDate, endDate)
   }
 
-  const fetchTaskById = async (taskId: number): Promise<Task | null> => {
+  const fetchTaskById = async (taskId: string): Promise<Task | null> => {
     return await tasksStore.fetchTaskById(taskId)
   }
 
@@ -68,6 +67,7 @@ export function useTasks() {
         location: taskData.location || '',
         color: taskData.color || '#3788d8',
         isRecurring: taskData.recurrenceRule || false,
+        isAllDay: taskData.isAllDay || false,
         reminders: []
       } as TaskFormData
       const validation = validateTaskForm(formData)
@@ -89,7 +89,7 @@ export function useTasks() {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
+  const updateTask = async (taskId: string, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isFormLoading.value = true
     formErrors.value = {}
 
@@ -107,7 +107,7 @@ export function useTasks() {
     }
   }
 
-  const deleteTask = async (taskId: number): Promise<boolean> => {
+  const deleteTask = async (taskId: string): Promise<boolean> => {
     isFormLoading.value = true
 
     try {
@@ -140,6 +140,7 @@ export function useTasks() {
       endTime: format(oneHourLater, 'HH:mm'),
       location: '',
       color: '#3788d8',
+      isAllDay: false,
       isRecurring: false,
       recurrenceFrequency: undefined,
       recurrenceInterval: undefined,
@@ -195,22 +196,24 @@ export function useTasks() {
       errors.startTime = t('composables.useTasks.validation.startTimeInvalid')
     }
 
-    // Validate end date/time
-    if (!formData.endDate) {
-      errors.endDate = t('composables.useTasks.validation.endDateRequired')
-    } else {
-      const endDate = new Date(formData.endDate)
-      if (isNaN(endDate.getTime())) {
-        errors.endDate = t('composables.useTasks.validation.endDateInvalid')
+    // Validate end date/time (only for non-all-day events)
+    if (!formData.isAllDay) {
+      if (!formData.endDate) {
+        errors.endDate = t('composables.useTasks.validation.endDateRequired')
+      } else {
+        const endDate = new Date(formData.endDate)
+        if (isNaN(endDate.getTime())) {
+          errors.endDate = t('composables.useTasks.validation.endDateInvalid')
+        }
+      }
+
+      if (formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
+        errors.endTime = t('composables.useTasks.validation.endTimeInvalid')
       }
     }
 
-    if (formData.endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.endTime)) {
-      errors.endTime = t('composables.useTasks.validation.endTimeInvalid')
-    }
-    
-    // Validate that end is after start
-    if (formData.startDate && formData.endDate) {
+    // Validate that end is after start (only for non-all-day events)
+    if (!formData.isAllDay && formData.startDate && formData.endDate) {
       const startTimeStr = formData.startTime || '00:00'
       const endTimeStr = formData.endTime || '23:59'
       
@@ -313,7 +316,7 @@ export function useTasks() {
     getTaskStatusColor,
 
     // Getters (used by CalendarView)
-    getTaskById: (taskId: number) => tasksStore.getTaskById(taskId),
+    getTaskById: (taskId: string) => tasksStore.getTaskById(taskId),
     getTasksForDate: (date: string) => tasksStore.getTasksByDate(date)
   }
 }

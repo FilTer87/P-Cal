@@ -48,6 +48,7 @@ public class AuthService {
     private final EmailService emailService;
     private final EmailConfig emailConfig;
     private final EntityManager entityManager;
+    private final CalendarService calendarService;
 
     /**
      * Authenticate user and generate JWT tokens
@@ -183,6 +184,16 @@ public class AuthService {
             // Save user
             User savedUser = userRepository.save(newUser);
             logger.debug("User saved with ID: {}", savedUser.getId());
+
+            // Create default calendar for new user
+            try {
+                calendarService.ensureDefaultCalendar(savedUser);
+                logger.info("✅ Default calendar created for user: {}", savedUser.getUsername());
+            } catch (Exception e) {
+                logger.error("❌ Failed to create default calendar for user {}: {}", savedUser.getUsername(), e.getMessage(), e);
+                // This is critical - if calendar creation fails, user cannot create tasks
+                throw new RuntimeException("Failed to create default calendar during registration", e);
+            }
 
             // Generate and assign NTFY topic for the new user
             try {

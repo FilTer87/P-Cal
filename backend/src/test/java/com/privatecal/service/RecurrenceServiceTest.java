@@ -1,5 +1,6 @@
 package com.privatecal.service;
 
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ class RecurrenceServiceTest {
 
     private RecurrenceService recurrenceService;
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -29,6 +31,13 @@ class RecurrenceServiceTest {
         testUser.setId(1L);
         testUser.setUsername("test@example.com");
         testUser.setEmail("test@example.com");
+
+        testCalendar = new Calendar();
+        testCalendar.setId(1L);
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Test Calendar");
+        testCalendar.setSlug("test");
+        testCalendar.setIsDefault(true);
     }
 
     @Test
@@ -270,8 +279,9 @@ class RecurrenceServiceTest {
 
     private Task createTask(String title, Instant start, Instant end, String rrule) {
         Task task = new Task();
-        task.setId(1L);
+        task.setUid("test-uid-1");
         task.setUser(testUser);
+        task.setCalendar(testCalendar);
         task.setTitle(title);
         task.setStartDatetime(start);
         task.setEndDatetime(end);

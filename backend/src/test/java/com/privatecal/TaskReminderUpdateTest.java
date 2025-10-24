@@ -22,8 +22,10 @@ import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
 import com.privatecal.dto.TaskResponse;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Reminder;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.security.UserDetailsImpl;
@@ -48,9 +50,13 @@ class TaskReminderUpdateTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Calendar testCalendar;
 
     @BeforeEach
     void setUp() {
@@ -64,14 +70,17 @@ class TaskReminderUpdateTest {
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
 
-        // // Set up security context
-        // UsernamePasswordAuthenticationToken auth =
-        // new UsernamePasswordAuthenticationToken(
-        // testUser.getUsername(),
-        // null,
-        // List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        // );
-        // SecurityContextHolder.getContext().setAuthentication(auth);
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Set up security context with UserDetailsImpl
         UserDetailsImpl userDetails = UserDetailsImpl.build(testUser);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
@@ -90,10 +99,10 @@ class TaskReminderUpdateTest {
 
         // Create the task
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Verify initial state: task should have 2 reminders
-        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(2, remindersAfterCreate.size(), "Task should have exactly 2 reminders after creation");
 
         // Verify the reminder details
@@ -117,11 +126,11 @@ class TaskReminderUpdateTest {
         updateRequest.setReminders(updatedReminders);
 
         // Update the task
-        TaskResponse updatedTask = taskService.updateTask(taskId, updateRequest);
+        TaskResponse updatedTask = taskService.updateTask(taskUid, updateRequest);
 
         // Verify post-update state: task should have exactly 2 reminders (no
         // duplicates)
-        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(2, remindersAfterUpdate.size(),
                 "Task should have exactly 2 reminders after update, found: " + remindersAfterUpdate.size());
 
@@ -139,7 +148,7 @@ class TaskReminderUpdateTest {
         }
 
         // Additional verification: count total reminders for this task in database
-        long totalRemindersCount = reminderRepository.countByTask_Id(taskId);
+        long totalRemindersCount = reminderRepository.countByTask_Uid(taskUid);
         assertEquals(2, totalRemindersCount, "Database should contain exactly 2 reminders for this task");
     }
 
@@ -152,7 +161,7 @@ class TaskReminderUpdateTest {
         taskRequest.setReminders(initialReminders);
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Perform multiple updates
         for (int i = 1; i <= 3; i++) {
@@ -162,10 +171,10 @@ class TaskReminderUpdateTest {
             reminders.add(new ReminderRequest(20 + i * 5, NotificationType.EMAIL));
             updateRequest.setReminders(reminders);
 
-            taskService.updateTask(taskId, updateRequest);
+            taskService.updateTask(taskUid, updateRequest);
 
             // Verify no duplication after each update
-            List<Reminder> reminders_list = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+            List<Reminder> reminders_list = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
             assertEquals(1, reminders_list.size(),
                     "Task should have exactly 1 reminder after update " + i + ", found: " + reminders_list.size());
         }
@@ -181,19 +190,19 @@ class TaskReminderUpdateTest {
         taskRequest.setReminders(initialReminders);
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
-        List<Reminder> reminders = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> reminders = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(2, reminders.size(), "Task should have exactly 2 reminders");
 
         // Update task with empty reminders list
         TaskRequest updateRequest = createTaskRequest();
         updateRequest.setReminders(new ArrayList<>()); // Empty list
 
-        taskService.updateTask(taskId, updateRequest);
+        taskService.updateTask(taskUid, updateRequest);
 
         // Verify all reminders are removed
-        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(0, remindersAfterUpdate.size(), "Task should have no reminders after clearing them");
     }
 
@@ -204,10 +213,10 @@ class TaskReminderUpdateTest {
         taskRequest.setReminders(new ArrayList<>()); // No reminders initially
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Verify initial state: no reminders
-        List<Reminder> initialReminders = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> initialReminders = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(0, initialReminders.size(), "Task should have no reminders initially");
 
         // Update task to add reminders
@@ -217,10 +226,10 @@ class TaskReminderUpdateTest {
         newReminders.add(new ReminderRequest(60, NotificationType.EMAIL));
         updateRequest.setReminders(newReminders);
 
-        taskService.updateTask(taskId, updateRequest);
+        taskService.updateTask(taskUid, updateRequest);
 
         // Verify reminders are added correctly
-        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(2, remindersAfterUpdate.size(), "Task should have exactly 2 reminders after adding them");
     }
 

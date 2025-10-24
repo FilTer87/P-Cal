@@ -18,7 +18,7 @@ export class ReminderApi {
   /**
    * Create a new reminder for a task
    */
-  async createReminder(taskId: number, reminderData: CreateReminderRequest): Promise<Reminder> {
+  async createReminder(taskId: string, reminderData: CreateReminderRequest): Promise<Reminder> {
     return apiClient.post<Reminder>(API_ENDPOINTS.REMINDERS.BY_TASK(taskId), reminderData)
   }
 

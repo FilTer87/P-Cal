@@ -38,13 +38,13 @@ public class ReminderService {
     /**
      * Create reminder for a task
      */
-    public ReminderResponse createReminderForTask(Long taskId, ReminderRequest reminderRequest) {
-        logger.debug("Creating reminder for task ID: {}", taskId);
+    public ReminderResponse createReminderForTask(String taskUid, ReminderRequest reminderRequest) {
+        logger.debug("Creating reminder for task UID: {}", taskUid);
 
         User currentUser = userService.getCurrentUser();
 
         // Find task and validate ownership
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         if (logger.isDebugEnabled()) {
@@ -141,15 +141,15 @@ public class ReminderService {
      * Get all reminders for a task
      */
     @Transactional(readOnly = true)
-    public List<ReminderResponse> getRemindersForTask(Long taskId) {
+    public List<ReminderResponse> getRemindersForTask(String taskUid) {
         User currentUser = userService.getCurrentUser();
-        
+
         // Validate task ownership
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
         List<Reminder> reminders = reminderRepository.findByTaskOrderByReminderTimeAsc(task);
-        
+
         return reminders.stream()
                 .map(ReminderResponse::fromReminder)
                 .collect(Collectors.toList());
@@ -257,18 +257,18 @@ public class ReminderService {
     /**
      * Delete all reminders for a task
      */
-    public void deleteRemindersForTask(Long taskId) {
-        logger.debug("Deleting all reminders for task ID: {}", taskId);
-        
+    public void deleteRemindersForTask(String taskUid) {
+        logger.debug("Deleting all reminders for task UID: {}", taskUid);
+
         User currentUser = userService.getCurrentUser();
-        
+
         // Validate task ownership
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
         // Delete reminders
         reminderRepository.deleteByTask(task);
-        
+
         logger.info("All reminders deleted for task: {}", task.getTitle());
     }
     

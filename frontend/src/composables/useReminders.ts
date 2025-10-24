@@ -27,7 +27,7 @@ export function useReminders() {
       if (reminder.isSent || reminder.sent) return false
       const reminderTime = new Date(reminder.reminderTime)
       const isUpcoming = reminderTime > now
-      console.log(`📅 Reminder ${reminder.id}: ${reminder.reminderTime} -> Local: ${reminderTime.toLocaleString()}, isUpcoming: ${isUpcoming}`)
+      console.debug(`📅 Reminder ${reminder.id}: ${reminder.reminderTime} -> Local: ${reminderTime.toLocaleString()}, isUpcoming: ${isUpcoming}`)
       return isUpcoming
     }).sort((a, b) =>
       new Date(a.reminderTime).getTime() - new Date(b.reminderTime).getTime()
@@ -45,7 +45,7 @@ export function useReminders() {
     }
   }
 
-  const createReminder = async (taskId: number, reminderData: CreateReminderRequest): Promise<Reminder | null> => {
+  const createReminder = async (taskId: string, reminderData: CreateReminderRequest): Promise<Reminder | null> => {
     try {
       const reminder = await reminderApi.createReminder(taskId, reminderData)
       reminders.value.push(reminder)

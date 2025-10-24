@@ -6,6 +6,7 @@ import com.privatecal.dto.ForgotPasswordRequest;
 import com.privatecal.dto.ResetPasswordRequest;
 import com.privatecal.dto.UserPreferencesRequest;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.PasswordResetTokenRepository;
 import com.privatecal.security.UserDetailsImpl;
@@ -61,12 +62,21 @@ class AuthControllerIntegrationTest {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
 
     @BeforeEach
     void setUp() {
+        // Clean up any existing data first (in case previous test failed)
+        // Order matters: delete children first, then parents
+        passwordResetTokenRepository.deleteAll();
+        calendarRepository.deleteAll();  // Delete calendars before users (FK constraint)
+        userRepository.deleteAll();
+
         // Create a test user
         testUser = new User();
         testUser.setUsername("authtest@example.com");
@@ -92,7 +102,9 @@ class AuthControllerIntegrationTest {
 
     @AfterEach
     void tearDown() {
+        // Order matters: delete children first, then parents
         passwordResetTokenRepository.deleteAll();
+        calendarRepository.deleteAll();  // Delete calendars before users (FK constraint)
         userRepository.deleteAll();
         SecurityContextHolder.clearContext();
     }

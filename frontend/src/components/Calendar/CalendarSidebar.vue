@@ -271,7 +271,7 @@ const handleNewTask = () => {
   emit('newTask')
 }
 
-const getTaskTitle = (taskId: number) => {
+const getTaskTitle = (taskId: string) => {
   // Try to find the task in the reminder data first (it includes taskTitle)
   const reminder = props.upcomingReminders?.find(r => r.taskId === taskId)
   if (reminder?.taskTitle) return reminder.taskTitle

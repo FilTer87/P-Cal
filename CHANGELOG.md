@@ -8,7 +8,36 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+- **Import/Export Calendars**:
+  - compatible with **Google Calendar**, **Apple Calendar**, **Outlook**, **Thunderbird** and RFC 5545 standards (.ics/.ical file format)
+  - intelligent **preview** for duplicates or errors management
+  - import **strategy option for duplicates**: prevent duplicates / update existing / import anyway
+
+- **All-day events** management:
+  - CalDAV compatibility
+  - dedicated banner in week view (fixed scroll on grid)
+
+- **Multi Calendar** management capability (backend only, retro compatibility using a default)
+  - default calendar creation for new users
+  - automatic tests fix (missing default calendar)
+
+- **CalDAV Server** implementation (RFC 4791):
+  - P-Cal can be accessed by your favourite CalDAV client (Thunderbird, Outlook, Apple Calendar, ...)
+  - Implemented functions:
+    - Discover calendars (OPTIONS, PROPFIND)
+    - Retrieve existing events (GET)
+    - Delete events (DELETE)
+    - Create / Update events (PUT with ID + ETag check for create/update)
+
+- Documentation files
+
 ### Changed
+
+  - Task UID is now the primary key (migration #018)
+  - CalDAV URLs are now stable (UID in URL directly maps to database)
+  - No more "resource URL may change" limitation
+  - Breaking change: Task ID type changed from `Long` to `String` (UID)
+  - Frontend adjustment to use UID string instead of number
 
 ### Deprecated
 

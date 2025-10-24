@@ -11,12 +11,14 @@ import java.util.List;
  * Data Transfer Object for Task creation and update requests
  */
 public class TaskRequest {
-    
+
+    private String id;  // Task UID for updates during duplicate handling
+
     @NotBlank(message = "Title is required")
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     private String title;
     
-    @Size(max = 500, message = "Description must be at most 500 characters")
+    @Size(max = 2500, message = "Description must be at most 2500 characters")
     private String description;
     
     @NotNull(message = "Start datetime is required")
@@ -30,6 +32,11 @@ public class TaskRequest {
 
     @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
+
+    private Boolean isAllDay = false;
+
+    @Size(max = 255, message = "UID must be at most 255 characters")
+    private String uid;
 
     @Size(max = 500, message = "Recurrence rule must be at most 500 characters")
     private String recurrenceRule;
@@ -77,8 +84,17 @@ public class TaskRequest {
         }
         return recurrenceEnd.isAfter(startDatetime);
     }
-    
+
     // Getters and Setters
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -125,6 +141,22 @@ public class TaskRequest {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Boolean getIsAllDay() {
+        return isAllDay;
+    }
+
+    public void setIsAllDay(Boolean isAllDay) {
+        this.isAllDay = isAllDay;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getRecurrenceRule() {

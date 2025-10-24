@@ -105,10 +105,10 @@ class TaskReminderPostgresTest {
 
         // Create the task
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskId = createdTask.getId();
 
         // Verify initial state
-        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskId);
         assertEquals(2, remindersAfterCreate.size(), "Task should have exactly 2 reminders after creation");
 
         // Log reminder IDs before update
@@ -127,7 +127,7 @@ class TaskReminderPostgresTest {
         TaskResponse updatedTask = taskService.updateTask(taskId, updateRequest);
 
         // Verify post-update state
-        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskId);
 
         // Log reminder IDs after update
         System.out.println("After update - Reminder IDs: " +
@@ -162,7 +162,7 @@ class TaskReminderPostgresTest {
         taskRequest.setReminders(initialReminders);
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskId = createdTask.getId();
 
         // Perform 5 updates
         for (int i = 1; i <= 5; i++) {
@@ -175,7 +175,7 @@ class TaskReminderPostgresTest {
             taskService.updateTask(taskId, updateRequest);
 
             // Check after each update
-            List<Reminder> remindersList = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+            List<Reminder> remindersList = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskId);
             System.out.println("After update " + i + " - Reminder count: " + remindersList.size() +
                               ", IDs: " + remindersList.stream().map(r -> r.getId()).toList());
 

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,6 +37,7 @@ public class TaskService {
     private final UserService userService;
     private final ReminderService reminderService;
     private final RecurrenceService recurrenceService;
+    private final CalendarService calendarService;
     
     /**
      * Create a new task
@@ -49,15 +51,22 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
         
+        // Get default calendar for user
+        com.privatecal.entity.Calendar defaultCalendar = calendarService.getDefaultCalendarEntity(currentUser);
+
         // Create task entity
         Task task = new Task();
         task.setUser(currentUser);
+        task.setCalendar(defaultCalendar);
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
         task.setStartDatetime(taskRequest.getStartDatetime());
         task.setEndDatetime(taskRequest.getEndDatetime());
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
+        // Generate UID if not provided (required for CalDAV compliance)
+        task.setUid(StringUtils.hasText(taskRequest.getUid()) ? taskRequest.getUid() : java.util.UUID.randomUUID().toString());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
         task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
@@ -67,13 +76,13 @@ public class TaskService {
         // Create reminders if provided
         if (taskRequest.getReminders() != null && !taskRequest.getReminders().isEmpty()) {
             for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
-                reminderService.createReminderForTask(savedTask.getId(), reminderRequest);
+                reminderService.createReminderForTask(savedTask.getUid(), reminderRequest);
             }
         }
         
         // Reload task with reminders
-        savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
-        // savedTask = taskRepository.findById(savedTask.getId()).orElseThrow( () -> new NullPointerException("Task not found after creation") );
+        savedTask = taskRepository.findById(savedTask.getUid()).orElse(savedTask);
+        // savedTask = taskRepository.findById(savedTask.getUid()).orElseThrow( () -> new NullPointerException("Task not found after creation") );
         
         logger.info("Task created successfully: {} for user: {}", savedTask.getTitle(), currentUser.getUsername());
         
@@ -81,15 +90,15 @@ public class TaskService {
     }
     
     /**
-     * Get task by ID (with user ownership validation)
+     * Get task by UID (with user ownership validation)
      */
     @Transactional(readOnly = true)
-    public TaskResponse getTaskById(Long taskId) {
+    public TaskResponse getTaskById(String taskUid) {
         User currentUser = userService.getCurrentUser();
-        
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
         return TaskResponse.fromTask(task);
     }
     
@@ -129,13 +138,13 @@ public class TaskService {
                     response.setStartDatetime(occurrence.getOccurrenceStart());
                     response.setEndDatetime(occurrence.getOccurrenceEnd());
                     // Generate unique occurrence ID: taskId-epochMillis
-                    response.setOccurrenceId(task.getId() + "-" + occurrence.getOccurrenceStart().toEpochMilli());
+                    response.setOccurrenceId(task.getUid() + "-" + occurrence.getOccurrenceStart().toEpochMilli());
                     expandedTasks.add(response);
                 }
             } else {
                 // Non-recurring task - use task ID as occurrence ID
                 TaskResponse response = TaskResponse.fromTask(task);
-                response.setOccurrenceId(String.valueOf(task.getId()));
+                response.setOccurrenceId(String.valueOf(task.getUid()));
                 expandedTasks.add(response);
             }
         }
@@ -236,13 +245,13 @@ public class TaskService {
     /**
      * Update task
      */
-    public TaskResponse updateTask(Long taskId, TaskRequest taskRequest) {
-        logger.debug("Updating task ID: {}", taskId);
-        
+    public TaskResponse updateTask(String taskUid, TaskRequest taskRequest) {
+        logger.debug("Updating task UID: {}", taskUid);
+
         User currentUser = userService.getCurrentUser();
-        
+
         // Find task and validate ownership
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
         
         // Validate task request
@@ -264,11 +273,14 @@ public class TaskService {
         } else {
             // For recurring tasks with unchanged recurrence rule, keep original dates
             logger.info("Preserving original dates for recurring task {} (start: {}, end: {})",
-                       taskId, task.getStartDatetime(), task.getEndDatetime());
+                       taskUid, task.getStartDatetime(), task.getEndDatetime());
         }
 
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
+        // DO NOT update UID - it's the primary key and should never change
+        // task.setUid(taskRequest.getUid());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
         task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
 
@@ -278,7 +290,7 @@ public class TaskService {
         // Update reminders if provided
         if (taskRequest.getReminders() != null) {
             // Get existing reminders for comparison and explicit deletion
-            List<Reminder> existingReminders = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+            List<Reminder> existingReminders = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
 
             // Delete existing reminders explicitly
             if (!existingReminders.isEmpty()) {
@@ -288,7 +300,7 @@ public class TaskService {
 
             // Add new reminders
             for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
-                reminderService.createReminderForTask(taskId, reminderRequest);
+                reminderService.createReminderForTask(taskUid, reminderRequest);
             }
 
             // Force flush of inserts as well to ensure consistency
@@ -296,7 +308,7 @@ public class TaskService {
         }
         
         // Reload task with reminders
-        savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
+        savedTask = taskRepository.findById(savedTask.getUid()).orElse(savedTask);
         
         logger.info("Task updated successfully: {} for user: {}", savedTask.getTitle(), currentUser.getUsername());
 
@@ -308,18 +320,18 @@ public class TaskService {
      * Update a single occurrence of a recurring task
      * Creates a new non-recurring task and adds an exception to the master task
      *
-     * @param taskId The ID of the recurring master task
+     * @param taskUid The UID of the recurring master task
      * @param occurrenceStart The start datetime of the occurrence to edit
      * @param taskRequest The updated task data
      * @return The newly created task for the single occurrence
      */
-    public TaskResponse updateSingleOccurrence(Long taskId, Instant occurrenceStart, TaskRequest taskRequest) {
-        logger.info("Updating single occurrence of task ID {} at {}", taskId, occurrenceStart);
+    public TaskResponse updateSingleOccurrence(String taskUid, Instant occurrenceStart, TaskRequest taskRequest) {
+        logger.info("Updating single occurrence of task UID {} at {}", taskUid, occurrenceStart);
 
         User currentUser = userService.getCurrentUser();
 
         // Find master task and validate ownership
-        Task masterTask = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task masterTask = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         // Verify it's a recurring task
@@ -334,17 +346,21 @@ public class TaskService {
         recurrenceService.addExceptionDate(masterTask, occurrenceStart);
         taskRepository.save(masterTask);
 
-        logger.info("Added EXDATE {} to master task {}", occurrenceStart, masterTask.getId());
+        logger.info("Added EXDATE {} to master task {}", occurrenceStart, masterTask.getUid());
 
         // Create new non-recurring task for this specific occurrence
         Task newTask = new Task();
         newTask.setUser(currentUser);
+        newTask.setCalendar(masterTask.getCalendar()); // Use same calendar as master task
         newTask.setTitle(taskRequest.getTitle().trim());
         newTask.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
         newTask.setStartDatetime(taskRequest.getStartDatetime());
         newTask.setEndDatetime(taskRequest.getEndDatetime());
         newTask.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : masterTask.getColor());
         newTask.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
+        newTask.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
+        // Generate new UID for single occurrence (different from master task, required for CalDAV)
+        newTask.setUid(java.util.UUID.randomUUID().toString());
         // No recurrence for single occurrence
         newTask.setRecurrenceRule(null);
         newTask.setRecurrenceEnd(null);
@@ -354,14 +370,14 @@ public class TaskService {
         // Add reminders if provided
         if (taskRequest.getReminders() != null) {
             for (ReminderRequest reminderRequest : taskRequest.getReminders()) {
-                reminderService.createReminderForTask(savedTask.getId(), reminderRequest);
+                reminderService.createReminderForTask(savedTask.getUid(), reminderRequest);
             }
         }
 
         // Reload task with reminders
-        savedTask = taskRepository.findById(savedTask.getId()).orElse(savedTask);
+        savedTask = taskRepository.findById(savedTask.getUid()).orElse(savedTask);
 
-        logger.info("Created new task {} for single occurrence edit", savedTask.getId());
+        logger.info("Created new task {} for single occurrence edit", savedTask.getUid());
 
         return TaskResponse.fromTask(savedTask);
     }
@@ -369,18 +385,18 @@ public class TaskService {
     /**
      * Delete task
      */
-    public void deleteTask(Long taskId) {
-        logger.debug("Deleting task ID: {}", taskId);
-        
+    public void deleteTask(String taskUid) {
+        logger.debug("Deleting task UID: {}", taskUid);
+
         User currentUser = userService.getCurrentUser();
-        
+
         // Find task and validate ownership
-        Task task = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task task = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
         // Delete task (cascade will delete reminders)
         taskRepository.delete(task);
-        
+
         logger.info("Task deleted successfully: {} for user: {}", task.getTitle(), currentUser.getUsername());
     }
     
@@ -501,11 +517,11 @@ public class TaskService {
     /**
      * Clone/duplicate a task
      */
-    public TaskResponse cloneTask(Long taskId, Instant newStartTime) {
+    public TaskResponse cloneTask(String taskUid, Instant newStartTime) {
         User currentUser = userService.getCurrentUser();
-        
+
         // Find original task
-        Task originalTask = taskRepository.findByIdAndUser(taskId, currentUser)
+        Task originalTask = taskRepository.findByUidAndUser(taskUid, currentUser)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
         
         // Calculate duration and new end time

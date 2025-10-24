@@ -3,7 +3,7 @@
  * Automatically converts between UTC (backend) and local timezone (frontend)
  */
 
-import { localDateTimeToUTC, localDateToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
+import { localDateTimeToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
 import { buildRRule, parseRRule } from '../utils/recurrence'
 import { RecurrenceEndType } from '../types/task'
@@ -37,8 +37,12 @@ function convertFromMinutes(offsetMinutes: number): { offsetValue: number, offse
  * Transform task form data from frontend (local) to backend (UTC) format for creation
  */
 export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequest {
+  // Use user-selected time for all events (including all-day)
+  // For all-day events, the time is used for reminder calculations only
   const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
-  const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
+  const endDatetime = formData.isAllDay
+    ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
+    : localDateTimeToUTC(formData.endDate, formData.endTime)
 
   // Build recurrence rule if task is recurring
   let recurrenceRule: string | undefined
@@ -68,6 +72,7 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
+    isAllDay: formData.isAllDay,
     recurrenceRule,
     recurrenceEnd,
     reminders: formData.reminders?.map(reminder => {
@@ -89,8 +94,12 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
  * Transform task form data from frontend (local) to backend (UTC) format for update
  */
 export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskRequest {
+  // Use user-selected time for all events (including all-day)
+  // For all-day events, the time is used for reminder calculations only
   const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
-  const endDatetime = localDateTimeToUTC(formData.endDate, formData.endTime)
+  const endDatetime = formData.isAllDay
+    ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
+    : localDateTimeToUTC(formData.endDate, formData.endTime)
 
   // Build recurrence rule if task is recurring
   let recurrenceRule: string | undefined
@@ -126,6 +135,7 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
     endDatetime,
     location: formData.location?.trim() || undefined,
     color: formData.color,
+    isAllDay: formData.isAllDay,
     recurrenceRule,
     recurrenceEnd,
     reminders: formData.reminders?.map(reminder => {
@@ -159,6 +169,7 @@ export function transformTaskToFormData(task: Task): TaskFormData {
     endTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : '',
     location: task.location || '',
     color: task.color || '#3788d8',
+    isAllDay: task.isAllDay || false,
     isRecurring: task.isRecurring || false,
     recurrenceFrequency: recurrenceParams?.frequency,
     recurrenceInterval: recurrenceParams?.interval,

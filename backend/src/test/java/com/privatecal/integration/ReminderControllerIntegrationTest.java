@@ -3,8 +3,10 @@ package com.privatecal.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.privatecal.dto.NotificationType;
 import com.privatecal.dto.ReminderRequest;
+import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
+import com.privatecal.repository.CalendarRepository;
 import com.privatecal.repository.TaskRepository;
 import com.privatecal.repository.UserRepository;
 import com.privatecal.repository.ReminderRepository;
@@ -62,12 +64,16 @@ class ReminderControllerIntegrationTest {
     private TaskRepository taskRepository;
 
     @Autowired
+    private CalendarRepository calendarRepository;
+
+    @Autowired
     private ReminderRepository reminderRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Calendar testCalendar;
     private Task testTask;
 
     @BeforeEach
@@ -82,13 +88,26 @@ class ReminderControllerIntegrationTest {
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
 
+        // Create default calendar for test user
+        testCalendar = new Calendar();
+        testCalendar.setUser(testUser);
+        testCalendar.setName("Default Calendar");
+        testCalendar.setSlug("default");
+        testCalendar.setColor("#3788d8");
+        testCalendar.setIsDefault(true);
+        testCalendar.setIsVisible(true);
+        testCalendar.setTimezone("UTC");
+        testCalendar = calendarRepository.save(testCalendar);
+
         // Create a test task
         testTask = new Task();
+        testTask.setUid(java.util.UUID.randomUUID().toString());
         testTask.setTitle("Test Task for Reminders");
         testTask.setDescription("A task to test reminder functionality");
         testTask.setStartDatetime(Instant.parse("2024-12-25T10:00:00Z"));
         testTask.setEndDatetime(Instant.parse("2024-12-25T11:00:00Z"));
         testTask.setUser(testUser);
+        testTask.setCalendar(testCalendar);
         testTask.setCreatedAt(Instant.now());
         testTask = taskRepository.save(testTask);
 
@@ -103,6 +122,7 @@ class ReminderControllerIntegrationTest {
     void tearDown() {
         reminderRepository.deleteAll();
         taskRepository.deleteAll();
+        calendarRepository.deleteAll();
         userRepository.deleteAll();
         SecurityContextHolder.clearContext();
     }
@@ -477,12 +497,14 @@ class ReminderControllerIntegrationTest {
         System.out.println("  pastEnd = " + pastEnd);
 
         Task recurringTask = new Task();
+        recurringTask.setUid(java.util.UUID.randomUUID().toString());
         recurringTask.setTitle("Past Recurring Task");
         recurringTask.setDescription("Daily task that started a week ago");
         recurringTask.setStartDatetime(pastStart);
         recurringTask.setEndDatetime(pastEnd);
         recurringTask.setRecurrenceRule("FREQ=DAILY");
         recurringTask.setUser(testUser);
+        recurringTask.setCalendar(testCalendar);
         recurringTask.setCreatedAt(Instant.now());
 
         System.out.println("📅 TEST: Before save:");

@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskResponse {
-    
-    private Long id;
-    private String occurrenceId; // Unique identifier for recurring task occurrences (format: "taskId-timestamp")
+
+    private String id; // Task UID (primary key)
+    private String occurrenceId; // Unique identifier for recurring task occurrences (format: "taskUid-timestamp")
     private String title;
     private String description;
 
@@ -25,6 +25,7 @@ public class TaskResponse {
 
     private String color;
     private String location;
+    private Boolean isAllDay;
 
     private String recurrenceRule;
     private Instant recurrenceEnd;
@@ -59,6 +60,7 @@ public class TaskResponse {
         this.endDatetime = task.getEndDatetime();
         this.color = task.getColor();
         this.location = task.getLocation();
+        this.isAllDay = task.getIsAllDay();
         this.recurrenceRule = task.getRecurrenceRule();
         this.recurrenceEnd = task.getRecurrenceEnd();
         this.createdAt = task.getCreatedAt();
@@ -141,11 +143,11 @@ public class TaskResponse {
     }
     
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
-    
-    public void setId(Long id) {
+
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -202,9 +204,17 @@ public class TaskResponse {
     public String getLocation() {
         return location;
     }
-    
+
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Boolean getIsAllDay() {
+        return isAllDay;
+    }
+
+    public void setIsAllDay(Boolean isAllDay) {
+        this.isAllDay = isAllDay;
     }
 
     public String getRecurrenceRule() {

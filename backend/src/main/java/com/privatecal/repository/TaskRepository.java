@@ -12,28 +12,30 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
-    
+public interface TaskRepository extends JpaRepository<Task, String> {  // Changed from Long to String (UID)
+
     /**
      * Find all tasks for a specific user
      */
     List<Task> findByUserOrderByStartDatetimeAsc(User user);
-    
+
     /**
      * Find all tasks for a specific user by user ID
      */
     List<Task> findByUser_IdOrderByStartDatetimeAsc(Long userId);
-    
+
     /**
-     * Find task by ID and user (for security - user can only access their own tasks)
+     * Find task by UID and user (for security - user can only access their own tasks)
+     * UID is now the primary key
      */
-    Optional<Task> findByIdAndUser(Long id, User user);
-    
+    Optional<Task> findByUidAndUser(String uid, User user);
+
     /**
-     * Find task by ID and user ID
+     * Find task by UID and user ID
+     * UID is now the primary key
      */
-    Optional<Task> findByIdAndUser_Id(Long id, Long userId);
-    
+    Optional<Task> findByUidAndUser_Id(String uid, Long userId);
+
     /**
      * Find tasks within a date range for a user
      * Includes recurring tasks regardless of their original date (they will be expanded later)
@@ -133,11 +135,32 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     
     /**
      * Check if user has any tasks in a specific time slot excluding a specific task
+     * Updated to use UID instead of numeric ID
      */
-    @Query("SELECT COUNT(t) FROM Task t WHERE t.user.id = :userId AND t.id != :excludeTaskId AND " +
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.user.id = :userId AND t.uid != :excludeTaskUid AND " +
            "((t.startDatetime < :endTime AND t.endDatetime > :startTime))")
     long countConflictingTasksExcludingTask(@Param("userId") Long userId,
-                                          @Param("excludeTaskId") Long excludeTaskId,
-                                          @Param("startTime") Instant startTime, 
+                                          @Param("excludeTaskUid") String excludeTaskUid,
+                                          @Param("startTime") Instant startTime,
                                           @Param("endTime") Instant endTime);
+
+    /**
+     * Find task by UID for a specific user
+     */
+    Optional<Task> findByUserAndUid(User user, String uid);
+
+    /**
+     * Find all tasks with UIDs in the provided list for a specific user (batch check)
+     */
+    List<Task> findByUserAndUidIn(User user, List<String> uids);
+
+    /**
+     * Count tasks for a specific user and calendar
+     */
+    long countByUser_IdAndCalendar_Id(Long userId, Long calendarId);
+
+    /**
+     * Find all tasks for a specific calendar
+     */
+    List<Task> findByCalendar_IdOrderByStartDatetimeAsc(Long calendarId);
 }

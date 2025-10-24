@@ -179,7 +179,7 @@ export const useTasksStore = defineStore('tasks', () => {
       })
 
       // If we're adding expanded tasks (with occurrenceId), remove non-expanded versions
-      const expandedTaskIds = new Set<number>()
+      const expandedTaskIds = new Set<string>()
       tasksArray.forEach(task => {
         if (task.occurrenceId) {
           expandedTaskIds.add(task.id)
@@ -206,7 +206,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const fetchTaskById = async (taskId: number): Promise<Task | null> => {
+  const fetchTaskById = async (taskId: string): Promise<Task | null> => {
     isLoading.value = true
     error.value = null
 
@@ -256,13 +256,13 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const updateTask = async (taskId: number, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
+  const updateTask = async (taskId: string, taskData: UpdateTaskRequest, occurrenceStart?: string): Promise<Task | null> => {
     isLoading.value = true
     error.value = null
 
     try {
       const updatedTask = await taskApi.updateTask(taskId, taskData, occurrenceStart)
-      
+
       // Ensure we have a valid task before updating
       if (updatedTask && updatedTask.id) {
         const index = (tasks.value || []).findIndex(task => task && task.id === taskId)
@@ -274,7 +274,7 @@ export const useTasksStore = defineStore('tasks', () => {
         console.error('❌ Invalid task data received from API:', updatedTask)
         throw new Error('Dati task non validi ricevuti dal server')
       }
-      
+
       return updatedTask
     } catch (err: any) {
       error.value = err.message || 'Errore nell\'aggiornamento dell\'attività'
@@ -284,7 +284,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const deleteTask = async (taskId: number): Promise<boolean> => {
+  const deleteTask = async (taskId: string): Promise<boolean> => {
     isLoading.value = true
     error.value = null
 
@@ -336,7 +336,7 @@ export const useTasksStore = defineStore('tasks', () => {
     searchQuery.value = ''
   }
 
-  const getTaskById = (taskId: number): Task | undefined => {
+  const getTaskById = (taskId: string): Task | undefined => {
     return (tasks.value || []).find(task => task.id === taskId)
   }
 

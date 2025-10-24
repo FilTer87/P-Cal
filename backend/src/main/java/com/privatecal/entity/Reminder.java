@@ -19,7 +19,7 @@ public class Reminder {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "task_uid", referencedColumnName = "uid", nullable = false)
     @NotNull
     private Task task;
     

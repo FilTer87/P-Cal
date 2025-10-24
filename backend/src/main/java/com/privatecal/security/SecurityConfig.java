@@ -36,7 +36,8 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
-    
+    private final org.springframework.security.web.firewall.HttpFirewall httpFirewall;
+
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
     
@@ -147,6 +148,10 @@ public class SecurityConfig {
     
     /**
      * Security filter chain configuration
+     *
+     * Supports two authentication mechanisms:
+     * - HTTP Basic Auth for CalDAV endpoints (/caldav/**)
+     * - JWT Bearer token for REST API endpoints (/api/**)
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -161,35 +166,42 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-email", "/api/auth/resend-verification").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                
+
                 // Error handling endpoint
                 .requestMatchers("/error").permitAll()
-                
+
                 // Health check and actuator endpoints
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
-                
+
                 // Static resources
                 .requestMatchers("/", "/favicon.ico", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
-                
+
                 // Swagger/OpenAPI endpoints (allow in development)
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                
+
                 // OPTIONS requests for CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                
+
+                // CalDAV endpoints - require authentication via Basic Auth
+                .requestMatchers("/caldav/**").authenticated()
+
                 // All API endpoints require authentication
                 .requestMatchers("/api/**").authenticated()
-                
+
                 // All other requests require authentication
                 .anyRequest().authenticated()
+            )
+            // Enable HTTP Basic authentication for CalDAV
+            .httpBasic(basic -> basic
+                .realmName("PrivateCal CalDAV Server")
             )
             .authenticationProvider(authenticationProvider())
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint())
             )
             .addFilterBefore(jwtAuthenticationFilter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
     

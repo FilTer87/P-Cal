@@ -53,30 +53,30 @@ public class ReminderController {
     
     /**
      * Create reminder for a task
-     * POST /api/reminders/task/{taskId}
+     * POST /api/reminders/task/{taskUid}
      */
     @Operation(
-        summary = "Create Task Reminder", 
+        summary = "Create Task Reminder",
         description = "Create a notification reminder for a specific task. The reminder will be triggered at the specified time before the task starts."
     )
-    @ApiResponse(responseCode = "201", description = "Reminder created successfully", 
+    @ApiResponse(responseCode = "201", description = "Reminder created successfully",
                 content = @Content(schema = @Schema(implementation = ReminderResponse.class)))
     @ApiResponse(responseCode = "400", description = "Invalid reminder data")
     @ApiResponse(responseCode = "404", description = "Task not found")
     @ApiResponse(responseCode = "401", description = "Authentication required")
-    @PostMapping("/task/{taskId}")
+    @PostMapping("/task/{taskUid}")
     public ResponseEntity<ReminderResponse> createReminderForTask(
-            @Parameter(description = "Task ID", required = true) @PathVariable Long taskId, 
+            @Parameter(description = "Task UID", required = true) @PathVariable String taskUid,
             @Parameter(description = "Reminder details", required = true) @Valid @RequestBody ReminderRequest reminderRequest) {
         try {
-            logger.debug("Creating reminder for task ID: {}", taskId);
-            
-            ReminderResponse response = reminderService.createReminderForTask(taskId, reminderRequest);
-            
+            logger.debug("Creating reminder for task UID: {}", taskUid);
+
+            ReminderResponse response = reminderService.createReminderForTask(taskUid, reminderRequest);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-            
+
         } catch (Exception e) {
-            logger.error("Error creating reminder for task ID: {}", taskId, e);
+            logger.error("Error creating reminder for task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -84,15 +84,15 @@ public class ReminderController {
     
     /**
      * Get all reminders for a task
-     * GET /api/reminders/task/{taskId}
+     * GET /api/reminders/task/{taskUid}
      */
-    @GetMapping("/task/{taskId}")
-    public ResponseEntity<List<ReminderResponse>> getRemindersForTask(@PathVariable Long taskId) {
+    @GetMapping("/task/{taskUid}")
+    public ResponseEntity<List<ReminderResponse>> getRemindersForTask(@PathVariable String taskUid) {
         try {
-            List<ReminderResponse> reminders = reminderService.getRemindersForTask(taskId);
+            List<ReminderResponse> reminders = reminderService.getRemindersForTask(taskUid);
             return ResponseEntity.ok(reminders);
         } catch (Exception e) {
-            logger.error("Error getting reminders for task ID: {}", taskId, e);
+            logger.error("Error getting reminders for task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -178,22 +178,22 @@ public class ReminderController {
     
     /**
      * Delete all reminders for a task
-     * DELETE /api/reminders/task/{taskId}
+     * DELETE /api/reminders/task/{taskUid}
      */
-    @DeleteMapping("/task/{taskId}")
-    public ResponseEntity<Map<String, Object>> deleteRemindersForTask(@PathVariable Long taskId) {
+    @DeleteMapping("/task/{taskUid}")
+    public ResponseEntity<Map<String, Object>> deleteRemindersForTask(@PathVariable String taskUid) {
         try {
-            logger.debug("Deleting all reminders for task ID: {}", taskId);
-            
-            reminderService.deleteRemindersForTask(taskId);
-            
+            logger.debug("Deleting all reminders for task UID: {}", taskUid);
+
+            reminderService.deleteRemindersForTask(taskUid);
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "All reminders deleted for task"
             ));
-            
+
         } catch (Exception e) {
-            logger.error("Error deleting reminders for task ID: {}", taskId, e);
+            logger.error("Error deleting reminders for task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", e.getMessage()));
         }
@@ -203,30 +203,30 @@ public class ReminderController {
     
     /**
      * Create quick reminder presets
-     * POST /api/reminders/presets/task/{taskId}
+     * POST /api/reminders/presets/task/{taskUid}
      */
-    @PostMapping("/presets/task/{taskId}")
-    public ResponseEntity<List<ReminderResponse>> createReminderPresets(@PathVariable Long taskId, 
+    @PostMapping("/presets/task/{taskUid}")
+    public ResponseEntity<List<ReminderResponse>> createReminderPresets(@PathVariable String taskUid,
                                                                        @RequestBody Map<String, Object> request) {
         try {
             @SuppressWarnings("unchecked")
             List<String> presets = (List<String>) request.get("presets");
-            
+
             if (presets == null || presets.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
-            
-            logger.debug("Creating reminder presets for task ID: {}", taskId);
-            
+
+            logger.debug("Creating reminder presets for task UID: {}", taskUid);
+
             List<ReminderResponse> createdReminders = presets.stream()
-                    .map(preset -> createReminderFromPreset(taskId, preset))
+                    .map(preset -> createReminderFromPreset(taskUid, preset))
                     .filter(response -> response != null)
                     .toList();
-            
+
             return ResponseEntity.status(HttpStatus.CREATED).body(createdReminders);
-            
+
         } catch (Exception e) {
-            logger.error("Error creating reminder presets for task ID: {}", taskId, e);
+            logger.error("Error creating reminder presets for task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -264,7 +264,7 @@ public class ReminderController {
     /**
      * Helper method to create reminder from preset
      */
-    private ReminderResponse createReminderFromPreset(Long taskId, String preset) {
+    private ReminderResponse createReminderFromPreset(String taskUid, String preset) {
         try {
             int minutes = switch (preset.toLowerCase()) {
                 case "5min" -> 5;
@@ -277,16 +277,16 @@ public class ReminderController {
                 case "1week" -> 7 * 24 * 60;
                 default -> -1;
             };
-            
+
             if (minutes == -1) {
                 return null;
             }
-            
+
             ReminderRequest reminderRequest = new ReminderRequest(minutes);
-            return reminderService.createReminderForTask(taskId, reminderRequest);
-            
+            return reminderService.createReminderForTask(taskUid, reminderRequest);
+
         } catch (Exception e) {
-            logger.warn("Failed to create reminder preset {} for task {}", preset, taskId);
+            logger.warn("Failed to create reminder preset {} for task {}", preset, taskUid);
             return null;
         }
     }

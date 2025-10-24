@@ -17,24 +17,36 @@ import java.util.List;
 @Table(name = "tasks")
 @EntityListeners(AuditingEntityListener.class)
 public class Task {
-    
+
+    /**
+     * UID is the primary key (CalDAV RFC 4791 compliance)
+     * Format: iCalendar UID (RFC 5545) - ensures stable CalDAV URLs
+     * Example: "privatecal-user123-20241023T120000Z" or "uuid@domain.com"
+     */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
+    @NotBlank
+    @Size(max = 255)
+    @Column(name = "uid", length = 255, nullable = false)
+    private String uid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @NotNull
     private User user;
-    
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calendar_id", nullable = false)
+    @NotNull(message = "Calendar is required")
+    private Calendar calendar;
+
     @NotBlank
     @Size(min = 1, max = 100)
     @Column(nullable = false, length = 100)
     private String title;
-    
-    @Size(max = 500)
+
+    @Size(max = 2500)
     private String description;
-    
+
     @NotNull
     @Column(name = "start_datetime", nullable = false, columnDefinition = "TIMESTAMP")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
@@ -44,7 +56,7 @@ public class Task {
     @Column(name = "end_datetime", nullable = false, columnDefinition = "TIMESTAMP")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
     private Instant endDatetime;
-    
+
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color")
     @Column(length = 7)
     private String color = "#3788d8";
@@ -52,6 +64,9 @@ public class Task {
     @Size(max = 200)
     @Column(length = 200)
     private String location;
+
+    @Column(name = "is_all_day", nullable = false)
+    private Boolean isAllDay = false;
 
     @Size(max = 500)
     @Column(name = "recurrence_rule", length = 500)
@@ -103,58 +118,91 @@ public class Task {
     }
     
     // Getters and Setters
-    public Long getId() {
-        return id;
+
+    /**
+     * Get UID (Primary Key)
+     * This replaces the old getId() method - UID is now the primary identifier
+     */
+    public String getUid() {
+        return uid;
     }
-    
-    public void setId(Long id) {
-        this.id = id;
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
-    
+
+    /**
+     * Convenience method for backward compatibility
+     * Maps to getUid() since UID is the new primary key
+     * @deprecated Use getUid() instead
+     */
+    @Deprecated
+    public String getId() {
+        return uid;
+    }
+
+    /**
+     * Convenience method for backward compatibility
+     * Maps to setUid() since UID is the new primary key
+     * @deprecated Use setUid() instead
+     */
+    @Deprecated
+    public void setId(String id) {
+        this.uid = id;
+    }
+
     public User getUser() {
         return user;
     }
-    
+
     public void setUser(User user) {
         this.user = user;
     }
-    
+
+    public Calendar getCalendar() {
+        return calendar;
+    }
+
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
+    }
+
     public String getTitle() {
         return title;
     }
-    
+
     public void setTitle(String title) {
         this.title = title;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public Instant getStartDatetime() {
         return startDatetime;
     }
-    
+
     public void setStartDatetime(Instant startDatetime) {
         this.startDatetime = startDatetime;
     }
-    
+
     public Instant getEndDatetime() {
         return endDatetime;
     }
-    
+
     public void setEndDatetime(Instant endDatetime) {
         this.endDatetime = endDatetime;
     }
-    
+
     public String getColor() {
         return color;
     }
-    
+
     public void setColor(String color) {
         this.color = color;
     }
@@ -162,9 +210,17 @@ public class Task {
     public String getLocation() {
         return location;
     }
-    
+
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Boolean getIsAllDay() {
+        return isAllDay;
+    }
+
+    public void setIsAllDay(Boolean isAllDay) {
+        this.isAllDay = isAllDay;
     }
 
     public String getRecurrenceRule() {
@@ -233,18 +289,18 @@ public class Task {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Task task)) return false;
-        return id != null && id.equals(task.getId());
+        return uid != null && uid.equals(task.getUid());
     }
-    
+
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return uid != null ? uid.hashCode() : 0;
     }
-    
+
     @Override
     public String toString() {
         return "Task{" +
-                "id=" + id +
+                "uid='" + uid + '\'' +
                 ", title='" + title + '\'' +
                 ", startDatetime=" + startDatetime +
                 ", endDatetime=" + endDatetime +

@@ -63,11 +63,25 @@
           </div>
         </div>
 
+        <!-- All-Day Event Checkbox -->
+        <div class="flex items-center">
+          <input
+            id="isAllDay"
+            v-model="formData.isAllDay"
+            type="checkbox"
+            :disabled="isFormLoading"
+            class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <label for="isAllDay" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('tasks.allDayEvent') }}
+          </label>
+        </div>
+
         <!-- Start Date and Time -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {{ t('tasks.startDate') }} <span class="text-red-500">*</span>
+              {{ formData.isAllDay ? t('tasks.date') : t('tasks.startDate') }} <span class="text-red-500">*</span>
             </label>
             <input
               id="startDate"
@@ -80,7 +94,7 @@
             />
             <p v-if="formErrors.startDate" class="mt-1 text-sm text-red-500">{{ formErrors.startDate }}</p>
           </div>
-          
+
           <div>
             <label for="startTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.startTime') }}
@@ -98,11 +112,18 @@
               :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': formErrors.startTime, 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed': isEditingAllOccurrences }"
             />
             <p v-if="formErrors.startTime" class="mt-1 text-sm text-red-500">{{ formErrors.startTime }}</p>
+            <!-- Helper text for all-day events -->
+            <p v-if="formData.isAllDay" class="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {{ t('tasks.allDayTimeHelper') }}
+            </p>
           </div>
         </div>
 
-        <!-- End Date and Time -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- End Date and Time (hidden for all-day events) -->
+        <div v-if="!formData.isAllDay" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.endDate') }} <span class="text-red-500">*</span>
@@ -118,7 +139,7 @@
             />
             <p v-if="formErrors.endDate" class="mt-1 text-sm text-red-500">{{ formErrors.endDate }}</p>
           </div>
-          
+
           <div>
             <label for="endTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ t('tasks.endTime') }}
@@ -353,7 +374,7 @@ interface Emits {
   (e: 'close'): void
   (e: 'task-created', task: Task): void
   (e: 'task-updated', task: Task): void
-  (e: 'task-deleted', taskId: number): void
+  (e: 'task-deleted', taskId: string): void
 }
 
 const props = defineProps<Props>()

@@ -169,6 +169,11 @@
               />
             </div>
 
+            <!-- Mobile: Calendar Data -->
+            <div v-else-if="tab.id === 'calendar'">
+              <ProfileCalendarData />
+            </div>
+
             <!-- Mobile: Danger Zone -->
             <div v-else-if="tab.id === 'danger'">
               <ProfileDangerZone
@@ -234,6 +239,11 @@
           />
         </div>
 
+        <!-- Calendar Data Tab -->
+        <div v-else-if="activeTab === 'calendar'" class="space-y-8">
+          <ProfileCalendarData />
+        </div>
+
         <!-- Danger Zone Tab -->
         <div v-else-if="activeTab === 'danger'" class="space-y-8">
           <ProfileDangerZone
@@ -275,7 +285,8 @@ import ProfileDangerZone from '@/components/Auth/ProfileDangerZone.vue'
 import ProfilePreferences from '@/components/Auth/ProfilePreferences.vue'
 import ProfilePersonalInfo from '@/components/Auth/ProfilePersonalInfo.vue'
 import ProfileSecurity from '@/components/Auth/ProfileSecurity.vue'
-import { UserIcon, ShieldCheckIcon, Cog6ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import ProfileCalendarData from '@/components/Auth/ProfileCalendarData.vue'
+import { UserIcon, ShieldCheckIcon, Cog6ToothIcon, ExclamationTriangleIcon, CalendarIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/types/auth'
 
 // i18n
@@ -291,6 +302,7 @@ const settingsStore = useSettingsStore()
 const PersonIcon = UserIcon
 const SecurityIcon = ShieldCheckIcon
 const SettingsIcon = Cog6ToothIcon
+const CalendarDataIcon = CalendarIcon
 const DangerIcon = ExclamationTriangleIcon
 
 // Format member since date
@@ -344,6 +356,7 @@ const tabs = computed(() => [
   { id: 'personal', name: t('profile.tabs.personal'), icon: PersonIcon },
   { id: 'security', name: t('profile.tabs.security'), icon: SecurityIcon },
   { id: 'preferences', name: t('profile.tabs.preferences'), icon: SettingsIcon },
+  { id: 'calendar', name: t('profile.tabs.calendar'), icon: CalendarDataIcon },
   { id: 'danger', name: t('profile.tabs.danger'), icon: DangerIcon }
 ])
 
