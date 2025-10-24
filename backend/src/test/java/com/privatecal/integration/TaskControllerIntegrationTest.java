@@ -253,7 +253,7 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long taskId = objectMapper.readTree(createResponse).get("id").asLong();
+        String taskId = objectMapper.readTree(createResponse).get("id").asText();
 
         // Clone the task with new start time
         Map<String, String> cloneRequest = Map.of(

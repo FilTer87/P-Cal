@@ -10,9 +10,9 @@ import java.time.Instant;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReminderResponse {
-    
+
     private Long id;
-    private Long taskId;
+    private String taskId; // Task UID
     private String taskTitle;
     
     private Instant reminderTime;
@@ -144,11 +144,11 @@ public class ReminderResponse {
         this.id = id;
     }
     
-    public Long getTaskId() {
+    public String getTaskId() {
         return taskId;
     }
-    
-    public void setTaskId(Long taskId) {
+
+    public void setTaskId(String taskId) {
         this.taskId = taskId;
     }
     

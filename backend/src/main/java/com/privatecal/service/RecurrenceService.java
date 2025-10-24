@@ -330,9 +330,9 @@ public class RecurrenceService {
         }
 
         /**
-         * Get task ID
+         * Get task UID
          */
-        public Long getTaskId() {
+        public String getTaskId() {
             return task.getId();
         }
 

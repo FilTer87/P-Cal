@@ -23,19 +23,19 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     List<Reminder> findByTaskOrderByReminderTimeAsc(Task task);
     
     /**
-     * Find all reminders for a specific task by task ID
+     * Find all reminders for a specific task by task UID
      */
-    List<Reminder> findByTask_IdOrderByReminderTimeAsc(Long taskId);
-    
+    List<Reminder> findByTask_UidOrderByReminderTimeAsc(String taskUid);
+
     /**
      * Find reminder by ID and task (for security)
      */
     Optional<Reminder> findByIdAndTask(Long id, Task task);
-    
+
     /**
-     * Find reminder by ID and task ID
+     * Find reminder by ID and task UID
      */
-    Optional<Reminder> findByIdAndTask_Id(Long id, Long taskId);
+    Optional<Reminder> findByIdAndTask_Uid(Long id, String taskUid);
     
     /**
      * Find reminder by ID and ensure it belongs to the specified user
@@ -120,10 +120,10 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     void deleteByTask(Task task);
     
     /**
-     * Delete all reminders for a task by task ID
+     * Delete all reminders for a task by task UID
      */
-    void deleteByTask_Id(Long taskId);
-    
+    void deleteByTask_Uid(String taskUid);
+
     /**
      * Delete all reminders for tasks belonging to a user
      */
@@ -131,16 +131,16 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     @Modifying
     @Transactional
     void deleteAllRemindersForUser(@Param("userId") Long userId);
-    
+
     /**
      * Count reminders for a specific task
      */
     long countByTask(Task task);
-    
+
     /**
-     * Count reminders for a task by task ID
+     * Count reminders for a task by task UID
      */
-    long countByTask_Id(Long taskId);
+    long countByTask_Uid(String taskUid);
     
     /**
      * Count unsent reminders for a user
@@ -166,11 +166,11 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
                                                          @Param("notificationType") NotificationType notificationType);
     
     /**
-     * Find the next reminder for a specific task
+     * Find the next reminder for a specific task by UID
      */
-    @Query("SELECT r FROM Reminder r WHERE r.task.id = :taskId AND r.reminderTime >= :now AND r.isSent = false " +
+    @Query("SELECT r FROM Reminder r WHERE r.task.uid = :taskUid AND r.reminderTime >= :now AND r.isSent = false " +
            "ORDER BY r.reminderTime ASC")
-    Optional<Reminder> findNextReminderForTask(@Param("taskId") Long taskId, @Param("now") Instant now);
+    Optional<Reminder> findNextReminderForTask(@Param("taskUid") String taskUid, @Param("now") Instant now);
     
     /**
      * Delete sent reminders older than specified date (cleanup)

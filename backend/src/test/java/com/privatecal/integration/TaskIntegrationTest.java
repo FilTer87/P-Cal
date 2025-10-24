@@ -207,7 +207,7 @@ class TaskIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long taskId = objectMapper.readTree(createResponse).get("id").asLong();
+        String taskId = objectMapper.readTree(createResponse).get("id").asText();
 
         // When - Update the task
         TaskRequest updateRequest = new TaskRequest(
@@ -262,7 +262,7 @@ class TaskIntegrationTest {
                 .andExpect(jsonPath("$.reminders", hasSize(0)))
                 .andReturn().getResponse().getContentAsString();
 
-        Long taskId = objectMapper.readTree(response).get("id").asLong();
+        String taskId = objectMapper.readTree(response).get("id").asText();
 
         // Then - Verify reminders were saved correctly by fetching the task
         mockMvc.perform(get("/api/tasks/{taskId}", taskId))
@@ -290,7 +290,7 @@ class TaskIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long taskId = objectMapper.readTree(createResponse).get("id").asLong();
+        String taskId = objectMapper.readTree(createResponse).get("id").asText();
 
         // When - Delete the task (accept both 200 OK and 204 No Content)
         mockMvc.perform(delete("/api/tasks/{taskId}", taskId)
@@ -311,7 +311,7 @@ class TaskIntegrationTest {
         mockMvc.perform(get("/api/tasks"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[?(@.id == " + taskId + ")]").doesNotExist());
+                .andExpect(jsonPath("$[?(@.id == '" + taskId + "')]").doesNotExist());
     }
 
     @Test
@@ -349,7 +349,7 @@ class TaskIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long taskId = objectMapper.readTree(createResponse).get("id").asLong();
+        String taskId = objectMapper.readTree(createResponse).get("id").asText();
 
         // When - Switch to otherUser by explicitly setting security context
         UserDetailsImpl otherUserDetails = UserDetailsImpl.build(otherUser);
@@ -367,7 +367,7 @@ class TaskIntegrationTest {
                 .with(authentication(otherAuthentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[?(@.id == " + taskId + ")]").doesNotExist());
+                .andExpect(jsonPath("$[?(@.id == '" + taskId + "')]").doesNotExist());
 
         // No need to restore authentication as we used .with(authentication()) per-request
     }

@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskResponse {
-    
-    private Long id;
-    private String occurrenceId; // Unique identifier for recurring task occurrences (format: "taskId-timestamp")
+
+    private String id; // Task UID (primary key)
+    private String occurrenceId; // Unique identifier for recurring task occurrences (format: "taskUid-timestamp")
     private String title;
     private String description;
 
@@ -143,11 +143,11 @@ public class TaskResponse {
     }
     
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
-    
-    public void setId(Long id) {
+
+    public void setId(String id) {
         this.id = id;
     }
 

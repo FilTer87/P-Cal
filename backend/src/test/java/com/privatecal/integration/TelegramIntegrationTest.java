@@ -223,6 +223,7 @@ class TelegramIntegrationTest {
                 });
 
         Task task = new Task();
+        task.setUid(java.util.UUID.randomUUID().toString());
         task.setUser(user);
         task.setCalendar(calendar);
         task.setTitle(title);

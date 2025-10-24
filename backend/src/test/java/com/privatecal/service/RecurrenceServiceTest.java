@@ -279,7 +279,7 @@ class RecurrenceServiceTest {
 
     private Task createTask(String title, Instant start, Instant end, String rrule) {
         Task task = new Task();
-        task.setId(1L);
+        task.setUid("test-uid-1");
         task.setUser(testUser);
         task.setCalendar(testCalendar);
         task.setTitle(title);

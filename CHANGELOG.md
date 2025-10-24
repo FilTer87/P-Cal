@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - default calendar creation for new users
   - automatic tests fix (missing default calendar)
 
-- **CalDAV Server** implementation:
+- **CalDAV Server** implementation (RFC 4791):
   - P-Cal can be accessed by your favourite CalDAV client (Thunderbird, Outlook, Apple Calendar, ...)
   - Implemented functions:
     - Discover calendars (OPTIONS, PROPFIND)
@@ -33,7 +33,16 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Changed
 
+  - Task UID is now the primary key (migration #018)
+  - CalDAV URLs are now stable (UID in URL directly maps to database)
+  - No more "resource URL may change" limitation
+  - Breaking change: Task ID type changed from `Long` to `String` (UID)
+  - Frontend will need migration (Vue.js components using task IDs)
+
 ### Deprecated
+
+- TaskRepository.findByIdAndUser(String id, User user) - Use findByUidAndUser instead
+- TaskRepository.findByIdAndUser_Id(String id, Long userId) - Use findByUidAndUser_Id instead
 
 ### Removed
 

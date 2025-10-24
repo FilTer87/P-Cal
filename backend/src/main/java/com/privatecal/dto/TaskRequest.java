@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class TaskRequest {
 
-    private Long id;  // For updates during duplicate handling
+    private String id;  // Task UID for updates during duplicate handling
 
     @NotBlank(message = "Title is required")
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
@@ -87,11 +87,11 @@ public class TaskRequest {
 
     // Getters and Setters
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

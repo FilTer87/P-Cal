@@ -101,6 +101,7 @@ class ReminderControllerIntegrationTest {
 
         // Create a test task
         testTask = new Task();
+        testTask.setUid(java.util.UUID.randomUUID().toString());
         testTask.setTitle("Test Task for Reminders");
         testTask.setDescription("A task to test reminder functionality");
         testTask.setStartDatetime(Instant.parse("2024-12-25T10:00:00Z"));
@@ -496,6 +497,7 @@ class ReminderControllerIntegrationTest {
         System.out.println("  pastEnd = " + pastEnd);
 
         Task recurringTask = new Task();
+        recurringTask.setUid(java.util.UUID.randomUUID().toString());
         recurringTask.setTitle("Past Recurring Task");
         recurringTask.setDescription("Daily task that started a week ago");
         recurringTask.setStartDatetime(pastStart);

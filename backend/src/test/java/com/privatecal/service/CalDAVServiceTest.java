@@ -543,7 +543,7 @@ class CalDAVServiceTest {
         String icsString = new String(icsData);
 
         // Verify a fallback UID is generated
-        assertTrue(icsString.contains("UID:privatecal-1-1@privatecal.local"),
+        assertTrue(icsString.contains("UID:test-uid-1"),
             "Export should generate fallback UID for legacy tasks. Actual output:\n" + icsString);
     }
 
@@ -595,7 +595,7 @@ class CalDAVServiceTest {
     private Task createTask(String title, String description,
                           Instant start, Instant end, boolean isAllDay) {
         Task task = new Task();
-        task.setId(1L);
+        task.setUid("test-uid-1");
         task.setUser(testUser);
         task.setCalendar(testCalendar);
         task.setTitle(title);

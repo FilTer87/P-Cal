@@ -69,16 +69,16 @@ public class TaskController {
     }
     
     /**
-     * Get task by ID
-     * GET /api/tasks/{taskId}
+     * Get task by UID
+     * GET /api/tasks/{taskUid}
      */
-    @GetMapping("/{taskId}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable Long taskId) {
+    @GetMapping("/{taskUid}")
+    public ResponseEntity<TaskResponse> getTask(@PathVariable String taskUid) {
         try {
-            TaskResponse response = taskService.getTaskById(taskId);
+            TaskResponse response = taskService.getTaskById(taskUid);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("Error getting task ID: {}", taskId, e);
+            logger.error("Error getting task UID: {}", taskUid, e);
             return ResponseEntity.notFound().build();
         }
     }
@@ -153,15 +153,15 @@ public class TaskController {
     
     /**
      * Update task
-     * PUT /api/tasks/{taskId}
+     * PUT /api/tasks/{taskUid}
      * Optional query param: occurrenceStart (ISO 8601 datetime) for editing single occurrence
      */
-    @PutMapping("/{taskId}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId,
+    @PutMapping("/{taskUid}")
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable String taskUid,
                                                   @RequestParam(required = false) String occurrenceStart,
                                                   @Valid @RequestBody TaskRequest taskRequest) {
         try {
-            logger.debug("Updating task ID: {}, occurrenceStart: {}", taskId, occurrenceStart);
+            logger.debug("Updating task UID: {}, occurrenceStart: {}", taskUid, occurrenceStart);
 
             TaskResponse response;
 
@@ -172,68 +172,68 @@ public class TaskController {
                 logger.info("Editing single occurrence at {}", occurrenceInstant);
 
                 // Update single occurrence (creates new task + adds EXDATE)
-                response = taskService.updateSingleOccurrence(taskId, occurrenceInstant, taskRequest);
+                response = taskService.updateSingleOccurrence(taskUid, occurrenceInstant, taskRequest);
             } else {
                 // Update the entire task (all occurrences if recurring)
-                response = taskService.updateTask(taskId, taskRequest);
+                response = taskService.updateTask(taskUid, taskRequest);
             }
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            logger.error("Error updating task ID: {}", taskId, e);
+            logger.error("Error updating task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
     
     /**
      * Delete task
-     * DELETE /api/tasks/{taskId}
+     * DELETE /api/tasks/{taskUid}
      */
-    @DeleteMapping("/{taskId}")
-    public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable Long taskId) {
+    @DeleteMapping("/{taskUid}")
+    public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable String taskUid) {
         try {
-            logger.debug("Deleting task ID: {}", taskId);
-            
-            taskService.deleteTask(taskId);
-            
+            logger.debug("Deleting task UID: {}", taskUid);
+
+            taskService.deleteTask(taskUid);
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Task deleted successfully"
             ));
-            
+
         } catch (Exception e) {
-            logger.error("Error deleting task ID: {}", taskId, e);
+            logger.error("Error deleting task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-    
+
     /**
      * Clone/duplicate a task
-     * POST /api/tasks/{taskId}/clone
+     * POST /api/tasks/{taskUid}/clone
      */
-    @PostMapping("/{taskId}/clone")
-    public ResponseEntity<TaskResponse> cloneTask(@PathVariable Long taskId, 
+    @PostMapping("/{taskUid}/clone")
+    public ResponseEntity<TaskResponse> cloneTask(@PathVariable String taskUid,
                                                  @RequestBody Map<String, String> request) {
         try {
             String newStartTimeStr = request.get("newStartTime");
-            
+
             if (newStartTimeStr == null || newStartTimeStr.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
-            
+
             // Parse as ISO instant (UTC format)
             Instant newStartTime = Instant.parse(newStartTimeStr);
-            
-            logger.debug("Cloning task ID: {} with new start time: {}", taskId, newStartTime);
-            
-            TaskResponse response = taskService.cloneTask(taskId, newStartTime);
-            
+
+            logger.debug("Cloning task UID: {} with new start time: {}", taskUid, newStartTime);
+
+            TaskResponse response = taskService.cloneTask(taskUid, newStartTime);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-            
+
         } catch (Exception e) {
-            logger.error("Error cloning task ID: {}", taskId, e);
+            logger.error("Error cloning task UID: {}", taskUid, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

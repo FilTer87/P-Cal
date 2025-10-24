@@ -100,10 +100,10 @@ public class TaskReminderUpdateWithFlushTest {
         taskRequest.setReminders(initialReminders);
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Verify initial state
-        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterCreate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(2, remindersAfterCreate.size());
 
         // Capture original reminder IDs
@@ -122,10 +122,10 @@ public class TaskReminderUpdateWithFlushTest {
         updateRequest.setReminders(updatedReminders);
 
         // Update the task
-        taskService.updateTask(taskId, updateRequest);
+        taskService.updateTask(taskUid, updateRequest);
 
         // Verify post-update state
-        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_IdOrderByReminderTimeAsc(taskId);
+        List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskUid);
         assertEquals(3, remindersAfterUpdate.size(), "Should have exactly 3 reminders after update");
 
         // Verify that reminder IDs are different (old ones were deleted, new ones created)
@@ -154,7 +154,7 @@ public class TaskReminderUpdateWithFlushTest {
         assertEquals(1, count45Email, "Should have exactly 1 reminder: 45 min EMAIL");
 
         // Verify database consistency - total count for task
-        long totalCount = reminderRepository.countByTask_Id(taskId);
+        long totalCount = reminderRepository.countByTask_Uid(taskUid);
         assertEquals(3, totalCount, "Database should show exactly 3 reminders for this task");
     }
 
@@ -168,19 +168,19 @@ public class TaskReminderUpdateWithFlushTest {
         taskRequest.setReminders(initialReminders);
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Verify initial state
-        assertEquals(2, reminderRepository.countByTask_Id(taskId));
+        assertEquals(2, reminderRepository.countByTask_Uid(taskUid));
 
         // Update with empty reminders
         TaskRequest updateRequest = createTaskRequest();
         updateRequest.setReminders(new ArrayList<>());
 
-        taskService.updateTask(taskId, updateRequest);
+        taskService.updateTask(taskUid, updateRequest);
 
         // Verify all reminders are deleted
-        assertEquals(0, reminderRepository.countByTask_Id(taskId),
+        assertEquals(0, reminderRepository.countByTask_Uid(taskUid),
                     "All reminders should be deleted when updating with empty list");
     }
 
@@ -191,7 +191,7 @@ public class TaskReminderUpdateWithFlushTest {
         taskRequest.setReminders(List.of(new ReminderRequest(30, NotificationType.PUSH)));
 
         TaskResponse createdTask = taskService.createTask(taskRequest);
-        Long taskId = createdTask.getId();
+        String taskUid = createdTask.getId();
 
         // Perform many updates to stress test the delete/insert logic
         for (int i = 1; i <= 10; i++) {
@@ -210,10 +210,10 @@ public class TaskReminderUpdateWithFlushTest {
             }
 
             updateRequest.setReminders(reminders);
-            taskService.updateTask(taskId, updateRequest);
+            taskService.updateTask(taskUid, updateRequest);
 
             // Verify correct count after each update
-            long actualCount = reminderRepository.countByTask_Id(taskId);
+            long actualCount = reminderRepository.countByTask_Uid(taskUid);
             assertEquals(numReminders, actualCount,
                         "After update " + i + ", expected " + numReminders + " reminders, got " + actualCount);
         }

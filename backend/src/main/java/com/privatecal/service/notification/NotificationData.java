@@ -18,7 +18,7 @@ public class NotificationData {
     private final String userNtfyTopic;
     private final String userTimezone;
 
-    private final Long taskId;
+    private final String taskId; // Task UID
     private final String taskTitle;
     private final String taskDescription;
     private final String taskLocation;
@@ -92,7 +92,7 @@ public class NotificationData {
     public String getUserFullName() { return userFullName; }
     public String getUserNtfyTopic() { return userNtfyTopic; }
     public String getUserTimezone() { return userTimezone; }
-    public Long getTaskId() { return taskId; }
+    public String getTaskId() { return taskId; }
     public String getTaskTitle() { return taskTitle; }
     public String getTaskDescription() { return taskDescription; }
     public String getTaskLocation() { return taskLocation; }
@@ -136,7 +136,7 @@ public class NotificationData {
         private String userFullName;
         private String userNtfyTopic;
         private String userTimezone;
-        private Long taskId;
+        private String taskId;
         private String taskTitle;
         private String taskDescription;
         private String taskLocation;
@@ -151,7 +151,7 @@ public class NotificationData {
         public Builder userFullName(String userFullName) { this.userFullName = userFullName; return this; }
         public Builder userNtfyTopic(String userNtfyTopic) { this.userNtfyTopic = userNtfyTopic; return this; }
         public Builder userTimezone(String userTimezone) { this.userTimezone = userTimezone; return this; }
-        public Builder taskId(Long taskId) { this.taskId = taskId; return this; }
+        public Builder taskId(String taskId) { this.taskId = taskId; return this; }
         public Builder taskTitle(String taskTitle) { this.taskTitle = taskTitle; return this; }
         public Builder taskDescription(String taskDescription) { this.taskDescription = taskDescription; return this; }
         public Builder taskLocation(String taskLocation) { this.taskLocation = taskLocation; return this; }
