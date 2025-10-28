@@ -50,7 +50,8 @@ public class ReminderService {
         if (logger.isDebugEnabled()) {
             logger.debug("📅 ReminderService.createReminderForTask: task retrieved from DB");
             logger.debug("  task.getId() = {}", task.getId());
-            logger.debug("  task.getStartDatetime() = {}", task.getStartDatetime());
+            logger.debug("  task.getStartDatetimeLocal() = {}", task.getStartDatetimeLocal());
+            logger.debug("  task.getTaskTimezone() = {}", task.getTaskTimezone());
             logger.debug("  task.getRecurrenceRule() = {}", task.getRecurrenceRule());
         }
 
@@ -67,10 +68,11 @@ public class ReminderService {
         if (task.getRecurrenceRule() != null && !task.getRecurrenceRule().trim().isEmpty()) {
             Instant now = Instant.now();
             Instant occurrenceStart;
+            Instant taskStartInstant = task.getStartDatetimeAsInstant();
 
             // If task hasn't started yet, use the original task start time
-            if (task.getStartDatetime().isAfter(now)) {
-                occurrenceStart = task.getStartDatetime();
+            if (taskStartInstant.isAfter(now)) {
+                occurrenceStart = taskStartInstant;
                 logger.info("Recurring task hasn't started yet, using original start time: {}", occurrenceStart);
             } else {
                 // Task has already started - find the next occurrence from now
@@ -85,10 +87,10 @@ public class ReminderService {
                     // This is important for the findDueReminders query to work correctly
                     // even when the original task endDatetime is in the past
                     // We set it to the task's original start date as a marker
-                    reminder.setLastSentOccurrence(task.getStartDatetime());
+                    reminder.setLastSentOccurrence(taskStartInstant);
                 } else {
                     // No future occurrences - mark reminder as sent so it won't trigger
-                    reminder.setReminderTime(task.getStartDatetime());
+                    reminder.setReminderTime(taskStartInstant);
                     reminder.setIsSent(true);
                     logger.warn("No future occurrences found for recurring task {}, marking reminder as sent",
                                task.getId());
@@ -106,11 +108,12 @@ public class ReminderService {
             logger.info("Recurring task reminder: occurrence at {}, reminder time set to {}",
                        occurrenceStart, reminderTime);
         } else {
-            // Non-recurring task: use normal calculation
+            // Non-recurring task: use normal calculation (DST-aware via Task.getStartDatetimeAsInstant())
             reminder.calculateReminderTime();
 
             // Validate reminder time
-            if (reminder.getReminderTime() != null && reminder.getReminderTime().isAfter(task.getStartDatetime())) {
+            Instant taskStartInstant = task.getStartDatetimeAsInstant();
+            if (reminder.getReminderTime() != null && reminder.getReminderTime().isAfter(taskStartInstant)) {
                 throw new RuntimeException("Reminder time cannot be after task start time");
             }
         }

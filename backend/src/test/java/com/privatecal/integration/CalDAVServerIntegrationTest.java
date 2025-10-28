@@ -118,8 +118,16 @@ class CalDAVServerIntegrationTest {
         testTask.setUid("test-uid-123");
         testTask.setTitle("Test Event");
         testTask.setDescription("Test Description");
+
+        // Set new floating time fields
+        testTask.setStartDatetimeLocal(java.time.LocalDateTime.parse("2024-12-25T10:00:00"));
+        testTask.setEndDatetimeLocal(java.time.LocalDateTime.parse("2024-12-25T11:00:00"));
+        testTask.setTaskTimezone("UTC");
+
+        // Also set deprecated fields
         testTask.setStartDatetime(Instant.parse("2024-12-25T10:00:00Z"));
         testTask.setEndDatetime(Instant.parse("2024-12-25T11:00:00Z"));
+
         testTask.setIsAllDay(false);
         testTask.setCreatedAt(Instant.now());
         testTask.setUpdatedAt(Instant.now());

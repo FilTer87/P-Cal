@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -237,8 +237,9 @@ class TaskReminderUpdateTest {
         TaskRequest request = new TaskRequest();
         request.setTitle("Test Task");
         request.setDescription("Test Description");
-        request.setStartDatetime(Instant.now().plus(1, ChronoUnit.HOURS));
-        request.setEndDatetime(Instant.now().plus(2, ChronoUnit.HOURS));
+        request.setStartDatetimeLocal(LocalDateTime.now().plusHours(1));
+        request.setEndDatetimeLocal(LocalDateTime.now().plusHours(2));
+        request.setTimezone(ZoneId.systemDefault().getId());
         request.setColor("#3788d8");
         request.setLocation("Test Location");
         return request;

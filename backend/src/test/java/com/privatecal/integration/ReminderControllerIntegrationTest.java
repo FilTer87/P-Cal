@@ -104,8 +104,16 @@ class ReminderControllerIntegrationTest {
         testTask.setUid(java.util.UUID.randomUUID().toString());
         testTask.setTitle("Test Task for Reminders");
         testTask.setDescription("A task to test reminder functionality");
+
+        // Set new floating time fields
+        testTask.setStartDatetimeLocal(java.time.LocalDateTime.parse("2024-12-25T10:00:00"));
+        testTask.setEndDatetimeLocal(java.time.LocalDateTime.parse("2024-12-25T11:00:00"));
+        testTask.setTaskTimezone("UTC");
+
+        // Also set deprecated fields
         testTask.setStartDatetime(Instant.parse("2024-12-25T10:00:00Z"));
         testTask.setEndDatetime(Instant.parse("2024-12-25T11:00:00Z"));
+
         testTask.setUser(testUser);
         testTask.setCalendar(testCalendar);
         testTask.setCreatedAt(Instant.now());
@@ -500,20 +508,28 @@ class ReminderControllerIntegrationTest {
         recurringTask.setUid(java.util.UUID.randomUUID().toString());
         recurringTask.setTitle("Past Recurring Task");
         recurringTask.setDescription("Daily task that started a week ago");
+
+        // Set new floating time fields
+        recurringTask.setStartDatetimeLocal(pastStart.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        recurringTask.setEndDatetimeLocal(pastEnd.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        recurringTask.setTaskTimezone("UTC");
+
+        // Also set deprecated fields
         recurringTask.setStartDatetime(pastStart);
         recurringTask.setEndDatetime(pastEnd);
+
         recurringTask.setRecurrenceRule("FREQ=DAILY");
         recurringTask.setUser(testUser);
         recurringTask.setCalendar(testCalendar);
         recurringTask.setCreatedAt(Instant.now());
 
         System.out.println("📅 TEST: Before save:");
-        System.out.println("  task.getStartDatetime() = " + recurringTask.getStartDatetime());
+        System.out.println("  task.getStartDatetimeLocal() = " + recurringTask.getStartDatetimeLocal());
 
         recurringTask = taskRepository.save(recurringTask);
 
         System.out.println("📅 TEST: After save:");
-        System.out.println("  task.getStartDatetime() = " + recurringTask.getStartDatetime());
+        System.out.println("  task.getStartDatetimeLocal() = " + recurringTask.getStartDatetimeLocal());
 
         // Create a reminder: 30 minutes before
         ReminderRequest reminderRequest = new ReminderRequest(5, NotificationType.PUSH);

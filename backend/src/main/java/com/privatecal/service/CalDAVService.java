@@ -29,7 +29,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -134,11 +137,11 @@ public class CalDAVService {
             event.getProperties().add(new Location(task.getLocation()));
         }
 
-        // Set dates (DTSTART and DTEND)
+        // Set dates (DTSTART and DTEND) - RFC 5545 compliant with TZID
         if (Boolean.TRUE.equals(task.getIsAllDay())) {
             // All-day event: use DATE format (no time component)
-            LocalDate startDate = task.getStartDatetime().atZone(ZoneOffset.UTC).toLocalDate();
-            LocalDate endDate = task.getEndDatetime().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate startDate = task.getStartDatetimeLocal().toLocalDate();
+            LocalDate endDate = task.getEndDatetimeLocal().toLocalDate();
 
             // Create ical4j Date objects (not DateTime) for all-day events
             // Format: YYYYMMDD (e.g., 20251021)
@@ -155,14 +158,32 @@ public class CalDAVService {
                 throw new RuntimeException("Failed to create all-day event dates", e);
             }
         } else {
-            // Timed event: use DATE-TIME format (UTC)
-            DateTime dtStart = new DateTime(true); // true = UTC
-            dtStart.setTime(task.getStartDatetime().toEpochMilli());
-            event.getProperties().add(new DtStart(dtStart));
+            // Timed event: use DATE-TIME format WITH TZID (RFC 5545 floating time)
+            // This preserves local time across DST changes
+            try {
+                ZoneId taskZone = ZoneId.of(task.getTaskTimezone());
 
-            DateTime dtEnd = new DateTime(true);
-            dtEnd.setTime(task.getEndDatetime().toEpochMilli());
-            event.getProperties().add(new DtEnd(dtEnd));
+                // Get ical4j timezone registry
+                net.fortuna.ical4j.model.TimeZoneRegistry registry =
+                    net.fortuna.ical4j.model.TimeZoneRegistryFactory.getInstance().createRegistry();
+                net.fortuna.ical4j.model.TimeZone ical4jTimeZone = registry.getTimeZone(task.getTaskTimezone());
+
+                // Create DateTime with timezone (floating time)
+                ZonedDateTime zonedStart = task.getStartDatetimeLocal().atZone(taskZone);
+                DateTime dtStart = new DateTime(zonedStart.toInstant().toEpochMilli());
+                dtStart.setTimeZone(ical4jTimeZone);
+                event.getProperties().add(new DtStart(dtStart));
+
+                ZonedDateTime zonedEnd = task.getEndDatetimeLocal().atZone(taskZone);
+                DateTime dtEnd = new DateTime(zonedEnd.toInstant().toEpochMilli());
+                dtEnd.setTimeZone(ical4jTimeZone);
+                event.getProperties().add(new DtEnd(dtEnd));
+
+                logger.debug("Exported task {} with TZID: {}", task.getId(), task.getTaskTimezone());
+            } catch (Exception e) {
+                logger.error("Error creating datetime with timezone for task {}: {}", task.getId(), e.getMessage(), e);
+                throw new RuntimeException("Failed to create event dates with timezone", e);
+            }
         }
 
         // Set timestamps
@@ -307,13 +328,36 @@ public class CalDAVService {
             boolean isAllDay = dtStart.getParameter(Value.VALUE) == Value.DATE;
             taskRequest.setIsAllDay(isAllDay);
 
-            taskRequest.setStartDatetime(Instant.ofEpochMilli(startDate.getTime()));
-            taskRequest.setEndDatetime(Instant.ofEpochMilli(endDate.getTime()));
+            // Extract timezone from DTSTART (RFC 5545 TZID parameter)
+            String timezone = "UTC"; // Default
+            if (startDate instanceof DateTime) {
+                DateTime dateTime = (DateTime) startDate;
+                if (dateTime.getTimeZone() != null) {
+                    timezone = dateTime.getTimeZone().getID();
+                    logger.debug("Imported event with TZID: {}", timezone);
+                } else if (!dateTime.isUtc()) {
+                    // Floating time without explicit timezone - use UTC
+                    logger.warn("Event has floating time without TZID, defaulting to UTC");
+                }
+            }
+
+            // Convert to LocalDateTime + timezone (floating time)
+            Instant startInstant = Instant.ofEpochMilli(startDate.getTime());
+            Instant endInstant = Instant.ofEpochMilli(endDate.getTime());
+
+            ZoneId zoneId = ZoneId.of(timezone);
+            taskRequest.setStartDatetimeLocal(startInstant.atZone(zoneId).toLocalDateTime());
+            taskRequest.setEndDatetimeLocal(endInstant.atZone(zoneId).toLocalDateTime());
+            taskRequest.setTimezone(timezone);
+
+            logger.debug("Imported task: start={} end={} timezone={}",
+                taskRequest.getStartDatetimeLocal(), taskRequest.getEndDatetimeLocal(), timezone);
         } else {
-            // Fallback: use current time + 1 hour
+            // Fallback: use current time + 1 hour in UTC
             Instant now = Instant.now();
-            taskRequest.setStartDatetime(now);
-            taskRequest.setEndDatetime(now.plus(1, ChronoUnit.HOURS));
+            taskRequest.setStartDatetimeLocal(now.atZone(ZoneId.of("UTC")).toLocalDateTime());
+            taskRequest.setEndDatetimeLocal(now.plus(1, ChronoUnit.HOURS).atZone(ZoneId.of("UTC")).toLocalDateTime());
+            taskRequest.setTimezone("UTC");
             taskRequest.setIsAllDay(false);
         }
 
@@ -389,27 +433,41 @@ public class CalDAVService {
             // Check if DUE has time component (DATE-TIME vs DATE)
             boolean hasTimeComponent = dueDate instanceof DateTime;
 
+            // Extract timezone
+            String timezone = "UTC";
+            if (hasTimeComponent && dueDate instanceof DateTime) {
+                DateTime dateTime = (DateTime) dueDate;
+                if (dateTime.getTimeZone() != null) {
+                    timezone = dateTime.getTimeZone().getID();
+                }
+            }
+
             if (hasTimeComponent) {
                 // CASE 1: DUE with time → 30-minute timed task
                 Instant dueInstant = Instant.ofEpochMilli(dueDate.getTime());
-                taskRequest.setStartDatetime(dueInstant);
-                taskRequest.setEndDatetime(dueInstant.plus(DEFAULT_TODO_DURATION_MINUTES, ChronoUnit.MINUTES));
+                ZoneId zoneId = ZoneId.of(timezone);
+                taskRequest.setStartDatetimeLocal(dueInstant.atZone(zoneId).toLocalDateTime());
+                taskRequest.setEndDatetimeLocal(dueInstant.plus(DEFAULT_TODO_DURATION_MINUTES, ChronoUnit.MINUTES)
+                    .atZone(zoneId).toLocalDateTime());
+                taskRequest.setTimezone(timezone);
                 taskRequest.setIsAllDay(false);
-                logger.debug("VTODO with time component: {}", dueInstant);
+                logger.debug("VTODO with time component: {} in timezone {}", dueInstant, timezone);
             } else {
                 // CASE 2: DUE date-only → all-day task
                 LocalDate localDate = Instant.ofEpochMilli(dueDate.getTime())
                     .atZone(ZoneOffset.UTC).toLocalDate();
-                taskRequest.setStartDatetime(localDate.atStartOfDay(ZoneOffset.UTC).toInstant());
-                taskRequest.setEndDatetime(localDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant());
+                taskRequest.setStartDatetimeLocal(localDate.atStartOfDay());
+                taskRequest.setEndDatetimeLocal(localDate.plusDays(1).atStartOfDay());
+                taskRequest.setTimezone("UTC");
                 taskRequest.setIsAllDay(true);
                 logger.debug("VTODO date-only: {}", localDate);
             }
         } else {
             // CASE 3: No DUE → all-day task for today
             LocalDate today = LocalDate.now(ZoneOffset.UTC);
-            taskRequest.setStartDatetime(today.atStartOfDay(ZoneOffset.UTC).toInstant());
-            taskRequest.setEndDatetime(today.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant());
+            taskRequest.setStartDatetimeLocal(today.atStartOfDay());
+            taskRequest.setEndDatetimeLocal(today.plusDays(1).atStartOfDay());
+            taskRequest.setTimezone("UTC");
             taskRequest.setIsAllDay(true);
             logger.debug("VTODO without DUE: using today");
         }
@@ -552,8 +610,12 @@ public class CalDAVService {
                         new ImportPreviewResponse.DuplicateEventInfo();
                     dupInfo.setUid(uid);
                     dupInfo.setTitle(taskRequest.getTitle());
-                    dupInfo.setExistingDate(dateFormatter.format(existingTask.getStartDatetime()));
-                    dupInfo.setNewDate(dateFormatter.format(taskRequest.getStartDatetime()));
+                    dupInfo.setExistingDate(dateFormatter.format(existingTask.getStartDatetimeAsInstant()));
+                    // Convert TaskRequest local time to Instant for display
+                    Instant newStartInstant = taskRequest.getStartDatetimeLocal()
+                        .atZone(java.time.ZoneId.of(taskRequest.getTimezone()))
+                        .toInstant();
+                    dupInfo.setNewDate(dateFormatter.format(newStartInstant));
                     dupInfo.setContentChanged(contentChanged);
 
                     duplicates.add(dupInfo);
@@ -681,10 +743,11 @@ public class CalDAVService {
         boolean titleChanged = !safeEquals(existingTask.getTitle(), taskRequest.getTitle());
         boolean descChanged = !safeEquals(existingTask.getDescription(), taskRequest.getDescription());
         boolean locationChanged = !safeEquals(existingTask.getLocation(), taskRequest.getLocation());
-        boolean startChanged = !safeEquals(existingTask.getStartDatetime(), taskRequest.getStartDatetime());
-        boolean endChanged = !safeEquals(existingTask.getEndDatetime(), taskRequest.getEndDatetime());
+        boolean startChanged = !safeEquals(existingTask.getStartDatetimeLocal(), taskRequest.getStartDatetimeLocal());
+        boolean endChanged = !safeEquals(existingTask.getEndDatetimeLocal(), taskRequest.getEndDatetimeLocal());
+        boolean timezoneChanged = !safeEquals(existingTask.getTaskTimezone(), taskRequest.getTimezone());
 
-        return titleChanged || descChanged || locationChanged || startChanged || endChanged;
+        return titleChanged || descChanged || locationChanged || startChanged || endChanged || timezoneChanged;
     }
 
     /**
@@ -832,8 +895,9 @@ public class CalDAVService {
             task.setTitle(taskRequest.getTitle());
             task.setDescription(taskRequest.getDescription());
             task.setLocation(taskRequest.getLocation());
-            task.setStartDatetime(taskRequest.getStartDatetime());
-            task.setEndDatetime(taskRequest.getEndDatetime());
+            task.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
+            task.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
+            task.setTaskTimezone(taskRequest.getTimezone());
             task.setIsAllDay(taskRequest.getIsAllDay());
             task.setRecurrenceRule(taskRequest.getRecurrenceRule());
             task.setColor(taskRequest.getColor());

@@ -2,8 +2,11 @@ package com.privatecal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.privatecal.entity.Task;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,6 +14,8 @@ import java.util.stream.Collectors;
 /**
  * Data Transfer Object for Task response
  */
+@Data
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskResponse {
 
@@ -19,9 +24,25 @@ public class TaskResponse {
     private String title;
     private String description;
 
-    private Instant startDatetime;
+    /**
+     * Local datetime without timezone (floating time).
+     * Example: "2025-10-20T15:00:00" means "3 PM" regardless of DST.
+     * Frontend should display this directly without conversion.
+     */
+    private LocalDateTime startDatetimeLocal;
 
-    private Instant endDatetime;
+    /**
+     * Local datetime without timezone (floating time).
+     * Example: "2025-10-20T16:00:00" means "4 PM" regardless of DST.
+     * Frontend should display this directly without conversion.
+     */
+    private LocalDateTime endDatetimeLocal;
+
+    /**
+     * IANA timezone identifier (e.g., "Europe/Rome", "America/New_York").
+     * Frontend can use this for timezone display but should NOT convert the local times.
+     */
+    private String timezone;
 
     private String color;
     private String location;
@@ -48,16 +69,17 @@ public class TaskResponse {
     private Integer reminderCount;
     private Boolean isRecurring;
     
-    // Default constructor
-    public TaskResponse() {}
-    
     // Constructor from Task entity
     public TaskResponse(Task task) {
         this.id = task.getId();
         this.title = task.getTitle();
         this.description = task.getDescription();
-        this.startDatetime = task.getStartDatetime();
-        this.endDatetime = task.getEndDatetime();
+
+        // Floating time fields
+        this.startDatetimeLocal = task.getStartDatetimeLocal();
+        this.endDatetimeLocal = task.getEndDatetimeLocal();
+        this.timezone = task.getTaskTimezone();
+
         this.color = task.getColor();
         this.location = task.getLocation();
         this.isAllDay = task.getIsAllDay();
@@ -65,20 +87,20 @@ public class TaskResponse {
         this.recurrenceEnd = task.getRecurrenceEnd();
         this.createdAt = task.getCreatedAt();
         this.updatedAt = task.getUpdatedAt();
-        
+
         // User information
         if (task.getUser() != null) {
             this.userId = task.getUser().getId();
             this.userFullName = task.getUser().getFullName();
         }
-        
+
         // Convert reminders
         if (task.getReminders() != null) {
             this.reminders = task.getReminders().stream()
                     .map(ReminderResponse::new)
                     .collect(Collectors.toList());
         }
-        
+
         // Calculate computed fields
         this.calculateComputedFields();
     }
@@ -114,8 +136,9 @@ public class TaskResponse {
         TaskResponse response = new TaskResponse();
         response.setId(task.getId());
         response.setTitle(task.getTitle());
-        response.setStartDatetime(task.getStartDatetime());
-        response.setEndDatetime(task.getEndDatetime());
+        response.setStartDatetimeLocal(task.getStartDatetimeLocal());
+        response.setEndDatetimeLocal(task.getEndDatetimeLocal());
+        response.setTimezone(task.getTaskTimezone());
         response.setColor(task.getColor());
         response.calculateComputedFields();
         return response;
@@ -124,186 +147,32 @@ public class TaskResponse {
     // Calculate computed fields
     private void calculateComputedFields() {
         Instant now = Instant.now();
-        
-        if (startDatetime != null && endDatetime != null) {
-            this.durationMinutes = java.time.Duration.between(startDatetime, endDatetime).toMinutes();
-            // Convert to UTC date for comparison
-            java.time.LocalDate startDate = startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
-            java.time.LocalDate endDate = endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate();
-            java.time.LocalDate todayDate = now.atZone(java.time.ZoneOffset.UTC).toLocalDate();
-            
+
+        if (startDatetimeLocal != null && endDatetimeLocal != null && timezone != null) {
+            // Calculate duration from local times
+            this.durationMinutes = java.time.Duration.between(startDatetimeLocal, endDatetimeLocal).toMinutes();
+
+            // Convert to Instant for temporal comparisons
+            java.time.ZoneId zoneId = java.time.ZoneId.of(timezone);
+            Instant startInstant = startDatetimeLocal.atZone(zoneId).toInstant();
+            Instant endInstant = endDatetimeLocal.atZone(zoneId).toInstant();
+
+            // Use local dates for day comparison
+            java.time.LocalDate startDate = startDatetimeLocal.toLocalDate();
+            java.time.LocalDate endDate = endDatetimeLocal.toLocalDate();
+            java.time.LocalDate todayDate = now.atZone(zoneId).toLocalDate();
+
             this.isMultiDay = !startDate.equals(endDate);
             this.isToday = startDate.equals(todayDate);
-            this.isPast = endDatetime.isBefore(now);
-            this.isUpcoming = startDatetime.isAfter(now);
+            this.isPast = endInstant.isBefore(now);
+            this.isUpcoming = startInstant.isAfter(now);
         }
 
         this.reminderCount = (reminders != null) ? reminders.size() : 0;
         this.isRecurring = (recurrenceRule != null && !recurrenceRule.trim().isEmpty());
     }
-    
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getOccurrenceId() {
-        return occurrenceId;
-    }
-
-    public void setOccurrenceId(String occurrenceId) {
-        this.occurrenceId = occurrenceId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-    public Instant getStartDatetime() {
-        return startDatetime;
-    }
-    
-    public void setStartDatetime(Instant startDatetime) {
-        this.startDatetime = startDatetime;
-        calculateComputedFields();
-    }
-    
-    public Instant getEndDatetime() {
-        return endDatetime;
-    }
-    
-    public void setEndDatetime(Instant endDatetime) {
-        this.endDatetime = endDatetime;
-        calculateComputedFields();
-    }
-    
-    public String getColor() {
-        return color;
-    }
-    
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Boolean getIsAllDay() {
-        return isAllDay;
-    }
-
-    public void setIsAllDay(Boolean isAllDay) {
-        this.isAllDay = isAllDay;
-    }
-
-    public String getRecurrenceRule() {
-        return recurrenceRule;
-    }
-
-    public void setRecurrenceRule(String recurrenceRule) {
-        this.recurrenceRule = recurrenceRule;
-    }
-
-    public Instant getRecurrenceEnd() {
-        return recurrenceEnd;
-    }
-
-    public void setRecurrenceEnd(Instant recurrenceEnd) {
-        this.recurrenceEnd = recurrenceEnd;
-    }
-
-    public List<ReminderResponse> getReminders() {
-        return reminders;
-    }
-    
-    public void setReminders(List<ReminderResponse> reminders) {
-        this.reminders = reminders;
-        this.reminderCount = (reminders != null) ? reminders.size() : 0;
-    }
-    
-    public Long getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-    
-    public String getUserFullName() {
-        return userFullName;
-    }
-    
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
-    
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-    
-    // Computed field getters
-    public Long getDurationMinutes() {
-        return durationMinutes;
-    }
-    
-    public Boolean getIsMultiDay() {
-        return isMultiDay;
-    }
-    
-    public Boolean getIsToday() {
-        return isToday;
-    }
-    
-    public Boolean getIsPast() {
-        return isPast;
-    }
-    
-    public Boolean getIsUpcoming() {
-        return isUpcoming;
-    }
-    
-    public Integer getReminderCount() {
-        return reminderCount;
-    }
-
-    public Boolean getIsRecurring() {
-        return isRecurring;
-    }
-
-    // Helper methods
+    // Helper methods (Lombok generates all getters/setters)
     
     /**
      * Get formatted duration string
@@ -334,11 +203,11 @@ public class TaskResponse {
     }
     
     /**
-     * Get task date string (UTC)
+     * Get task date string (local date)
      */
     public String getTaskDateString() {
-        if (startDatetime != null) {
-            return startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate().toString();
+        if (startDatetimeLocal != null) {
+            return startDatetimeLocal.toLocalDate().toString();
         }
         return null;
     }
@@ -369,8 +238,9 @@ public class TaskResponse {
         return "TaskResponse{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", startDatetime=" + startDatetime +
-                ", endDatetime=" + endDatetime +
+                ", startDatetimeLocal=" + startDatetimeLocal +
+                ", endDatetimeLocal=" + endDatetimeLocal +
+                ", timezone='" + timezone + '\'' +
                 ", color='" + color + '\'' +
                 ", durationMinutes=" + durationMinutes +
                 ", reminderCount=" + reminderCount +

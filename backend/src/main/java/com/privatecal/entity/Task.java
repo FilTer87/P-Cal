@@ -10,6 +10,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,15 +50,47 @@ public class Task {
     @Size(max = 2500)
     private String description;
 
+    /**
+     * DEPRECATED: Use startDatetimeLocal + taskTimezone instead
+     * Kept for backward compatibility during migration
+     */
+    @Deprecated
     @NotNull
     @Column(name = "start_datetime", nullable = false, columnDefinition = "TIMESTAMP")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
     private Instant startDatetime;
 
+    /**
+     * DEPRECATED: Use endDatetimeLocal + taskTimezone instead
+     * Kept for backward compatibility during migration
+     */
+    @Deprecated
     @NotNull
     @Column(name = "end_datetime", nullable = false, columnDefinition = "TIMESTAMP")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.TIMESTAMP_UTC)
     private Instant endDatetime;
+
+    /**
+     * Local datetime (floating time) - does not change with DST.
+     * Example: 2025-10-20T15:00:00 means "3 PM" regardless of DST offset.
+     */
+    @Column(name = "start_datetime_local")
+    private LocalDateTime startDatetimeLocal;
+
+    /**
+     * Local datetime (floating time) - does not change with DST.
+     * Example: 2025-10-20T16:00:00 means "4 PM" regardless of DST offset.
+     */
+    @Column(name = "end_datetime_local")
+    private LocalDateTime endDatetimeLocal;
+
+    /**
+     * IANA timezone identifier (e.g., "Europe/Rome", "America/New_York").
+     * Used to convert local time to UTC when needed for notifications and CalDAV.
+     */
+    @Size(max = 50)
+    @Column(name = "task_timezone", length = 50)
+    private String taskTimezone;
 
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color")
     @Column(length = 7)
@@ -109,11 +144,24 @@ public class Task {
     @PrePersist
     @PreUpdate
     private void validate() {
-        if (endDatetime != null && startDatetime != null && !endDatetime.isAfter(startDatetime)) {
+        // Validate using new floating time fields if available
+        if (startDatetimeLocal != null && endDatetimeLocal != null) {
+            if (!endDatetimeLocal.isAfter(startDatetimeLocal)) {
+                throw new IllegalArgumentException("End datetime must be after start datetime");
+            }
+        } else if (endDatetime != null && startDatetime != null && !endDatetime.isAfter(startDatetime)) {
+            // Fallback to deprecated fields for backward compatibility
             throw new IllegalArgumentException("End datetime must be after start datetime");
         }
+
         if (recurrenceEnd != null && startDatetime != null && !recurrenceEnd.isAfter(startDatetime)) {
             throw new IllegalArgumentException("Recurrence end must be after start datetime");
+        }
+
+        // Sync deprecated UTC fields with new local fields when both are present
+        if (startDatetimeLocal != null && endDatetimeLocal != null && taskTimezone != null) {
+            startDatetime = startDatetimeLocal.atZone(ZoneId.of(taskTimezone)).toInstant();
+            endDatetime = endDatetimeLocal.atZone(ZoneId.of(taskTimezone)).toInstant();
         }
     }
     
@@ -280,9 +328,81 @@ public class Task {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
-    
+
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getStartDatetimeLocal() {
+        return startDatetimeLocal;
+    }
+
+    public void setStartDatetimeLocal(LocalDateTime startDatetimeLocal) {
+        this.startDatetimeLocal = startDatetimeLocal;
+    }
+
+    public LocalDateTime getEndDatetimeLocal() {
+        return endDatetimeLocal;
+    }
+
+    public void setEndDatetimeLocal(LocalDateTime endDatetimeLocal) {
+        this.endDatetimeLocal = endDatetimeLocal;
+    }
+
+    public String getTaskTimezone() {
+        return taskTimezone;
+    }
+
+    public void setTaskTimezone(String taskTimezone) {
+        this.taskTimezone = taskTimezone;
+    }
+
+    /**
+     * Helper method: Converts the local datetime to UTC Instant based on current timezone rules.
+     * This accounts for DST - the same local time may map to different UTC times depending on the date.
+     *
+     * Example:
+     * - Task at 15:00 Europe/Rome on Oct 20 (UTC+2) → 13:00 UTC
+     * - Task at 15:00 Europe/Rome on Oct 28 (UTC+1) → 14:00 UTC
+     *
+     * @return UTC Instant for the task's local time considering current DST rules
+     */
+    public Instant getStartDatetimeAsInstant() {
+        if (startDatetimeLocal == null || taskTimezone == null) {
+            return startDatetime; // Fallback to deprecated field
+        }
+        return startDatetimeLocal.atZone(ZoneId.of(taskTimezone)).toInstant();
+    }
+
+    /**
+     * Helper method: Converts the local datetime to UTC Instant based on current timezone rules.
+     * @see #getStartDatetimeAsInstant()
+     */
+    public Instant getEndDatetimeAsInstant() {
+        if (endDatetimeLocal == null || taskTimezone == null) {
+            return endDatetime; // Fallback to deprecated field
+        }
+        return endDatetimeLocal.atZone(ZoneId.of(taskTimezone)).toInstant();
+    }
+
+    /**
+     * Helper method: Get ZonedDateTime for display purposes
+     */
+    public ZonedDateTime getStartDatetimeZoned() {
+        if (startDatetimeLocal == null || taskTimezone == null) {
+            return startDatetime.atZone(ZoneId.of("UTC"));
+        }
+        return startDatetimeLocal.atZone(ZoneId.of(taskTimezone));
+    }
+
+    /**
+     * Helper method: Get ZonedDateTime for display purposes
+     */
+    public ZonedDateTime getEndDatetimeZoned() {
+        if (endDatetimeLocal == null || taskTimezone == null) {
+            return endDatetime.atZone(ZoneId.of("UTC"));
+        }
+        return endDatetimeLocal.atZone(ZoneId.of(taskTimezone));
     }
     
     @Override

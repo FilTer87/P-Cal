@@ -60,10 +60,20 @@ public class Reminder {
         this.notificationType = notificationType;
     }
     
-    // Calculate reminder time based on task start time and offset
+    /**
+     * Calculate reminder time based on task start time and offset.
+     * Uses DST-aware conversion: local time → UTC considering current timezone rules.
+     *
+     * Example: Task at 15:00 Europe/Rome with 30min offset
+     * - Before DST (UTC+2): reminder at 14:30 local → 12:30 UTC
+     * - After DST (UTC+1): reminder at 14:30 local → 13:30 UTC
+     */
     public void calculateReminderTime() {
-        if (task != null && task.getStartDatetime() != null && reminderOffsetMinutes != null) {
-            this.reminderTime = task.getStartDatetime().minus(java.time.Duration.ofMinutes(reminderOffsetMinutes));
+        if (task != null && task.getStartDatetimeLocal() != null && reminderOffsetMinutes != null) {
+            // Get task start as Instant (accounts for DST automatically)
+            Instant taskStartInstant = task.getStartDatetimeAsInstant();
+            // Subtract offset to get reminder time
+            this.reminderTime = taskStartInstant.minus(java.time.Duration.ofMinutes(reminderOffsetMinutes));
         }
     }
 

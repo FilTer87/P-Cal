@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -223,8 +223,9 @@ public class TaskReminderUpdateWithFlushTest {
         TaskRequest request = new TaskRequest();
         request.setTitle("Flush Test Task");
         request.setDescription("Testing flush logic");
-        request.setStartDatetime(Instant.now().plus(2, ChronoUnit.HOURS));
-        request.setEndDatetime(Instant.now().plus(3, ChronoUnit.HOURS));
+        request.setStartDatetimeLocal(LocalDateTime.now().plusHours(2));
+        request.setEndDatetimeLocal(LocalDateTime.now().plusHours(3));
+        request.setTimezone(ZoneId.systemDefault().getId());
         request.setColor("#FF5722");
         request.setLocation("Test Location");
         return request;

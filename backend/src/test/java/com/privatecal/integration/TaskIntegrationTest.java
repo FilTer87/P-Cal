@@ -149,11 +149,11 @@ class TaskIntegrationTest {
     @Test
     void createAndRetrieveTask_ShouldWorkEndToEnd() throws Exception {
         // Given - use constructor to avoid extra serialized fields
-        TaskRequest taskRequest = new TaskRequest(
-            "Integration Test Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskRequest = new TaskRequest();
+        taskRequest.setTitle("Integration Test Task");
+        taskRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskRequest.setTimezone("UTC");
         taskRequest.setDescription("This is a test task created during integration testing");
 
         // When - Create task
@@ -165,7 +165,9 @@ class TaskIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Integration Test Task"))
                 .andExpect(jsonPath("$.description").value("This is a test task created during integration testing"))
-                .andExpect(jsonPath("$.startDatetime").exists());
+                .andExpect(jsonPath("$.startDatetimeLocal").exists())
+                .andExpect(jsonPath("$.endDatetimeLocal").exists())
+                .andExpect(jsonPath("$.timezone").exists());
 
         // Then - Retrieve tasks and verify creation
         mockMvc.perform(get("/api/tasks"))
@@ -193,11 +195,11 @@ class TaskIntegrationTest {
     @Test
     void updateTask_ShouldUpdateExistingTask() throws Exception {
         // Given - Create a task first
-        TaskRequest createRequest = new TaskRequest(
-            "Original Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest createRequest = new TaskRequest();
+        createRequest.setTitle("Original Task");
+        createRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        createRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        createRequest.setTimezone("UTC");
         createRequest.setDescription("Original description");
 
         String createResponse = mockMvc.perform(post("/api/tasks")
@@ -210,11 +212,11 @@ class TaskIntegrationTest {
         String taskId = objectMapper.readTree(createResponse).get("id").asText();
 
         // When - Update the task
-        TaskRequest updateRequest = new TaskRequest(
-            "Updated Task Title",
-            Instant.parse("2024-12-25T14:00:00Z"),
-            Instant.parse("2024-12-25T15:30:00Z")
-        );
+        TaskRequest updateRequest = new TaskRequest();
+        updateRequest.setTitle("Updated Task Title");
+        updateRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T14:00:00"));
+        updateRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T15:30:00"));
+        updateRequest.setTimezone("UTC");
         updateRequest.setDescription("Updated description");
         updateRequest.setColor("#ff0000");
 
@@ -238,11 +240,11 @@ class TaskIntegrationTest {
     @Test
     void createTaskWithReminders_ShouldSaveAndRetrieveReminders() throws Exception {
         // Given - Task with reminders
-        TaskRequest taskRequest = new TaskRequest(
-            "Task with Reminders",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskRequest = new TaskRequest();
+        taskRequest.setTitle("Task with Reminders");
+        taskRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskRequest.setTimezone("UTC");
         taskRequest.setDescription("This task has multiple reminders");
         taskRequest.setReminders(Arrays.asList(
             new ReminderRequest(15, NotificationType.PUSH),
@@ -277,11 +279,11 @@ class TaskIntegrationTest {
     @Test
     void deleteTask_ShouldRemoveTaskFromDatabase() throws Exception {
         // Given - Create a task first
-        TaskRequest taskRequest = new TaskRequest(
-            "Task to Delete",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskRequest = new TaskRequest();
+        taskRequest.setTitle("Task to Delete");
+        taskRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskRequest.setTimezone("UTC");
 
         String createResponse = mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -317,11 +319,11 @@ class TaskIntegrationTest {
     @Test
     void createTask_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         // Given - Task request without authentication
-        TaskRequest taskRequest = new TaskRequest(
-            "Unauthorized Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskRequest = new TaskRequest();
+        taskRequest.setTitle("Unauthorized Task");
+        taskRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskRequest.setTimezone("UTC");
 
         // When - Try to create task without authentication by using anonymous user
         mockMvc.perform(post("/api/tasks")
@@ -336,11 +338,11 @@ class TaskIntegrationTest {
     @Test
     void accessTask_WithDifferentUser_ShouldReturnForbiddenOrNotFound() throws Exception {
         // Given - Create task with testUser
-        TaskRequest taskRequest = new TaskRequest(
-            "Private Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskRequest = new TaskRequest();
+        taskRequest.setTitle("Private Task");
+        taskRequest.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskRequest.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskRequest.setTimezone("UTC");
 
         String createResponse = mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -370,5 +372,19 @@ class TaskIntegrationTest {
                 .andExpect(jsonPath("$[?(@.id == '" + taskId + "')]").doesNotExist());
 
         // No need to restore authentication as we used .with(authentication()) per-request
+    }
+
+    private LocalDateTime getLocalDateTime(int year, int month, int day, int hour, int minute) {
+        return LocalDateTime.of(year, month, day, hour, minute);
+    }
+
+    private TaskRequest createTaskRequest(String title, int startYear, int startMonth, int startDay, int startHour, int startMinute,
+                                         int endYear, int endMonth, int endDay, int endHour, int endMinute) {
+        TaskRequest request = new TaskRequest();
+        request.setTitle(title);
+        request.setStartDatetimeLocal(getLocalDateTime(startYear, startMonth, startDay, startHour, startMinute));
+        request.setEndDatetimeLocal(getLocalDateTime(endYear, endMonth, endDay, endHour, endMinute));
+        request.setTimezone("UTC");
+        return request;
     }
 }
