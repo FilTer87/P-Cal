@@ -214,8 +214,9 @@ class CalDAVServiceTest {
         assertEquals("This is a test event", task.getDescription());
         assertEquals("Conference Room", task.getLocation());
         assertEquals(false, task.getIsAllDay());
-        assertNotNull(task.getStartDatetime());
-        assertNotNull(task.getEndDatetime());
+        assertNotNull(task.getStartDatetimeLocal());
+        assertNotNull(task.getEndDatetimeLocal());
+        assertNotNull(task.getTimezone());
     }
 
     @Test
@@ -294,12 +295,13 @@ class CalDAVServiceTest {
         assertTrue(task.getTitle().contains("Complete documentation"));
         assertEquals("Write user manual", task.getDescription());
         assertEquals(false, task.getIsAllDay()); // Has time → timed task
-        assertNotNull(task.getStartDatetime());
-        assertNotNull(task.getEndDatetime());
+        assertNotNull(task.getStartDatetimeLocal());
+        assertNotNull(task.getEndDatetimeLocal());
+        assertNotNull(task.getTimezone());
 
         // Verify 30-minute duration
         long durationMinutes = java.time.Duration.between(
-            task.getStartDatetime(), task.getEndDatetime()).toMinutes();
+            task.getStartDatetimeLocal(), task.getEndDatetimeLocal()).toMinutes();
         assertEquals(30, durationMinutes);
     }
 
@@ -572,11 +574,16 @@ class CalDAVServiceTest {
         assertEquals("roundtrip-test-uid@example.com", importedRequest.getUid());
 
         // Step 2: Create Task entity from TaskRequest (simulating save)
+        // Convert local time to Instant for Task entity
+        java.time.ZoneId zoneId = java.time.ZoneId.of(importedRequest.getTimezone());
+        Instant startInstant = importedRequest.getStartDatetimeLocal().atZone(zoneId).toInstant();
+        Instant endInstant = importedRequest.getEndDatetimeLocal().atZone(zoneId).toInstant();
+
         Task task = createTask(
             importedRequest.getTitle(),
             importedRequest.getDescription(),
-            importedRequest.getStartDatetime(),
-            importedRequest.getEndDatetime(),
+            startInstant,
+            endInstant,
             importedRequest.getIsAllDay()
         );
         task.setUid(importedRequest.getUid()); // Preserve UID when saving
@@ -600,8 +607,16 @@ class CalDAVServiceTest {
         task.setCalendar(testCalendar);
         task.setTitle(title);
         task.setDescription(description);
+
+        // Set new floating time fields
+        task.setStartDatetimeLocal(start.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        task.setEndDatetimeLocal(end.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        task.setTaskTimezone("UTC");
+
+        // Also set deprecated fields for backward compatibility
         task.setStartDatetime(start);
         task.setEndDatetime(end);
+
         task.setIsAllDay(isAllDay);
         task.setColor("#3788d8");
         task.setCreatedAt(Instant.now());

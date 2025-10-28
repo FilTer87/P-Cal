@@ -116,17 +116,17 @@ class TaskControllerIntegrationTest {
     @Test
     void getTasksInDateRange_WithValidRange_ShouldReturnTasks() throws Exception {
         // Create tasks in different date ranges
-        TaskRequest taskInRange = new TaskRequest(
-            "Task in Range",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest taskInRange = new TaskRequest();
+        taskInRange.setTitle("Task in Range");
+        taskInRange.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        taskInRange.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        taskInRange.setTimezone("UTC");
 
-        TaskRequest taskOutOfRange = new TaskRequest(
-            "Task out of Range",
-            Instant.parse("2024-11-15T10:00:00Z"),
-            Instant.parse("2024-11-15T11:00:00Z")
-        );
+        TaskRequest taskOutOfRange = new TaskRequest();
+        taskOutOfRange.setTitle("Task out of Range");
+        taskOutOfRange.setStartDatetimeLocal(LocalDateTime.parse("2024-11-15T10:00:00"));
+        taskOutOfRange.setEndDatetimeLocal(LocalDateTime.parse("2024-11-15T11:00:00"));
+        taskOutOfRange.setTimezone("UTC");
 
         // Create both tasks
         mockMvc.perform(post("/api/tasks")
@@ -164,12 +164,12 @@ class TaskControllerIntegrationTest {
     @Test
     void getTodayTasks_ShouldReturnTasksForToday() throws Exception {
         // Create a task for today (using a date close to current time)
-        Instant today = Instant.now();
-        TaskRequest todayTask = new TaskRequest(
-            "Today's Task",
-            today,
-            today.plusSeconds(3600) // 1 hour later
-        );
+        LocalDateTime now = LocalDateTime.now();
+        TaskRequest todayTask = new TaskRequest();
+        todayTask.setTitle("Today's Task");
+        todayTask.setStartDatetimeLocal(now);
+        todayTask.setEndDatetimeLocal(now.plusHours(1));
+        todayTask.setTimezone("UTC");
 
         mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -186,18 +186,18 @@ class TaskControllerIntegrationTest {
     @Test
     void searchTasks_WithValidQuery_ShouldReturnMatchingTasks() throws Exception {
         // Create tasks with different titles and descriptions
-        TaskRequest task1 = new TaskRequest(
-            "Meeting with client",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest task1 = new TaskRequest();
+        task1.setTitle("Meeting with client");
+        task1.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        task1.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        task1.setTimezone("UTC");
         task1.setDescription("Important client meeting");
 
-        TaskRequest task2 = new TaskRequest(
-            "Code review",
-            Instant.parse("2024-12-25T14:00:00Z"),
-            Instant.parse("2024-12-25T15:00:00Z")
-        );
+        TaskRequest task2 = new TaskRequest();
+        task2.setTitle("Code review");
+        task2.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T14:00:00"));
+        task2.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T15:00:00"));
+        task2.setTimezone("UTC");
         task2.setDescription("Review pull requests");
 
         // Create both tasks
@@ -238,11 +238,11 @@ class TaskControllerIntegrationTest {
     @Test
     void cloneTask_WithValidTaskAndNewTime_ShouldCreateClone() throws Exception {
         // Create original task
-        TaskRequest originalTask = new TaskRequest(
-            "Original Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest originalTask = new TaskRequest();
+        originalTask.setTitle("Original Task");
+        originalTask.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        originalTask.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        originalTask.setTimezone("UTC");
         originalTask.setDescription("Original description");
         originalTask.setColor("#ff0000");
 
@@ -275,11 +275,11 @@ class TaskControllerIntegrationTest {
     @Test
     void cloneTask_WithEmptyNewTime_ShouldReturnBadRequest() throws Exception {
         // Create original task first
-        TaskRequest originalTask = new TaskRequest(
-            "Original Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest originalTask = new TaskRequest();
+        originalTask.setTitle("Original Task");
+        originalTask.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        originalTask.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        originalTask.setTimezone("UTC");
 
         String createResponse = mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -318,17 +318,17 @@ class TaskControllerIntegrationTest {
     @Test
     void getTaskStatistics_ShouldReturnStatistics() throws Exception {
         // Create a few tasks first
-        TaskRequest task1 = new TaskRequest(
-            "Statistics Task 1",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:00:00Z")
-        );
+        TaskRequest task1 = new TaskRequest();
+        task1.setTitle("Statistics Task 1");
+        task1.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        task1.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        task1.setTimezone("UTC");
 
-        TaskRequest task2 = new TaskRequest(
-            "Statistics Task 2",
-            Instant.parse("2024-12-25T14:00:00Z"),
-            Instant.parse("2024-12-25T15:00:00Z")
-        );
+        TaskRequest task2 = new TaskRequest();
+        task2.setTitle("Statistics Task 2");
+        task2.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T14:00:00"));
+        task2.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T15:00:00"));
+        task2.setTimezone("UTC");
 
         mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -353,11 +353,11 @@ class TaskControllerIntegrationTest {
 
     @Test
     void createTaskWithComplexData_ShouldHandleAllFields() throws Exception {
-        TaskRequest complexTask = new TaskRequest(
-            "Complex Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T11:30:00Z")
-        );
+        TaskRequest complexTask = new TaskRequest();
+        complexTask.setTitle("Complex Task");
+        complexTask.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        complexTask.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T11:30:00"));
+        complexTask.setTimezone("UTC");
         complexTask.setDescription("A very detailed description with special characters: àáâäãåāčćøěñß");
         complexTask.setColor("#3366cc");
         complexTask.setLocation("Conference Room A, Building 2, Floor 3");
@@ -405,11 +405,11 @@ class TaskControllerIntegrationTest {
 
     @Test
     void createTask_WithMinimalData_ShouldSucceed() throws Exception {
-        TaskRequest minimalTask = new TaskRequest(
-            "Minimal Task",
-            Instant.parse("2024-12-25T10:00:00Z"),
-            Instant.parse("2024-12-25T10:30:00Z")
-        );
+        TaskRequest minimalTask = new TaskRequest();
+        minimalTask.setTitle("Minimal Task");
+        minimalTask.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00"));
+        minimalTask.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T10:30:00"));
+        minimalTask.setTimezone("UTC");
 
         mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -423,11 +423,11 @@ class TaskControllerIntegrationTest {
     @Test
     void createTask_WithInvalidTimeRange_ShouldReturnBadRequest() throws Exception {
         // End time before start time
-        TaskRequest invalidTask = new TaskRequest(
-            "Invalid Task",
-            Instant.parse("2024-12-25T11:00:00Z"),
-            Instant.parse("2024-12-25T10:00:00Z") // End before start
-        );
+        TaskRequest invalidTask = new TaskRequest();
+        invalidTask.setTitle("Invalid Task");
+        invalidTask.setStartDatetimeLocal(LocalDateTime.parse("2024-12-25T11:00:00"));
+        invalidTask.setEndDatetimeLocal(LocalDateTime.parse("2024-12-25T10:00:00")); // End before start
+        invalidTask.setTimezone("UTC");
 
         mockMvc.perform(post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -435,5 +435,19 @@ class TaskControllerIntegrationTest {
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    private LocalDateTime getLocalDateTime(int year, int month, int day, int hour, int minute) {
+        return LocalDateTime.of(year, month, day, hour, minute);
+    }
+
+    private TaskRequest createTaskRequest(String title, int startYear, int startMonth, int startDay, int startHour, int startMinute,
+                                         int endYear, int endMonth, int endDay, int endHour, int endMinute) {
+        TaskRequest request = new TaskRequest();
+        request.setTitle(title);
+        request.setStartDatetimeLocal(getLocalDateTime(startYear, startMonth, startDay, startHour, startMinute));
+        request.setEndDatetimeLocal(getLocalDateTime(endYear, endMonth, endDay, endHour, endMinute));
+        request.setTimezone("UTC");
+        return request;
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +42,9 @@ public class RecurrenceService {
         if (task.getRecurrenceRule() == null || task.getRecurrenceRule().trim().isEmpty()) {
             // Non-recurring task: return single occurrence if in range
             if (isInRange(task, rangeStart, rangeEnd)) {
-                return List.of(new TaskOccurrence(task, task.getStartDatetime(), task.getEndDatetime()));
+                Instant taskStart = task.getStartDatetimeAsInstant();
+                Instant taskEnd = task.getEndDatetimeAsInstant();
+                return List.of(new TaskOccurrence(task, taskStart, taskEnd));
             }
             return List.of();
         }
@@ -58,7 +62,12 @@ public class RecurrenceService {
     }
 
     /**
-     * Expand recurring task using ical4j
+     * Expand recurring task using ical4j with floating time (DST-safe).
+     *
+     * The key insight: recurring tasks maintain their LOCAL time across DST changes.
+     * A task at "15:00" recurs at "15:00" even when DST changes the UTC offset.
+     *
+     * We use ical4j with the task's timezone so it handles DST transitions correctly.
      */
     private List<TaskOccurrence> expandRecurringTask(Task task, Instant rangeStart, Instant rangeEnd)
             throws ParseException {
@@ -67,11 +76,18 @@ public class RecurrenceService {
         RRule rrule = new RRule(task.getRecurrenceRule());
         Recur recur = rrule.getRecur();
 
-        // Calculate task duration
-        long durationMillis = ChronoUnit.MILLIS.between(task.getStartDatetime(), task.getEndDatetime());
+        // Calculate task duration in local time (duration stays constant across DST)
+        long durationMillis = ChronoUnit.MILLIS.between(
+            task.getStartDatetimeLocal(),
+            task.getEndDatetimeLocal()
+        );
 
-        // Convert Instant to ical4j DateTime
-        DateTime startDate = toDateTime(task.getStartDatetime());
+        // Get task timezone for floating time calculations
+        ZoneId taskZone = ZoneId.of(task.getTaskTimezone());
+
+        // Convert local datetime to ical4j DateTime WITH timezone
+        // This ensures ical4j respects DST transitions
+        DateTime startDate = toDateTimeWithZone(task.getStartDatetimeLocal(), taskZone);
 
         // Calculate period end (use recurrenceEnd if set, otherwise rangeEnd)
         Instant effectiveEnd = task.getRecurrenceEnd() != null
@@ -192,8 +208,9 @@ public class RecurrenceService {
 
         if (task.getRecurrenceRule() == null || task.getRecurrenceRule().trim().isEmpty()) {
             // Non-recurring task - return the task itself if it's after the given time
-            if (task.getStartDatetime().isAfter(afterTime)) {
-                return new TaskOccurrence(task, task.getStartDatetime(), task.getEndDatetime());
+            Instant taskStart = task.getStartDatetimeAsInstant();
+            if (taskStart.isAfter(afterTime)) {
+                return new TaskOccurrence(task, taskStart, task.getEndDatetimeAsInstant());
             }
             return null;
         }
@@ -203,11 +220,17 @@ public class RecurrenceService {
             RRule rrule = new RRule(task.getRecurrenceRule());
             Recur recur = rrule.getRecur();
 
-            // Calculate task duration
-            long durationMillis = ChronoUnit.MILLIS.between(task.getStartDatetime(), task.getEndDatetime());
+            // Calculate task duration in local time
+            long durationMillis = ChronoUnit.MILLIS.between(
+                task.getStartDatetimeLocal(),
+                task.getEndDatetimeLocal()
+            );
 
-            // Convert to ical4j DateTime
-            DateTime startDate = toDateTime(task.getStartDatetime());
+            // Get task timezone
+            ZoneId taskZone = ZoneId.of(task.getTaskTimezone());
+
+            // Convert to ical4j DateTime WITH timezone (floating time)
+            DateTime startDate = toDateTimeWithZone(task.getStartDatetimeLocal(), taskZone);
             // Add 1 second to afterTime to exclude the current occurrence
             DateTime searchFrom = toDateTime(afterTime.plusSeconds(1));
 
@@ -221,7 +244,8 @@ public class RecurrenceService {
 
             if (logger.isDebugEnabled()) {
                 logger.debug("🔍 getNextOccurrence DEBUG:");
-                logger.debug("  task.getStartDatetime()={}", task.getStartDatetime());
+                logger.debug("  task.getStartDatetimeLocal()={}", task.getStartDatetimeLocal());
+                logger.debug("  task.getTaskTimezone()={}", task.getTaskTimezone());
                 logger.debug("  afterTime={}", afterTime);
                 logger.debug("  afterTime+1s={}", afterTime.plusSeconds(1));
                 logger.debug("  startDate (ical4j)={}", startDate);
@@ -281,8 +305,9 @@ public class RecurrenceService {
      * Check if non-recurring task is within range
      */
     private boolean isInRange(Task task, Instant rangeStart, Instant rangeEnd) {
-        return task.getStartDatetime().isBefore(rangeEnd) &&
-               task.getEndDatetime().isAfter(rangeStart);
+        Instant taskStart = task.getStartDatetimeAsInstant();
+        Instant taskEnd = task.getEndDatetimeAsInstant();
+        return taskStart.isBefore(rangeEnd) && taskEnd.isAfter(rangeStart);
     }
 
     /**
@@ -301,6 +326,37 @@ public class RecurrenceService {
         DateTime dateTime = new DateTime(true); // true = UTC
         dateTime.setTime(instant.toEpochMilli());
         return dateTime;
+    }
+
+    /**
+     * Convert LocalDateTime + ZoneId to ical4j DateTime with timezone.
+     * This preserves the local time and allows ical4j to handle DST correctly.
+     *
+     * Example: 2025-10-20T15:00 + Europe/Rome
+     * - ical4j will generate occurrences at "15:00 local" for each day
+     * - DST transitions are handled automatically by ical4j
+     */
+    private DateTime toDateTimeWithZone(LocalDateTime localDateTime, ZoneId zoneId) {
+        try {
+            // Convert to ZonedDateTime
+            ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+
+            // Create ical4j TimeZone
+            net.fortuna.ical4j.model.TimeZone ical4jTimeZone =
+                net.fortuna.ical4j.model.TimeZoneRegistryFactory.getInstance()
+                    .createRegistry()
+                    .getTimeZone(zoneId.getId());
+
+            // Create DateTime with timezone
+            DateTime dateTime = new DateTime(zonedDateTime.toInstant().toEpochMilli());
+            dateTime.setTimeZone(ical4jTimeZone);
+
+            return dateTime;
+        } catch (Exception e) {
+            logger.error("Error creating DateTime with zone {}: {}", zoneId, e.getMessage());
+            // Fallback to UTC
+            return toDateTime(localDateTime.atZone(ZoneId.of("UTC")).toInstant());
+        }
     }
 
     /**
@@ -340,7 +396,7 @@ public class RecurrenceService {
          * Check if this is the original occurrence
          */
         public boolean isOriginalOccurrence() {
-            return occurrenceStart.equals(task.getStartDatetime());
+            return occurrenceStart.equals(task.getStartDatetimeAsInstant());
         }
 
         /**

@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -60,8 +62,13 @@ public class TaskService {
         task.setCalendar(defaultCalendar);
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
-        task.setStartDatetime(taskRequest.getStartDatetime());
-        task.setEndDatetime(taskRequest.getEndDatetime());
+
+        // Floating time fields (DST-safe)
+        task.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
+        task.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
+        task.setTaskTimezone(taskRequest.getTimezone());
+        // Deprecated UTC fields are auto-synced in Task entity's @PrePersist
+
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
         task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
@@ -135,8 +142,11 @@ public class TaskService {
                 // Convert occurrences to TaskResponse with adjusted dates
                 for (RecurrenceService.TaskOccurrence occurrence : occurrences) {
                     TaskResponse response = TaskResponse.fromTask(task);
-                    response.setStartDatetime(occurrence.getOccurrenceStart());
-                    response.setEndDatetime(occurrence.getOccurrenceEnd());
+                    // Convert occurrence UTC times to local time using task's timezone
+                    ZoneId taskZone = ZoneId.of(task.getTaskTimezone());
+                    response.setStartDatetimeLocal(occurrence.getOccurrenceStart().atZone(taskZone).toLocalDateTime());
+                    response.setEndDatetimeLocal(occurrence.getOccurrenceEnd().atZone(taskZone).toLocalDateTime());
+                    response.setTimezone(task.getTaskTimezone());
                     // Generate unique occurrence ID: taskId-epochMillis
                     response.setOccurrenceId(task.getUid() + "-" + occurrence.getOccurrenceStart().toEpochMilli());
                     expandedTasks.add(response);
@@ -268,12 +278,14 @@ public class TaskService {
         boolean recurrenceRuleChanged = !Objects.equals(taskRequest.getRecurrenceRule(), task.getRecurrenceRule());
         if (!isRecurring || recurrenceRuleChanged) {
             // Update dates only for non-recurring tasks or when recurrence rule changes
-            task.setStartDatetime(taskRequest.getStartDatetime());
-            task.setEndDatetime(taskRequest.getEndDatetime());
+            task.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
+            task.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
+            task.setTaskTimezone(taskRequest.getTimezone());
+            // Deprecated UTC fields are auto-synced in Task entity's @PrePersist
         } else {
             // For recurring tasks with unchanged recurrence rule, keep original dates
             logger.info("Preserving original dates for recurring task {} (start: {}, end: {})",
-                       taskUid, task.getStartDatetime(), task.getEndDatetime());
+                       taskUid, task.getStartDatetimeLocal(), task.getEndDatetimeLocal());
         }
 
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
@@ -354,8 +366,9 @@ public class TaskService {
         newTask.setCalendar(masterTask.getCalendar()); // Use same calendar as master task
         newTask.setTitle(taskRequest.getTitle().trim());
         newTask.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
-        newTask.setStartDatetime(taskRequest.getStartDatetime());
-        newTask.setEndDatetime(taskRequest.getEndDatetime());
+        newTask.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
+        newTask.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
+        newTask.setTaskTimezone(taskRequest.getTimezone());
         newTask.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : masterTask.getColor());
         newTask.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
         newTask.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
@@ -429,16 +442,20 @@ public class TaskService {
         if (taskRequest.getTitle() == null || taskRequest.getTitle().trim().isEmpty()) {
             throw new RuntimeException("Task title is required");
         }
-        
-        if (taskRequest.getStartDatetime() == null) {
-            throw new RuntimeException("Start datetime is required");
+
+        if (taskRequest.getStartDatetimeLocal() == null) {
+            throw new RuntimeException("Start datetime (local) is required");
         }
-        
-        if (taskRequest.getEndDatetime() == null) {
-            throw new RuntimeException("End datetime is required");
+
+        if (taskRequest.getEndDatetimeLocal() == null) {
+            throw new RuntimeException("End datetime (local) is required");
         }
-        
-        if (!taskRequest.getEndDatetime().isAfter(taskRequest.getStartDatetime())) {
+
+        if (taskRequest.getTimezone() == null || taskRequest.getTimezone().trim().isEmpty()) {
+            throw new RuntimeException("Timezone is required");
+        }
+
+        if (!taskRequest.getEndDatetimeLocal().isAfter(taskRequest.getStartDatetimeLocal())) {
             throw new RuntimeException("End datetime must be after start datetime");
         }
 
@@ -454,8 +471,9 @@ public class TaskService {
         }
 
         // Validate recurrence end if provided
-        if (taskRequest.getRecurrenceEnd() != null && taskRequest.getStartDatetime() != null) {
-            if (!taskRequest.getRecurrenceEnd().isAfter(taskRequest.getStartDatetime())) {
+        if (taskRequest.getRecurrenceEnd() != null && taskRequest.getStartDatetimeLocal() != null) {
+            Instant startInstant = taskRequest.getStartDatetimeLocal().atZone(ZoneId.of(taskRequest.getTimezone())).toInstant();
+            if (!taskRequest.getRecurrenceEnd().isAfter(startInstant)) {
                 throw new RuntimeException("Recurrence end must be after start datetime");
             }
         }
@@ -526,17 +544,20 @@ public class TaskService {
         
         // Calculate duration and new end time
         long durationMinutes = java.time.Duration.between(
-            originalTask.getStartDatetime(), 
-            originalTask.getEndDatetime()
+            originalTask.getStartDatetimeLocal(),
+            originalTask.getEndDatetimeLocal()
         ).toMinutes();
-        Instant newEndTime = newStartTime.plus(java.time.Duration.ofMinutes(durationMinutes));
-        
+        LocalDateTime newEndTimeLocal = newStartTime.atZone(ZoneId.of(originalTask.getTaskTimezone()))
+                .toLocalDateTime()
+                .plus(java.time.Duration.ofMinutes(durationMinutes));
+
         // Create task request for the clone
         TaskRequest cloneRequest = new TaskRequest();
         cloneRequest.setTitle(originalTask.getTitle() + " (Copy)");
         cloneRequest.setDescription(originalTask.getDescription());
-        cloneRequest.setStartDatetime(newStartTime);
-        cloneRequest.setEndDatetime(newEndTime);
+        cloneRequest.setStartDatetimeLocal(newStartTime.atZone(ZoneId.of(originalTask.getTaskTimezone())).toLocalDateTime());
+        cloneRequest.setEndDatetimeLocal(newEndTimeLocal);
+        cloneRequest.setTimezone(originalTask.getTaskTimezone());
         cloneRequest.setColor(originalTask.getColor());
         cloneRequest.setLocation(originalTask.getLocation());
         

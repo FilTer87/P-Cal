@@ -2,14 +2,19 @@ package com.privatecal.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Data Transfer Object for Task creation and update requests
  */
+@Data
+@NoArgsConstructor
 public class TaskRequest {
 
     private String id;  // Task UID for updates during duplicate handling
@@ -20,12 +25,28 @@ public class TaskRequest {
     
     @Size(max = 2500, message = "Description must be at most 2500 characters")
     private String description;
-    
-    @NotNull(message = "Start datetime is required")
-    private Instant startDatetime;
-    
-    @NotNull(message = "End datetime is required")
-    private Instant endDatetime;
+
+    /**
+     * Local datetime without timezone (floating time).
+     * Example: "2025-10-20T15:00:00" means "3 PM" regardless of DST.
+     */
+    @NotNull(message = "Start datetime (local) is required")
+    private LocalDateTime startDatetimeLocal;
+
+    /**
+     * Local datetime without timezone (floating time).
+     * Example: "2025-10-20T16:00:00" means "4 PM" regardless of DST.
+     */
+    @NotNull(message = "End datetime (local) is required")
+    private LocalDateTime endDatetimeLocal;
+
+    /**
+     * IANA timezone identifier (e.g., "Europe/Rome", "America/New_York").
+     * Required to convert local time to UTC when needed.
+     */
+    @NotBlank(message = "Timezone is required")
+    @Size(max = 50, message = "Timezone must be at most 50 characters")
+    private String timezone;
     
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color (e.g., #3788d8)")
     private String color = "#3788d8";
@@ -44,147 +65,28 @@ public class TaskRequest {
     private Instant recurrenceEnd;
 
     private List<ReminderRequest> reminders = new ArrayList<>();
-    
-    // Default constructor
-    public TaskRequest() {}
-    
-    // Basic constructor
-    public TaskRequest(String title, Instant startDatetime, Instant endDatetime) {
-        this.title = title;
-        this.startDatetime = startDatetime;
-        this.endDatetime = endDatetime;
-    }
-    
-    // Full constructor
-    public TaskRequest(String title, String description, Instant startDatetime, Instant endDatetime,
-                      String color, String location) {
-        this.title = title;
-        this.description = description;
-        this.startDatetime = startDatetime;
-        this.endDatetime = endDatetime;
-        this.color = color;
-        this.location = location;
-    }
-    
-    // Validation method
+
+    // Validation methods
     @AssertTrue(message = "End datetime must be after start datetime")
     @JsonIgnore
     public boolean isEndDatetimeAfterStartDatetime() {
-        if (startDatetime == null || endDatetime == null) {
-            return true; // Let @NotNull handle null validation
+        if (startDatetimeLocal != null && endDatetimeLocal != null) {
+            return endDatetimeLocal.isAfter(startDatetimeLocal);
         }
-        return endDatetime.isAfter(startDatetime);
+        return true; // Let @NotNull handle null validation
     }
 
     @AssertTrue(message = "Recurrence end must be after start datetime")
     @JsonIgnore
     public boolean isRecurrenceEndAfterStartDatetime() {
-        if (recurrenceEnd == null || startDatetime == null) {
+        if (recurrenceEnd == null || startDatetimeLocal == null || timezone == null) {
             return true; // Recurrence end is optional
         }
-        return recurrenceEnd.isAfter(startDatetime);
+        // Convert local time to instant for comparison
+        Instant startInstant = startDatetimeLocal.atZone(java.time.ZoneId.of(timezone)).toInstant();
+        return recurrenceEnd.isAfter(startInstant);
     }
 
-    // Getters and Setters
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-    public Instant getStartDatetime() {
-        return startDatetime;
-    }
-    
-    public void setStartDatetime(Instant startDatetime) {
-        this.startDatetime = startDatetime;
-    }
-    
-    public Instant getEndDatetime() {
-        return endDatetime;
-    }
-    
-    public void setEndDatetime(Instant endDatetime) {
-        this.endDatetime = endDatetime;
-    }
-    
-    public String getColor() {
-        return color;
-    }
-    
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Boolean getIsAllDay() {
-        return isAllDay;
-    }
-
-    public void setIsAllDay(Boolean isAllDay) {
-        this.isAllDay = isAllDay;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public String getRecurrenceRule() {
-        return recurrenceRule;
-    }
-
-    public void setRecurrenceRule(String recurrenceRule) {
-        this.recurrenceRule = recurrenceRule;
-    }
-
-    public Instant getRecurrenceEnd() {
-        return recurrenceEnd;
-    }
-
-    public void setRecurrenceEnd(Instant recurrenceEnd) {
-        this.recurrenceEnd = recurrenceEnd;
-    }
-
-    public List<ReminderRequest> getReminders() {
-        return reminders;
-    }
-    
-    public void setReminders(List<ReminderRequest> reminders) {
-        this.reminders = reminders != null ? reminders : new ArrayList<>();
-    }
-    
-    // Helper methods
-    
     /**
      * Add a reminder to the task
      */
@@ -200,32 +102,31 @@ public class TaskRequest {
      */
     @JsonIgnore
     public long getDurationInMinutes() {
-        if (startDatetime != null && endDatetime != null) {
-            return java.time.Duration.between(startDatetime, endDatetime).toMinutes();
+        if (startDatetimeLocal != null && endDatetimeLocal != null) {
+            return java.time.Duration.between(startDatetimeLocal, endDatetimeLocal).toMinutes();
         }
         return 0;
     }
-    
+
     /**
-     * Check if task spans multiple days (in UTC)
+     * Check if task spans multiple days (local time)
      */
     @JsonIgnore
     public boolean isMultiDay() {
-        if (startDatetime != null && endDatetime != null) {
-            return !startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate()
-                    .equals(endDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate());
+        if (startDatetimeLocal != null && endDatetimeLocal != null) {
+            return !startDatetimeLocal.toLocalDate().equals(endDatetimeLocal.toLocalDate());
         }
         return false;
     }
-    
+
     /**
-     * Get task date (start date in UTC)
+     * Get task date (start date in local time)
      */
     @JsonIgnore
     public java.time.LocalDate getTaskDate() {
-        return startDatetime != null ? startDatetime.atZone(java.time.ZoneOffset.UTC).toLocalDate() : null;
+        return startDatetimeLocal != null ? startDatetimeLocal.toLocalDate() : null;
     }
-    
+
     /**
      * Check if task has reminders
      */
@@ -233,15 +134,15 @@ public class TaskRequest {
     public boolean hasReminders() {
         return reminders != null && !reminders.isEmpty();
     }
-    
+
     /**
      * Check if this is a valid task request
      */
     @JsonIgnore
     public boolean isValid() {
         return title != null && !title.trim().isEmpty() &&
-               startDatetime != null && endDatetime != null &&
-               endDatetime.isAfter(startDatetime);
+               startDatetimeLocal != null && endDatetimeLocal != null &&
+               endDatetimeLocal.isAfter(startDatetimeLocal);
     }
     
     /**
@@ -272,10 +173,11 @@ public class TaskRequest {
     public String toString() {
         return "TaskRequest{" +
                 "title='" + title + '\'' +
-                ", description='" + (description != null && description.length() > 50 ? 
+                ", description='" + (description != null && description.length() > 50 ?
                     description.substring(0, 50) + "..." : description) + '\'' +
-                ", startDatetime=" + startDatetime +
-                ", endDatetime=" + endDatetime +
+                ", startDatetimeLocal=" + startDatetimeLocal +
+                ", endDatetimeLocal=" + endDatetimeLocal +
+                ", timezone='" + timezone + '\'' +
                 ", color='" + color + '\'' +
                 ", location='" + location + '\'' +
                 ", reminderCount=" + (reminders != null ? reminders.size() : 0) +

@@ -283,8 +283,16 @@ class RecurrenceServiceTest {
         task.setUser(testUser);
         task.setCalendar(testCalendar);
         task.setTitle(title);
+
+        // Set new floating time fields
+        task.setStartDatetimeLocal(start.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        task.setEndDatetimeLocal(end.atZone(java.time.ZoneId.of("UTC")).toLocalDateTime());
+        task.setTaskTimezone("UTC");
+
+        // Also set deprecated fields for backward compatibility
         task.setStartDatetime(start);
         task.setEndDatetime(end);
+
         task.setRecurrenceRule(rrule);
         task.setColor("#3788d8");
         return task;
