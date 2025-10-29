@@ -10,11 +10,31 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Changed
 
+**Global refactoring of timezone management with floating time**:
+
+  Backend:
+    - LocalDateTime + timezone fields on entities for floating time storage
+    - Fixed and replaced all services to use LocalDateTime instead of Instant
+    - Import/Export CalDAV with TZID (RFC 5545 compliant)
+    - Test updated
+    
+  Frontend adjustment and code clean:
+    - updated event related components and views to use local time intead of UTC conversions
+    - updated tests
+
 ### Deprecated
+
+- TaskRequest and TaskResponse no longer have startDatetime and endDatetime fields
+- Frontend/clients must use startDatetimeLocal, endDatetimeLocal and timezone fields
 
 ### Removed
 
+Frontend timezone conversion utilities
+
 ### Fixed
+
+- Event time inconsistency on DST change
+- User timezone is loaded from stored settings, using system settings (browser default) only as fallback
 
 ### Security
 
