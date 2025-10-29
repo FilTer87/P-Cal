@@ -473,8 +473,8 @@ const tasksByDateInRange = computed(() => {
 
 
   allTasks.forEach(task => {
-    if (task && task.startDatetime) {
-      const taskDate = new Date(task.startDatetime)
+    if (task && task.startDatetimeLocal) {
+      const taskDate = new Date(task.startDatetimeLocal)
       if (taskDate >= range.start && taskDate <= range.end) {
         const dateKey = formatDate(taskDate, 'yyyy-MM-dd')
         if (!result[dateKey]) result[dateKey] = []
@@ -499,7 +499,7 @@ const sortedTasksByDateInRange = computed(() => {
       date,
       // Also sort tasks within each day by start time
       (dayTasks || []).sort((a, b) => {
-        return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
+        return new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime()
       })
     ])
 
@@ -693,10 +693,10 @@ const getTasksOverflowIndicators = (dayTasks: Task[]) => {
   })
   
   dayTasks.forEach(task => {
-    if (!task.startDatetime) return
+    if (!task.startDatetimeLocal) return
     
-    const start = new Date(task.startDatetime)
-    const end = task.endDatetime ? new Date(task.endDatetime) : new Date(start.getTime() + 60 * 60 * 1000)
+    const start = new Date(task.startDatetimeLocal)
+    const end = task.endDatetimeLocal ? new Date(task.endDatetimeLocal) : new Date(start.getTime() + 60 * 60 * 1000)
     
     const startHour = start.getHours() + start.getMinutes() / 60
     let endHour = end.getHours() + end.getMinutes() / 60
@@ -751,8 +751,8 @@ const getTasksOverflowIndicators = (dayTasks: Task[]) => {
 // Weekly view helper methods
 const getTaskTimePosition = (task: any) => {
   // Use visual times for positioning if available (for split multi-day tasks)
-  const startTimeStr = task._visualStartTime || task.startDatetime
-  const endTimeStr = task._visualEndTime || task.endDatetime
+  const startTimeStr = task._visualStartTime || task.startDatetimeLocal
+  const endTimeStr = task._visualEndTime || task.endDatetimeLocal
   
   if (!startTimeStr) return { top: '0px', height: '32px' }
   
@@ -782,7 +782,7 @@ const getTaskTimePosition = (task: any) => {
 const getTaskTimeDisplayClasses = (task: Task) => {
   const baseClasses = ['border-l-4']
 
-  const isPast = new Date(task.endDatetime) < new Date()
+  const isPast = new Date(task.endDatetimeLocal) < new Date()
 
   // Color based on task color or default
   if (task.color) {
@@ -818,13 +818,13 @@ const getTaskTimeStyle = (task: Task) => {
 }
 
 const formatTaskTime = (task: Task) => {
-  if (!task.startDatetime) return ''
+  if (!task.startDatetimeLocal) return ''
   
-  const start = new Date(task.startDatetime)
+  const start = new Date(task.startDatetimeLocal)
   const startTime = formatDate(start, 'HH:mm')
   
-  if (task.endDatetime) {
-    const end = new Date(task.endDatetime)
+  if (task.endDatetimeLocal) {
+    const end = new Date(task.endDatetimeLocal)
     const endTime = formatDate(end, 'HH:mm')
     return `${startTime} - ${endTime}`
   }
@@ -919,10 +919,10 @@ const allWeekTasks = computed(() => {
 
   // Filter tasks that overlap with the current week
   allStoreTasks.forEach(task => {
-    if (!task.startDatetime || !task.endDatetime) return
+    if (!task.startDatetimeLocal || !task.endDatetimeLocal) return
 
-    const taskStart = formatDate(new Date(task.startDatetime), 'yyyy-MM-dd')
-    const taskEnd = formatDate(new Date(task.endDatetime), 'yyyy-MM-dd')
+    const taskStart = formatDate(new Date(task.startDatetimeLocal), 'yyyy-MM-dd')
+    const taskEnd = formatDate(new Date(task.endDatetimeLocal), 'yyyy-MM-dd')
 
     // Include task if it overlaps with the week:
     // - Task starts before/during week AND ends during/after week
@@ -947,7 +947,7 @@ const getTasksWithSplitsForDate = (date: Date) => {
   
   // Check ALL week tasks, not just ones assigned to this day
   allWeekTasks.value.forEach(task => {
-    if (!task.startDatetime) {
+    if (!task.startDatetimeLocal) {
       // Task without start time - only show on its "assigned" day
       const dayTasks = calendar.getTasksForDate(date)
       if (dayTasks.find(t => t.id === task.id)) {
@@ -956,8 +956,8 @@ const getTasksWithSplitsForDate = (date: Date) => {
       return
     }
     
-    const startDate = new Date(task.startDatetime)
-    const endDate = task.endDatetime ? new Date(task.endDatetime) : startDate
+    const startDate = new Date(task.startDatetimeLocal)
+    const endDate = task.endDatetimeLocal ? new Date(task.endDatetimeLocal) : startDate
     const taskStartDay = formatDate(startDate, 'yyyy-MM-dd')
     const taskEndDay = formatDate(endDate, 'yyyy-MM-dd')
     
@@ -983,13 +983,13 @@ const getTasksWithSplitsForDate = (date: Date) => {
         
         if (currentDay === taskStartDay) {
           // First day: from original start time to end of day
-          visualStartTime = task.startDatetime
+          visualStartTime = task.startDatetimeLocal
           visualEndTime = `${currentDay}T23:59:59`
           console.log(`🚀 First day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
         } else if (currentDay === taskEndDay) {
           // Last day: from start of day to original end time  
           visualStartTime = `${currentDay}T00:00:00`
-          visualEndTime = task.endDatetime
+          visualEndTime = task.endDatetimeLocal
           console.log(`🏁 Last day split for "${task.title}": visual ${visualStartTime} → ${visualEndTime}`)
         } else {
           // Middle day: full day (using local timezone format for consistent positioning)
@@ -1014,10 +1014,10 @@ const getTasksWithSplitsForDate = (date: Date) => {
   
   console.log(`✅ Final tasks for ${currentDay}:`, allTasksWithSplits.map(t => ({
     title: t.title,
-    originalStart: t.startDatetime,
-    originalEnd: t.endDatetime,
-    visualStart: t._visualStartTime || t.startDatetime,
-    visualEnd: t._visualEndTime || t.endDatetime
+    originalStart: t.startDatetimeLocal,
+    originalEnd: t.endDatetimeLocal,
+    visualStart: t._visualStartTime || t.startDatetimeLocal,
+    visualEnd: t._visualEndTime || t.endDatetimeLocal
   })))
   
   return allTasksWithSplits

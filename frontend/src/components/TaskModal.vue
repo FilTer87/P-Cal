@@ -513,7 +513,7 @@ const handleSubmit = async () => {
 
       // Check if this is a single occurrence edit (stored in _editMode by CalendarView)
       const editMode = (props.task as any)._editMode
-      const occurrenceStart = editMode === 'single' ? props.task.startDatetime : undefined
+      const occurrenceStart = editMode === 'single' ? props.task.startDatetimeLocal : undefined
 
       const updatedTask = await updateTask(props.task.id, updateData, occurrenceStart)
       if (updatedTask) {

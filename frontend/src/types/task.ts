@@ -3,8 +3,10 @@ export interface Task {
   occurrenceId?: string // Unique ID for recurring task occurrences (format: "taskId-timestamp")
   title: string
   description?: string
-  startDatetime: string
-  endDatetime: string
+  // New timezone-aware fields (floating time)
+  startDatetimeLocal: string  // ISO 8601 local datetime (e.g., "2025-10-20T15:00:00")
+  endDatetimeLocal: string    // ISO 8601 local datetime (e.g., "2025-10-20T16:00:00")
+  timezone: string            // IANA timezone (e.g., "Europe/Rome", "UTC")
   location?: string
   color: string
   isAllDay?: boolean // True for all-day events (DATE format), false for timed events (DATE-TIME)
@@ -24,8 +26,10 @@ export interface Task {
 export interface CreateTaskRequest {
   title: string
   description?: string
-  startDatetime: string
-  endDatetime: string
+  // New timezone-aware fields
+  startDatetimeLocal: string  // ISO 8601 local datetime without timezone
+  endDatetimeLocal: string    // ISO 8601 local datetime without timezone
+  timezone: string            // IANA timezone identifier
   location?: string
   color?: string
   isAllDay?: boolean
@@ -37,8 +41,10 @@ export interface CreateTaskRequest {
 export interface UpdateTaskRequest {
   title?: string
   description?: string
-  startDatetime?: string
-  endDatetime?: string
+  // New timezone-aware fields
+  startDatetimeLocal?: string
+  endDatetimeLocal?: string
+  timezone?: string
   location?: string
   color?: string
   isAllDay?: boolean
@@ -211,8 +217,8 @@ export interface TaskSortOption {
 }
 
 export const TASK_SORT_OPTIONS: TaskSortOption[] = [
-  { key: 'startDatetime', label: 'Data di inizio', value: 'startDatetime' },
-  { key: 'endDatetime', label: 'Data di fine', value: 'endDatetime' },
+  { key: 'startDatetimeLocal', label: 'Data di inizio', value: 'startDatetimeLocal' },
+  { key: 'endDatetimeLocal', label: 'Data di fine', value: 'endDatetimeLocal' },
   { key: 'title', label: 'Titolo', value: 'title' },
   { key: 'createdAt', label: 'Data di creazione', value: 'createdAt' }
 ]

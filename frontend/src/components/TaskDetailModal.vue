@@ -77,13 +77,13 @@
               <div class="flex items-center space-x-2">
                 <span class="text-gray-500 dark:text-gray-400">{{ t('tasks.start') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                  {{ formatDateTime(task.startDatetime) }}
+                  {{ formatDateTime(task.startDatetimeLocal) }}
                 </span>
               </div>
               <div class="flex items-center space-x-2">
                 <span class="text-gray-500 dark:text-gray-400">{{ t('tasks.end') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                  {{ formatDateTime(task.endDatetime) }}
+                  {{ formatDateTime(task.endDatetimeLocal) }}
                 </span>
               </div>
             </div>
@@ -368,10 +368,10 @@ const cancelDelete = () => {
 
 // Task formatting methods
 const getTaskDuration = (task: Task) => {
-  if (!task.startDatetime || !task.endDatetime) return 'N/A'
+  if (!task.startDatetimeLocal || !task.endDatetimeLocal) return 'N/A'
 
-  const start = new Date(task.startDatetime)
-  const end = new Date(task.endDatetime)
+  const start = new Date(task.startDatetimeLocal)
+  const end = new Date(task.endDatetimeLocal)
   const durationMs = end.getTime() - start.getTime()
 
   const minutes = Math.floor(durationMs / (1000 * 60))
@@ -442,8 +442,8 @@ const getTaskStatus = () => {
   if (!props.task) return t('tasks.status.unknown')
 
   const now = new Date()
-  const start = new Date(props.task.startDatetime)
-  const end = new Date(props.task.endDatetime)
+  const start = new Date(props.task.startDatetimeLocal)
+  const end = new Date(props.task.endDatetimeLocal)
 
   if (now < start) {
     return t('tasks.status.scheduled')
@@ -458,8 +458,8 @@ const getTaskStatusClasses = () => {
   if (!props.task) return 'bg-gray-100 text-gray-800'
 
   const now = new Date()
-  const start = new Date(props.task.startDatetime)
-  const end = new Date(props.task.endDatetime)
+  const start = new Date(props.task.startDatetimeLocal)
+  const end = new Date(props.task.endDatetimeLocal)
 
   if (now < start) {
     return 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
@@ -474,8 +474,8 @@ const getTaskTimeUntil = () => {
   if (!props.task) return ''
 
   const now = new Date()
-  const start = new Date(props.task.startDatetime)
-  const end = new Date(props.task.endDatetime)
+  const start = new Date(props.task.startDatetimeLocal)
+  const end = new Date(props.task.endDatetimeLocal)
 
   if (now < start) {
     const msUntilStart = start.getTime() - now.getTime()

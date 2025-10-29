@@ -9,12 +9,12 @@ export function splitTasksByTime(tasks: Task[]): { current: Task[]; past: Task[]
   const now = new Date()
 
   const current = tasks
-    .filter(task => new Date(task.endDatetime) >= now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+    .filter(task => new Date(task.endDatetimeLocal) >= now)
+    .sort((a, b) => new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime())
 
   const past = tasks
-    .filter(task => new Date(task.endDatetime) < now)
-    .sort((a, b) => new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime())
+    .filter(task => new Date(task.endDatetimeLocal) < now)
+    .sort((a, b) => new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime())
 
   return { current, past }
 }
@@ -26,7 +26,7 @@ export function splitTasksByTime(tasks: Task[]): { current: Task[]; past: Task[]
  */
 export function sortTasksByStartTime(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) =>
-    new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
+    new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime()
   )
 }
 
@@ -39,7 +39,7 @@ export function groupTasksByDate(tasks: Task[]): Record<string, Task[]> {
   const groups: Record<string, Task[]> = {}
 
   tasks.forEach(task => {
-    const date = new Date(task.startDatetime).toISOString().split('T')[0]
+    const date = new Date(task.startDatetimeLocal).toISOString().split('T')[0]
     if (!groups[date]) {
       groups[date] = []
     }

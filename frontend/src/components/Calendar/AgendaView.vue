@@ -184,8 +184,8 @@ const taskDisplayStyle = (task: Task): Record<string, string> => {
 }
 
 const formatTaskTime = (task: Task): string => {
-  if (!task.startDatetime || !task.endDatetime) return ''
-  return `${formatTime(new Date(task.startDatetime))} - ${formatTime(new Date(task.endDatetime))}`
+  if (!task.startDatetimeLocal || !task.endDatetimeLocal) return ''
+  return `${formatTime(new Date(task.startDatetimeLocal))} - ${formatTime(new Date(task.endDatetimeLocal))}`
 }
 
 // Event handlers

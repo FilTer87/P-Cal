@@ -16,7 +16,7 @@
         <!-- Time range -->
         <div class="flex items-center justify-between mt-1">
           <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ formatTime(task.startDatetime) }} - {{ formatTime(task.endDatetime) }}
+            {{ formatTime(task.startDatetimeLocal) }} - {{ formatTime(task.endDatetimeLocal) }}
           </span>
 
           <div class="flex items-center gap-1">

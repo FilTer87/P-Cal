@@ -2,8 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { useCalendarStore } from '../stores/calendar'
 import { useTasksStore } from '../stores/tasks'
 import { useSettingsStore } from '../stores/settings'
-import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { format, addDays, startOfWeek } from 'date-fns'
 import type { CalendarView } from '../types/calendar'
 import type { Task } from '../types/task'
 
@@ -133,8 +132,8 @@ export function useCalendar() {
     // Calculate the new start and end datetimes by moving the task to the new date
     // while preserving the time and duration
     const task = draggedTask.value
-    const oldStart = new Date(task.startDatetime)
-    const oldEnd = new Date(task.endDatetime)
+    const oldStart = new Date(task.startDatetimeLocal)
+    const oldEnd = new Date(task.endDatetimeLocal)
 
     // Calculate the time difference to maintain task duration
     const duration = oldEnd.getTime() - oldStart.getTime()
@@ -146,9 +145,21 @@ export function useCalendar() {
     // Calculate new end datetime
     const newEnd = new Date(newStart.getTime() + duration)
 
+    // Format as ISO 8601 local datetime string (no timezone offset)
+    const formatLocalDateTime = (d: Date) => {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      const hours = String(d.getHours()).padStart(2, '0')
+      const minutes = String(d.getMinutes()).padStart(2, '0')
+      const seconds = String(d.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+    }
+
     const success = await tasksStore.updateTask(task.id, {
-      startDatetime: newStart.toISOString(),
-      endDatetime: newEnd.toISOString()
+      startDatetimeLocal: formatLocalDateTime(newStart),
+      endDatetimeLocal: formatLocalDateTime(newEnd),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     })
 
     if (success) {

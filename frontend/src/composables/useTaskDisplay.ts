@@ -30,7 +30,7 @@ export const TASK_COLOR_MAP: Record<string, string> = {
 export function getTaskDisplayClasses(task: Task, detailed = false): string {
   const baseClasses = detailed ? 'border-l-4' : 'border-l-2'
 
-  const isPast = new Date(task.endDatetime) < new Date()
+  const isPast = new Date(task.endDatetimeLocal) < new Date()
   const color = task.color || '#3788d8'
   const colorName = TASK_COLOR_MAP[color]
 
