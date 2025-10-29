@@ -39,6 +39,8 @@ export const DEFAULT_SETTINGS = {
   calendarView: 'month' as const,
   startOfWeek: 1, // Monday
   timeFormat: '24h' as const,
+  locale: 'en-US' as const,
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // system settings as fallback
   notifications: true,
   emailNotifications: true,
   reminderSound: true,

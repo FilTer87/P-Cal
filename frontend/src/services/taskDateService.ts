@@ -6,12 +6,15 @@
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
 import { buildRRule, parseRRule } from '../utils/recurrence'
 import { RecurrenceEndType } from '../types/task'
+import { useSettingsStore } from '../stores/settings'
 
 /**
- * Get user's IANA timezone
+ * Get user's IANA timezone from settings store
+ * Falls back to browser timezone if not set
  */
 export function getUserTimezone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone
+  const settingsStore = useSettingsStore()
+  return settingsStore.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
 }
 
 /**
