@@ -159,7 +159,7 @@ export function useCalendar() {
     const success = await tasksStore.updateTask(task.id, {
       startDatetimeLocal: formatLocalDateTime(newStart),
       endDatetimeLocal: formatLocalDateTime(newEnd),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timezone: useSettingsStore().timezone
     })
 
     if (success) {

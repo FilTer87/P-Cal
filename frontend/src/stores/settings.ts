@@ -11,6 +11,7 @@ export interface AppSettings {
   calendarView: 'month' | 'week' | 'day' | 'agenda'
   timeFormat: '12h' | '24h'
   locale: Locale
+  timezone: string // IANA timezone identifier (e.g., "Europe/Rome")
   notifications: boolean
   reminderSound: boolean
 }
@@ -22,7 +23,8 @@ export const useSettingsStore = defineStore('settings', () => {
     theme: DEFAULT_SETTINGS.theme,
     calendarView: DEFAULT_SETTINGS.calendarView,
     timeFormat: DEFAULT_SETTINGS.timeFormat,
-    locale: 'it-IT',
+    locale: DEFAULT_SETTINGS.locale,
+    timezone: DEFAULT_SETTINGS.timezone,
     notifications: DEFAULT_SETTINGS.notifications,
     reminderSound: DEFAULT_SETTINGS.reminderSound
   })
@@ -30,6 +32,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // Computed properties
   const weekStartDay = computed(() => settings.value.weekStartDay)
   const timeFormat = computed(() => settings.value.timeFormat)
+  const timezone = computed(() => settings.value.timezone)
   
   const weekdaysShort = computed(() => {
     const t = i18nGlobal.t
@@ -194,13 +197,20 @@ export const useSettingsStore = defineStore('settings', () => {
     console.debug('🌐 Locale updated to:', locale)
   }
 
+  const updateTimezone = (tz: string) => {
+    settings.value.timezone = tz
+    saveSettings()
+    console.debug('🌍 Timezone updated to:', tz)
+  }
+
   const resetSettings = () => {
     settings.value = {
       weekStartDay: DEFAULT_SETTINGS.startOfWeek as WeekStartDay,
       theme: DEFAULT_SETTINGS.theme,
       calendarView: DEFAULT_SETTINGS.calendarView,
       timeFormat: DEFAULT_SETTINGS.timeFormat,
-      locale: 'it-IT',
+      locale: DEFAULT_SETTINGS.locale,
+      timezone: DEFAULT_SETTINGS.timezone,
       notifications: DEFAULT_SETTINGS.notifications,
       reminderSound: DEFAULT_SETTINGS.reminderSound
     }
@@ -224,6 +234,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // Computed
     weekStartDay,
     timeFormat,
+    timezone,
     weekdaysShort,
     weekdaysFull,
     weekStartOptions,
@@ -241,6 +252,7 @@ export const useSettingsStore = defineStore('settings', () => {
     updateCalendarView,
     updateTimeFormat,
     updateLocale,
+    updateTimezone,
     updateNotifications,
     updateReminderSound,
     resetSettings

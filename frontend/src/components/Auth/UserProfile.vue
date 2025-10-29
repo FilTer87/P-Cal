@@ -446,6 +446,9 @@ const savePreference = async (updates: Partial<typeof preferencesForm>) => {
     if (updates.calendarView) {
       settingsStore.updateCalendarView(updates.calendarView)
     }
+    if (updates.timezone) {
+      settingsStore.updateTimezone(updates.timezone)
+    }
 
     // Update form with server response to ensure consistency
     if (updatedPreferences) {
@@ -481,6 +484,7 @@ const updateCalendarView = (calendarView: 'month' | 'week' | 'day' | 'agenda') =
 
 const updateTimezone = (timezone: string) => {
   preferencesForm.timezone = timezone
+  settingsStore.updateTimezone(timezone)
   savePreference({ timezone })
 }
 
@@ -592,6 +596,7 @@ const loadPreferences = async () => {
     settingsStore.updateTimeFormat(preferencesForm.timeFormat)
     settingsStore.updateCalendarView(preferencesForm.calendarView)
     settingsStore.updateWeekStartDay(preferencesForm.weekStartDay)
+    settingsStore.updateTimezone(preferencesForm.timezone)
 
     // If user has a locale preference, use it. Otherwise keep browser/localStorage locale
     if (preferencesForm.language) {

@@ -27,7 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;
@@ -437,17 +436,4 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private LocalDateTime getLocalDateTime(int year, int month, int day, int hour, int minute) {
-        return LocalDateTime.of(year, month, day, hour, minute);
-    }
-
-    private TaskRequest createTaskRequest(String title, int startYear, int startMonth, int startDay, int startHour, int startMinute,
-                                         int endYear, int endMonth, int endDay, int endHour, int endMinute) {
-        TaskRequest request = new TaskRequest();
-        request.setTitle(title);
-        request.setStartDatetimeLocal(getLocalDateTime(startYear, startMonth, startDay, startHour, startMinute));
-        request.setEndDatetimeLocal(getLocalDateTime(endYear, endMonth, endDay, endHour, endMinute));
-        request.setTimezone("UTC");
-        return request;
-    }
 }
