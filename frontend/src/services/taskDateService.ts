@@ -1,12 +1,44 @@
 /**
  * Centralized service for handling task date transformations
- * Automatically converts between UTC (backend) and local timezone (frontend)
+ * NEW: Direct local time handling - backend now manages timezone/DST
  */
 
-import { localDateTimeToUTC, utcToLocalDate, utcToLocalTime } from '../utils/timezone'
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFormData } from '../types/task'
 import { buildRRule, parseRRule } from '../utils/recurrence'
 import { RecurrenceEndType } from '../types/task'
+
+/**
+ * Get user's IANA timezone
+ */
+export function getUserTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
+/**
+ * Combine date and time into ISO 8601 local datetime string
+ * Example: "2025-10-20" + "15:00" => "2025-10-20T15:00:00"
+ */
+function combineDateTime(date: string, time: string): string {
+  return `${date}T${time}:00`
+}
+
+/**
+ * Extract date from ISO 8601 local datetime
+ * Example: "2025-10-20T15:00:00" => "2025-10-20"
+ */
+function extractDate(datetime: string): string {
+  return datetime.split('T')[0]
+}
+
+/**
+ * Extract time from ISO 8601 local datetime
+ * Example: "2025-10-20T15:00:00" => "15:00"
+ */
+function extractTime(datetime: string): string {
+  const timePart = datetime.split('T')[1]
+  if (!timePart) return '00:00'
+  return timePart.substring(0, 5) // HH:MM
+}
 
 /**
  * Convert offset value and unit to minutes
@@ -34,15 +66,15 @@ function convertFromMinutes(offsetMinutes: number): { offsetValue: number, offse
 }
 
 /**
- * Transform task form data from frontend (local) to backend (UTC) format for creation
+ * Transform task form data to backend format for creation
+ * NEW: Direct local time - no timezone conversion needed
  */
 export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequest {
-  // Use user-selected time for all events (including all-day)
-  // For all-day events, the time is used for reminder calculations only
-  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
-  const endDatetime = formData.isAllDay
-    ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
-    : localDateTimeToUTC(formData.endDate, formData.endTime)
+  // Combine date and time into local datetime strings
+  const startDatetimeLocal = combineDateTime(formData.startDate, formData.startTime)
+  const endDatetimeLocal = formData.isAllDay
+    ? combineDateTime(formData.startDate, '23:59') // End of start day for all-day events
+    : combineDateTime(formData.endDate, formData.endTime)
 
   // Build recurrence rule if task is recurring
   let recurrenceRule: string | undefined
@@ -61,15 +93,16 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
 
     // Set recurrenceEnd if using DATE end type
     if (formData.recurrenceEndType === RecurrenceEndType.DATE && formData.recurrenceEndDate) {
-      recurrenceEnd = localDateTimeToUTC(formData.recurrenceEndDate, '23:59')
+      recurrenceEnd = combineDateTime(formData.recurrenceEndDate, '23:59')
     }
   }
 
   return {
     title: formData.title.trim(),
     description: formData.description?.trim() || undefined,
-    startDatetime,
-    endDatetime,
+    startDatetimeLocal,
+    endDatetimeLocal,
+    timezone: getUserTimezone(),
     location: formData.location?.trim() || undefined,
     color: formData.color,
     isAllDay: formData.isAllDay,
@@ -91,15 +124,15 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
 }
 
 /**
- * Transform task form data from frontend (local) to backend (UTC) format for update
+ * Transform task form data to backend format for update
+ * NEW: Direct local time - no timezone conversion needed
  */
 export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskRequest {
-  // Use user-selected time for all events (including all-day)
-  // For all-day events, the time is used for reminder calculations only
-  const startDatetime = localDateTimeToUTC(formData.startDate, formData.startTime)
-  const endDatetime = formData.isAllDay
-    ? localDateTimeToUTC(formData.startDate, '23:59') // End of start day for all-day events
-    : localDateTimeToUTC(formData.endDate, formData.endTime)
+  // Combine date and time into local datetime strings
+  const startDatetimeLocal = combineDateTime(formData.startDate, formData.startTime)
+  const endDatetimeLocal = formData.isAllDay
+    ? combineDateTime(formData.startDate, '23:59') // End of start day for all-day events
+    : combineDateTime(formData.endDate, formData.endTime)
 
   // Build recurrence rule if task is recurring
   let recurrenceRule: string | undefined
@@ -118,7 +151,7 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
 
     // Set recurrenceEnd if using DATE end type
     if (formData.recurrenceEndType === RecurrenceEndType.DATE && formData.recurrenceEndDate) {
-      recurrenceEnd = localDateTimeToUTC(formData.recurrenceEndDate, '23:59')
+      recurrenceEnd = combineDateTime(formData.recurrenceEndDate, '23:59')
     } else {
       recurrenceEnd = undefined
     }
@@ -131,8 +164,9 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
   return {
     title: formData.title.trim(),
     description: formData.description?.trim() || undefined,
-    startDatetime,
-    endDatetime,
+    startDatetimeLocal,
+    endDatetimeLocal,
+    timezone: getUserTimezone(),
     location: formData.location?.trim() || undefined,
     color: formData.color,
     isAllDay: formData.isAllDay,
@@ -155,6 +189,7 @@ export function transformTaskForUpdate(formData: TaskFormData): UpdateTaskReques
 
 /**
  * Transform task data from backend to form data for editing
+ * NEW: Direct extraction from local datetime strings
  */
 export function transformTaskToFormData(task: Task): TaskFormData {
   // Parse recurrence rule if present
@@ -163,10 +198,10 @@ export function transformTaskToFormData(task: Task): TaskFormData {
   return {
     title: task.title || '',
     description: task.description || '',
-    startDate: task.startDatetime ? utcToLocalDate(task.startDatetime) : '',
-    startTime: task.startDatetime ? utcToLocalTime(task.startDatetime) : '',
-    endDate: task.endDatetime ? utcToLocalDate(task.endDatetime) : '',
-    endTime: task.endDatetime ? utcToLocalTime(task.endDatetime) : '',
+    startDate: task.startDatetimeLocal ? extractDate(task.startDatetimeLocal) : '',
+    startTime: task.startDatetimeLocal ? extractTime(task.startDatetimeLocal) : '',
+    endDate: task.endDatetimeLocal ? extractDate(task.endDatetimeLocal) : '',
+    endTime: task.endDatetimeLocal ? extractTime(task.endDatetimeLocal) : '',
     location: task.location || '',
     color: task.color || '#3788d8',
     isAllDay: task.isAllDay || false,
@@ -176,7 +211,7 @@ export function transformTaskToFormData(task: Task): TaskFormData {
     recurrenceEndType: recurrenceParams?.endType,
     recurrenceCount: recurrenceParams?.count,
     recurrenceEndDate: recurrenceParams?.endDate ||
-                      (task.recurrenceEnd ? utcToLocalDate(task.recurrenceEnd) : undefined),
+                      (task.recurrenceEnd ? extractDate(task.recurrenceEnd) : undefined),
     recurrenceByDay: recurrenceParams?.byDay,
     reminders: task.reminders?.map(reminder => {
       const offsetMinutes = reminder.reminderOffsetMinutes || 15
@@ -195,6 +230,7 @@ export function transformTaskToFormData(task: Task): TaskFormData {
 
 /**
  * Transform simple task data for quick add functionality
+ * NEW: Direct local time handling
  */
 export function transformQuickTaskData(data: {
   title: string
@@ -202,19 +238,20 @@ export function transformQuickTaskData(data: {
   time: string
   color: string
 }): CreateTaskRequest {
-  const startDatetime = localDateTimeToUTC(data.date, data.time)
+  const startDatetimeLocal = combineDateTime(data.date, data.time)
 
   // For quick add, end time is 1 hour after start
   const [hour, minute] = data.time.split(':').map(n => parseInt(n))
   const endHour = hour + 1
   const endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
 
-  const endDatetime = localDateTimeToUTC(data.date, endTime)
+  const endDatetimeLocal = combineDateTime(data.date, endTime)
 
   return {
     title: data.title.trim(),
-    startDatetime,
-    endDatetime,
+    startDatetimeLocal,
+    endDatetimeLocal,
+    timezone: getUserTimezone(),
     color: data.color,
     reminders: []
   }

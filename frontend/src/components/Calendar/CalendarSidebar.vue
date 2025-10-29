@@ -132,7 +132,7 @@
                   {{ task.title }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ task.endDatetime ? formatTime(task.endDatetime) : t('calendar.sidebar.noTime') }}
+                  {{ task.endDatetimeLocal ? formatTime(task.endDatetimeLocal) : t('calendar.sidebar.noTime') }}
                 </p>
               </div>
               <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color || '#3788d8' }"></div>
@@ -287,8 +287,8 @@ const formatReminderTimeShort = (reminder: Reminder) => {
 }
 
 const isPastTask = (task: Task): boolean => {
-  if (!task.endDatetime) return false
-  return new Date(task.endDatetime) < new Date()
+  if (!task.endDatetimeLocal) return false
+  return new Date(task.endDatetimeLocal) < new Date()
 }
 
 const showTodayView = () => {

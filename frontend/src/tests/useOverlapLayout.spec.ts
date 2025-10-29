@@ -17,8 +17,8 @@ describe('useOverlapLayout', () => {
     return {
       id,
       title: `Task ${id}`,
-      startDatetime: `${date}T${String(startHourInt).padStart(2, '0')}:${String(startMinutes).padStart(2, '0')}:00`,
-      endDatetime: `${date}T${String(endHourInt).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00`,
+      startDatetimeLocal: `${date}T${String(startHourInt).padStart(2, '0')}:${String(startMinutes).padStart(2, '0')}:00`,
+      endDatetimeLocal: `${date}T${String(endHourInt).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00`,
       color: '#3B82F6',
       description: '',
       location: '',
@@ -214,10 +214,10 @@ describe('useOverlapLayout', () => {
 
       // Verifica che task più lunghi abbiano layer più bassi
       const durations = tasks.map(t => {
-        const start = parseFloat(t.startDatetime.split('T')[1].split(':')[0]) +
-                      parseFloat(t.startDatetime.split('T')[1].split(':')[1]) / 60
-        const end = parseFloat(t.endDatetime.split('T')[1].split(':')[0]) +
-                    parseFloat(t.endDatetime.split('T')[1].split(':')[1]) / 60
+        const start = parseFloat(t.startDatetimeLocal.split('T')[1].split(':')[0]) +
+                      parseFloat(t.startDatetimeLocal.split('T')[1].split(':')[1]) / 60
+        const end = parseFloat(t.endDatetimeLocal.split('T')[1].split(':')[0]) +
+                    parseFloat(t.endDatetimeLocal.split('T')[1].split(':')[1]) / 60
         return { id: t.id, duration: end - start }
       }).sort((a, b) => b.duration - a.duration)
 
@@ -282,7 +282,7 @@ describe('useOverlapLayout', () => {
 
     it('should handle tasks without datetime', () => {
       const tasks = [
-        { id: 1, title: 'No datetime', startDatetime: '', endDatetime: '' } as Task
+        { id: 1, title: 'No datetime', startDatetimeLocal: '', endDatetimeLocal: '' } as Task
       ]
 
       const layout = calculateLayout(tasks)

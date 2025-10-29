@@ -29,18 +29,18 @@ export const useTasksStore = defineStore('tasks', () => {
   const filteredTasks = computed(() => {
     let filtered = [...(tasks.value || [])].filter(task => task !== null && task !== undefined)
 
-    // Apply date range filter (using startDatetime)
+    // Apply date range filter (using startDatetimeLocal)
     if (filters.value.startDateFrom) {
       const fromDate = new Date(filters.value.startDateFrom)
-      filtered = filtered.filter(task => 
-        task.startDatetime && new Date(task.startDatetime) >= fromDate
+      filtered = filtered.filter(task =>
+        task.startDatetimeLocal && new Date(task.startDatetimeLocal) >= fromDate
       )
     }
 
     if (filters.value.startDateTo) {
       const toDate = new Date(filters.value.startDateTo)
-      filtered = filtered.filter(task => 
-        task.startDatetime && new Date(task.startDatetime) <= toDate
+      filtered = filtered.filter(task =>
+        task.startDatetimeLocal && new Date(task.startDatetimeLocal) <= toDate
       )
     }
 
@@ -55,30 +55,30 @@ export const useTasksStore = defineStore('tasks', () => {
 
     return filtered.sort((a, b) => {
       // Sort by start date (soonest first)
-      if (a.startDatetime && b.startDatetime) {
-        return new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
+      if (a.startDatetimeLocal && b.startDatetimeLocal) {
+        return new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime()
       }
-      
-      if (a.startDatetime && !b.startDatetime) return -1
-      if (!a.startDatetime && b.startDatetime) return 1
-      
+
+      if (a.startDatetimeLocal && !b.startDatetimeLocal) return -1
+      if (!a.startDatetimeLocal && b.startDatetimeLocal) return 1
+
       // Sort by title alphabetically
       return a.title.localeCompare(b.title)
     })
   })
 
 
-  const todayTasks = computed(() => 
+  const todayTasks = computed(() =>
     (cachedTodayTasks.value && cachedTodayTasks.value.length > 0)
-      ? cachedTodayTasks.value 
+      ? cachedTodayTasks.value
       : (tasks.value || []).filter(task => {
-          if (!task || !task.startDatetime || !task.endDatetime) return false
+          if (!task || !task.startDatetimeLocal || !task.endDatetimeLocal) return false
           // Task is today if it starts today or spans today
-          const startDate = new Date(task.startDatetime)
-          const endDate = new Date(task.endDatetime)
+          const startDate = new Date(task.startDatetimeLocal)
+          const endDate = new Date(task.endDatetimeLocal)
           const today = new Date()
-          
-          return isToday(startDate) || 
+
+          return isToday(startDate) ||
             (startDate <= today && endDate >= startOfDay(today))
         })
   )
@@ -88,10 +88,10 @@ export const useTasksStore = defineStore('tasks', () => {
     const weekStart = startOfDay(now)
     const weekEnd = new Date(now)
     weekEnd.setDate(weekEnd.getDate() + 7)
-    
+
     return (tasks.value || []).filter(task => {
-      if (!task || !task.startDatetime) return false
-      const startDate = new Date(task.startDatetime)
+      if (!task || !task.startDatetimeLocal) return false
+      const startDate = new Date(task.startDatetimeLocal)
       return isAfter(startDate, weekStart) && isBefore(startDate, weekEnd)
     })
   })
@@ -99,25 +99,24 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const tasksByDate = computed((): DailyTasks => {
     const dailyTasks: DailyTasks = {};
-    
+
     (tasks.value || []).forEach(task => {
-      // Use startDatetime for task date grouping
-      if (task && task.startDatetime) {
-        // Parse datetime properly handling timezone
-        const taskDate = new Date(task.startDatetime)
-        
-        // Debug logging for timezone issues
-        console.debug(`🕐 Task ${task.id} (${task.title}): ${task.startDatetime} -> Local: ${taskDate.toLocaleString()}, Date key: ${format(taskDate, 'yyyy-MM-dd')}`)
-        
+      // Use startDatetimeLocal for task date grouping (already in local time)
+      if (task && task.startDatetimeLocal) {
+        // Parse local datetime string (e.g., "2025-10-20T15:00:00")
+        const taskDate = new Date(task.startDatetimeLocal)
+
+        // Debug logging
+        console.debug(`🕐 Task ${task.id} (${task.title}): ${task.startDatetimeLocal} -> Local: ${taskDate.toLocaleString()}, Date key: ${format(taskDate, 'yyyy-MM-dd')}`)
+
         const dateKey = format(taskDate, 'yyyy-MM-dd')
         if (!dailyTasks[dateKey]) {
           dailyTasks[dateKey] = []
         }
         dailyTasks[dateKey].push(task)
-      } else {
       }
     })
-    
+
     return dailyTasks
   })
 
@@ -239,7 +238,7 @@ export const useTasksStore = defineStore('tasks', () => {
       const newTask = await taskApi.createTask(taskData)
       
       // Ensure we have a valid task before adding to array
-      if (newTask && newTask.id && newTask.startDatetime && newTask.endDatetime) {
+      if (newTask && newTask.id && newTask.startDatetimeLocal && newTask.endDatetimeLocal) {
         tasks.value.unshift(newTask)
         console.log('✅ Task created successfully:', newTask)
       } else {
@@ -358,11 +357,11 @@ export const useTasksStore = defineStore('tasks', () => {
     futureDate.setDate(futureDate.getDate() + days)
 
     return (tasks.value || []).filter(task =>
-      task && task.startDatetime &&
-      isAfter(new Date(task.startDatetime), new Date()) &&
-      isBefore(new Date(task.startDatetime), futureDate)
+      task && task.startDatetimeLocal &&
+      isAfter(new Date(task.startDatetimeLocal), new Date()) &&
+      isBefore(new Date(task.startDatetimeLocal), futureDate)
     ).sort((a, b) =>
-      new Date(a.startDatetime).getTime() - new Date(b.startDatetime).getTime()
+      new Date(a.startDatetimeLocal).getTime() - new Date(b.startDatetimeLocal).getTime()
     )
   }
 

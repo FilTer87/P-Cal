@@ -187,11 +187,11 @@ const getTasksWithSplitsForDate = (date: Date) => {
   const seenKeys = new Set<string | number>()
 
   props.tasks.forEach(task => {
-    if (!task.startDatetime || !task.endDatetime) return
+    if (!task.startDatetimeLocal || !task.endDatetimeLocal) return
 
     // Use local timezone for date extraction, not UTC string split
-    const taskStartDay = format(new Date(task.startDatetime), 'yyyy-MM-dd')
-    const taskEndDay = format(new Date(task.endDatetime), 'yyyy-MM-dd')
+    const taskStartDay = format(new Date(task.startDatetimeLocal), 'yyyy-MM-dd')
+    const taskEndDay = format(new Date(task.endDatetimeLocal), 'yyyy-MM-dd')
     const taskKey = getTaskKey(task)
 
     // Skip if we've already seen this task key
@@ -213,12 +213,12 @@ const getTasksWithSplitsForDate = (date: Date) => {
 
         if (currentDay === taskStartDay) {
           // First day: from original start time to end of day
-          visualStartTime = task.startDatetime
+          visualStartTime = task.startDatetimeLocal
           visualEndTime = `${currentDay}T23:59:59`
         } else if (currentDay === taskEndDay) {
           // Last day: from start of day to original end time
           visualStartTime = `${currentDay}T00:00:00`
-          visualEndTime = task.endDatetime
+          visualEndTime = task.endDatetimeLocal
         } else {
           // Middle day: full day (using local timezone format for consistent positioning)
           visualStartTime = `${currentDay}T00:00:00`
@@ -246,8 +246,8 @@ const getTasksWithSplitsForDate = (date: Date) => {
 // Task positioning and styling
 const getTaskTimePosition = (task: any) => {
   // Use visual times for positioning if available (for split multi-day tasks)
-  const startTimeStr = task._visualStartTime || task.startDatetime
-  const endTimeStr = task._visualEndTime || task.endDatetime
+  const startTimeStr = task._visualStartTime || task.startDatetimeLocal
+  const endTimeStr = task._visualEndTime || task.endDatetimeLocal
   
   if (!startTimeStr) return { top: '0px', height: '32px' }
   
@@ -283,7 +283,7 @@ const getTaskTimeDisplayClasses = (task: Task) => {
     'shadow-sm'
   ]
 
-  const isPast = new Date(task.endDatetime) < new Date()
+  const isPast = new Date(task.endDatetimeLocal) < new Date()
 
   return [
     ...baseClasses,
@@ -311,11 +311,11 @@ const getTaskTimeStyleIntelligent = (task: Task, dayTasks: Task[], calculatedLay
 }
 
 const formatTaskTime = (task: Task) => {
-  if (!task.startDatetime || !task.endDatetime) return ''
+  if (!task.startDatetimeLocal || !task.endDatetimeLocal) return ''
   
   // Use visual times if available (for split multi-day tasks)
-  const startTimeStr = (task as any)._visualStartTime || task.startDatetime
-  const endTimeStr = (task as any)._visualEndTime || task.endDatetime
+  const startTimeStr = (task as any)._visualStartTime || task.startDatetimeLocal
+  const endTimeStr = (task as any)._visualEndTime || task.endDatetimeLocal
   
   const start = new Date(startTimeStr)
   const end = new Date(endTimeStr)
@@ -416,7 +416,7 @@ const getTaskTooltipContent = (task: any) => {
 
 // Check if task overlaps with next task (for intelligent height calculation)
 const hasOverlapWithNext = (currentTask: any, dayTasks: Task[]) => {
-  const currentEndStr = currentTask._visualEndTime || currentTask.endDatetime
+  const currentEndStr = currentTask._visualEndTime || currentTask.endDatetimeLocal
   if (!currentEndStr) return false
 
   const currentEnd = new Date(currentEndStr)
@@ -425,7 +425,7 @@ const hasOverlapWithNext = (currentTask: any, dayTasks: Task[]) => {
   const overlapping = dayTasks.some(otherTask => {
     if (getTaskKey(otherTask) === getTaskKey(currentTask)) return false
 
-    const otherStartStr = otherTask._visualStartTime || otherTask.startDatetime
+    const otherStartStr = otherTask._visualStartTime || otherTask.startDatetimeLocal
     if (!otherStartStr) return false
 
     const otherStart = new Date(otherStartStr)
@@ -441,8 +441,8 @@ const hasOverlapWithNext = (currentTask: any, dayTasks: Task[]) => {
 // Intelligent task positioning with overlap detection
 const getTaskTimePositionIntelligent = (task: any, dayTasks: Task[]) => {
   // Use visual times for positioning if available (for split multi-day tasks)
-  const startTimeStr = task._visualStartTime || task.startDatetime
-  const endTimeStr = task._visualEndTime || task.endDatetime
+  const startTimeStr = task._visualStartTime || task.startDatetimeLocal
+  const endTimeStr = task._visualEndTime || task.endDatetimeLocal
 
   if (!startTimeStr) return { top: '0px', height: '18px' }
 
@@ -493,8 +493,8 @@ const weekDaysWithAllDay = computed(() => {
 
     // Filter tasks for this day
     const dayTasks = props.tasks.filter(task => {
-      if (!task.startDatetime) return false
-      const taskDate = format(new Date(task.startDatetime), 'yyyy-MM-dd')
+      if (!task.startDatetimeLocal) return false
+      const taskDate = format(new Date(task.startDatetimeLocal), 'yyyy-MM-dd')
       return taskDate === dayDate
     })
 

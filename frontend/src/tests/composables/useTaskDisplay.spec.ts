@@ -18,8 +18,8 @@ describe('useTaskDisplay', () => {
     id: 1,
     title: 'Test Task',
     description: '',
-    startDatetime: '2025-06-20T10:00:00Z',
-    endDatetime: '2025-06-20T11:00:00Z',
+    startDatetimeLocal: '2025-06-20T10:00:00Z',
+    endDatetimeLocal: '2025-06-20T11:00:00Z',
     location: '',
     color: '#3788d8',
     userId: 1,
@@ -63,8 +63,8 @@ describe('useTaskDisplay', () => {
 
     it('should add opacity classes for past tasks', () => {
       const task = createMockTask({
-        startDatetime: '2025-06-10T10:00:00Z',
-        endDatetime: '2025-06-10T11:00:00Z', // Past
+        startDatetimeLocal: '2025-06-10T10:00:00Z',
+        endDatetimeLocal: '2025-06-10T11:00:00Z', // Past
         color: '#3b82f6'
       })
       const classes = getTaskDisplayClasses(task)
@@ -229,8 +229,8 @@ describe('useTaskDisplay', () => {
   describe('Edge Cases', () => {
     it('should handle task at exact current time', () => {
       const task = createMockTask({
-        startDatetime: '2025-06-15T11:00:00Z',
-        endDatetime: '2025-06-15T12:00:00Z' // Ends exactly now
+        startDatetimeLocal: '2025-06-15T11:00:00Z',
+        endDatetimeLocal: '2025-06-15T12:00:00Z' // Ends exactly now
       })
 
       // Task ending exactly now should NOT be considered past (< not <=)
@@ -240,8 +240,8 @@ describe('useTaskDisplay', () => {
 
     it('should handle task with very old end date', () => {
       const task = createMockTask({
-        startDatetime: '2020-01-01T10:00:00Z',
-        endDatetime: '2020-01-01T11:00:00Z'
+        startDatetimeLocal: '2020-01-01T10:00:00Z',
+        endDatetimeLocal: '2020-01-01T11:00:00Z'
       })
 
       const classes = getTaskDisplayClasses(task)
@@ -250,8 +250,8 @@ describe('useTaskDisplay', () => {
 
     it('should handle task with far future date', () => {
       const task = createMockTask({
-        startDatetime: '2030-01-01T10:00:00Z',
-        endDatetime: '2030-01-01T11:00:00Z'
+        startDatetimeLocal: '2030-01-01T10:00:00Z',
+        endDatetimeLocal: '2030-01-01T11:00:00Z'
       })
 
       const classes = getTaskDisplayClasses(task)

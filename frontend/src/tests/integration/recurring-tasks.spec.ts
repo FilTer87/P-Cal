@@ -13,8 +13,8 @@ describe('Recurring Tasks Integration', () => {
     id: 1,
     title: 'Team Sync',
     description: '',
-    startDatetime: '2025-10-07T10:00:00Z',
-    endDatetime: '2025-10-07T11:00:00Z',
+    startDatetimeLocal: '2025-10-07T10:00:00Z',
+    endDatetimeLocal: '2025-10-07T11:00:00Z',
     location: '',
     color: '#3788d8',
     isRecurring: false,
@@ -52,8 +52,8 @@ describe('Recurring Tasks Integration', () => {
       // Verify RRULE was built correctly
       expect(request.recurrenceRule).toBe('FREQ=WEEKLY;BYDAY=MO,WE;COUNT=8')
       expect(request.title).toBe('Team Sync')
-      expect(request.startDatetime).toBeDefined()
-      expect(request.endDatetime).toBeDefined()
+      expect(request.startDatetimeLocal).toBeDefined()
+      expect(request.endDatetimeLocal).toBeDefined()
 
       // Verify RRULE can be parsed back
       const parsed = parseRRule(request.recurrenceRule!)

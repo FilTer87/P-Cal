@@ -29,7 +29,7 @@ export function useOverlapLayout() {
 
   /**
    * Calculate layered layout for overlapping tasks
-   * @param tasks Task list with startDatetime/endDatetime
+   * @param tasks Task list with startDatetimeLocal/endDatetimeLocal
    * @returns Map<taskKey, LayoutResult>
    */
   function calculateLayout(tasks: Task[]): Map<string | number, LayoutResult> {
@@ -39,11 +39,11 @@ export function useOverlapLayout() {
 
     // Convert tasks to time-based objects
     const timeTasks: TimeTask[] = tasks
-      .filter(task => task.startDatetime && task.endDatetime)
+      .filter(task => task.startDatetimeLocal && task.endDatetimeLocal)
       .map(task => ({
         key: getTaskKey(task),
-        start: getHourFloat(task.startDatetime),
-        end: getHourFloat(task.endDatetime),
+        start: getHourFloat(task.startDatetimeLocal),
+        end: getHourFloat(task.endDatetimeLocal),
         task: task
       }))
       .sort((a, b) => {

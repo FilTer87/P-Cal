@@ -60,10 +60,10 @@ export function useTasks() {
       const formData = {
         title: taskData.title,
         description: taskData.description || '',
-        startDate: taskData.startDatetime ? format(new Date(taskData.startDatetime), 'yyyy-MM-dd') : '',
-        startTime: taskData.startDatetime ? format(new Date(taskData.startDatetime), 'HH:mm') : '',
-        endDate: taskData.endDatetime ? format(new Date(taskData.endDatetime), 'yyyy-MM-dd') : '',
-        endTime: taskData.endDatetime ? format(new Date(taskData.endDatetime), 'HH:mm') : '',
+        startDate: taskData.startDatetimeLocal ? taskData.startDatetimeLocal.split('T')[0] : '',
+        startTime: taskData.startDatetimeLocal ? taskData.startDatetimeLocal.split('T')[1]?.substring(0, 5) || '00:00' : '',
+        endDate: taskData.endDatetimeLocal ? taskData.endDatetimeLocal.split('T')[0] : '',
+        endTime: taskData.endDatetimeLocal ? taskData.endDatetimeLocal.split('T')[1]?.substring(0, 5) || '23:59' : '',
         location: taskData.location || '',
         color: taskData.color || '#3788d8',
         isRecurring: taskData.recurrenceRule || false,
@@ -264,7 +264,8 @@ export function useTasks() {
 
   // Utility functions
   const isDueSoon = (task: Task, hours = 24): boolean => {
-    const startDate = new Date(task.startDatetime)
+    // Parse local datetime string (e.g., "2025-10-20T15:00:00")
+    const startDate = new Date(task.startDatetimeLocal)
     const now = new Date()
     const diffHours = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60)
 
@@ -272,7 +273,8 @@ export function useTasks() {
   }
 
   const isPastEvent = (task: Task): boolean => {
-    const endDate = new Date(task.endDatetime)
+    // Parse local datetime string (e.g., "2025-10-20T16:00:00")
+    const endDate = new Date(task.endDatetimeLocal)
     const now = new Date()
 
     return endDate < now
