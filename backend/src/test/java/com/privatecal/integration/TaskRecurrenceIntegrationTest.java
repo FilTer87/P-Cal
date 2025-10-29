@@ -129,7 +129,7 @@ class TaskRecurrenceIntegrationTest {
         // Create weekly task with end date
         TaskRequest request = createTaskRequest("Weekly review", 2025, 10, 1, 14, 0, 2025, 10, 1, 15, 0);
         request.setRecurrenceRule("FREQ=WEEKLY");
-        request.setRecurrenceEnd(getInstant(2025, 10, 31, 23, 59));
+        request.setRecurrenceEnd(LocalDateTime.of(2025, 10, 31, 23, 59));
 
         TaskResponse response = taskService.createTask(request);
 
@@ -268,7 +268,7 @@ class TaskRecurrenceIntegrationTest {
     void testRecurrenceEndBeforeStartThrowsException() {
         TaskRequest request = createTaskRequest("Invalid recurrence end", 2025, 10, 15, 9, 0, 2025, 10, 15, 9, 30);
         request.setRecurrenceRule("FREQ=DAILY");
-        request.setRecurrenceEnd(getInstant(2025, 10, 1, 0, 0)); // Before start
+        request.setRecurrenceEnd(LocalDateTime.of(2025, 10, 1, 0, 0)); // Before start
 
         assertThrows(RuntimeException.class, () -> {
             taskService.createTask(request);
@@ -329,7 +329,7 @@ class TaskRecurrenceIntegrationTest {
         TaskResponse created = taskService.createTask(createRequest);
 
         // Get the second occurrence date
-        Instant secondOccurrence = getInstant(2025, 10, 2, 10, 0);
+        LocalDateTime secondOccurrence = LocalDateTime.of(2025, 10, 2, 10, 0);
 
         // Update single occurrence with new data
         TaskRequest updateRequest = createTaskRequest("Modified meeting (one-time)",
@@ -373,7 +373,7 @@ class TaskRecurrenceIntegrationTest {
         assertEquals(5, tasksBefore.size());
 
         // Update the 3rd occurrence
-        Instant thirdOccurrence = getInstant(2025, 10, 3, 9, 0);
+        LocalDateTime thirdOccurrence = LocalDateTime.of(2025, 10, 3, 9, 0);
         TaskRequest updateRequest = createTaskRequest("Modified single task",
             2025, 10, 3, 15, 0,
             2025, 10, 3, 15, 30);
@@ -404,7 +404,7 @@ class TaskRecurrenceIntegrationTest {
         TaskResponse created = taskService.createTask(createRequest);
 
         // Update second occurrence
-        Instant secondOccurrence = getInstant(2025, 10, 8, 10, 0);
+        LocalDateTime secondOccurrence = LocalDateTime.of(2025, 10, 8, 10, 0);
         TaskRequest updateRequest = createTaskRequest("Modified standup", 2025, 10, 8, 11, 0, 2025, 10, 8, 11, 30);
 
         taskService.updateSingleOccurrence(created.getId(), secondOccurrence, updateRequest);

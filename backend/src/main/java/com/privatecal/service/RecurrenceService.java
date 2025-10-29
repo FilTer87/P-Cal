@@ -154,13 +154,18 @@ public class RecurrenceService {
     /**
      * Add an exception date to the task (EXDATE)
      * @param task The task to modify
-     * @param exceptionDate The occurrence date to exclude
+     * @param exceptionDateLocal The occurrence date (local datetime) to exclude
      */
-    public void addExceptionDate(Task task, Instant exceptionDate) {
-        Set<Instant> exceptions = parseExceptionDates(task.getRecurrenceExceptions());
-        exceptions.add(exceptionDate);
+    public void addExceptionDate(Task task, LocalDateTime exceptionDateLocal) {
+        // Convert LocalDateTime to Instant for storage (using task's timezone)
+        Instant exceptionInstant = exceptionDateLocal
+            .atZone(ZoneId.of(task.getTaskTimezone()))
+            .toInstant();
+         Set<Instant> exceptions = parseExceptionDates(task.getRecurrenceExceptions());
+        exceptions.add(exceptionInstant);
         task.setRecurrenceExceptions(formatExceptionDates(exceptions));
-        logger.info("Added exception date {} to task {}", exceptionDate, task.getId());
+        logger.info("Added exception date {} (local) / {} (instant) to task {}",
+                   exceptionDateLocal, exceptionInstant, task.getUid());
     }
 
     /**

@@ -75,7 +75,15 @@ public class TaskService {
         // Generate UID if not provided (required for CalDAV compliance)
         task.setUid(StringUtils.hasText(taskRequest.getUid()) ? taskRequest.getUid() : java.util.UUID.randomUUID().toString());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
-        task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
+
+        // Convert recurrenceEnd from LocalDateTime to Instant
+        if (taskRequest.getRecurrenceEnd() != null) {
+            task.setRecurrenceEnd(taskRequest.getRecurrenceEnd()
+                .atZone(ZoneId.of(taskRequest.getTimezone()))
+                .toInstant());
+        } else {
+            task.setRecurrenceEnd(null);
+        }
 
         // Save task
         Task savedTask = taskRepository.save(task);
@@ -294,7 +302,15 @@ public class TaskService {
         // DO NOT update UID - it's the primary key and should never change
         // task.setUid(taskRequest.getUid());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
-        task.setRecurrenceEnd(taskRequest.getRecurrenceEnd());
+
+        // Convert recurrenceEnd from LocalDateTime to Instant
+        if (taskRequest.getRecurrenceEnd() != null) {
+            task.setRecurrenceEnd(taskRequest.getRecurrenceEnd()
+                .atZone(ZoneId.of(taskRequest.getTimezone()))
+                .toInstant());
+        } else {
+            task.setRecurrenceEnd(null);
+        }
 
         // Save task
         Task savedTask = taskRepository.save(task);
@@ -337,8 +353,8 @@ public class TaskService {
      * @param taskRequest The updated task data
      * @return The newly created task for the single occurrence
      */
-    public TaskResponse updateSingleOccurrence(String taskUid, Instant occurrenceStart, TaskRequest taskRequest) {
-        logger.info("Updating single occurrence of task UID {} at {}", taskUid, occurrenceStart);
+    public TaskResponse updateSingleOccurrence(String taskUid, LocalDateTime occurrenceStartLocal, TaskRequest taskRequest) {
+        logger.info("Updating single occurrence of task UID {} at {} (local time)", taskUid, occurrenceStartLocal);
 
         User currentUser = userService.getCurrentUser();
 
@@ -354,11 +370,11 @@ public class TaskService {
         // Validate task request
         validateTaskRequest(taskRequest);
 
-        // Add exception date to master task (EXDATE)
-        recurrenceService.addExceptionDate(masterTask, occurrenceStart);
+        // Add exception date to master task (EXDATE) using local datetime
+        recurrenceService.addExceptionDate(masterTask, occurrenceStartLocal);
         taskRepository.save(masterTask);
 
-        logger.info("Added EXDATE {} to master task {}", occurrenceStart, masterTask.getUid());
+        logger.info("Added EXDATE {} to master task {}", occurrenceStartLocal, masterTask.getUid());
 
         // Create new non-recurring task for this specific occurrence
         Task newTask = new Task();
@@ -470,10 +486,9 @@ public class TaskService {
             }
         }
 
-        // Validate recurrence end if provided
+        // Validate recurrence end if provided (both are LocalDateTime now)
         if (taskRequest.getRecurrenceEnd() != null && taskRequest.getStartDatetimeLocal() != null) {
-            Instant startInstant = taskRequest.getStartDatetimeLocal().atZone(ZoneId.of(taskRequest.getTimezone())).toInstant();
-            if (!taskRequest.getRecurrenceEnd().isAfter(startInstant)) {
+            if (!taskRequest.getRecurrenceEnd().isAfter(taskRequest.getStartDatetimeLocal())) {
                 throw new RuntimeException("Recurrence end must be after start datetime");
             }
         }

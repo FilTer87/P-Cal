@@ -49,7 +49,12 @@ public class TaskResponse {
     private Boolean isAllDay;
 
     private String recurrenceRule;
-    private Instant recurrenceEnd;
+
+    /**
+     * Optional: End datetime for recurrence (local datetime string).
+     * Converted from Instant in entity to LocalDateTime string for frontend.
+     */
+    private String recurrenceEnd;
 
     private List<ReminderResponse> reminders = new ArrayList<>();
     
@@ -84,7 +89,17 @@ public class TaskResponse {
         this.location = task.getLocation();
         this.isAllDay = task.getIsAllDay();
         this.recurrenceRule = task.getRecurrenceRule();
-        this.recurrenceEnd = task.getRecurrenceEnd();
+
+        // Convert recurrenceEnd from Instant to LocalDateTime string for frontend
+        if (task.getRecurrenceEnd() != null && task.getTaskTimezone() != null) {
+            this.recurrenceEnd = task.getRecurrenceEnd()
+                .atZone(java.time.ZoneId.of(task.getTaskTimezone()))
+                .toLocalDateTime()
+                .toString();
+        } else {
+            this.recurrenceEnd = null;
+        }
+
         this.createdAt = task.getCreatedAt();
         this.updatedAt = task.getUpdatedAt();
 
