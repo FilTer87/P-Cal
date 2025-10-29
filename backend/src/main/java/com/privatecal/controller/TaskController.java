@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -167,12 +168,12 @@ public class TaskController {
 
             // Check if we're editing a single occurrence
             if (occurrenceStart != null && !occurrenceStart.trim().isEmpty()) {
-                // Parse occurrence datetime
-                Instant occurrenceInstant = Instant.parse(occurrenceStart);
-                logger.info("Editing single occurrence at {}", occurrenceInstant);
+                // Parse occurrence datetime (local datetime string from frontend)
+                LocalDateTime occurrenceLocalDateTime = LocalDateTime.parse(occurrenceStart);
+                logger.info("Editing single occurrence at {} (local time)", occurrenceLocalDateTime);
 
                 // Update single occurrence (creates new task + adds EXDATE)
-                response = taskService.updateSingleOccurrence(taskUid, occurrenceInstant, taskRequest);
+                response = taskService.updateSingleOccurrence(taskUid, occurrenceLocalDateTime, taskRequest);
             } else {
                 // Update the entire task (all occurrences if recurring)
                 response = taskService.updateTask(taskUid, taskRequest);

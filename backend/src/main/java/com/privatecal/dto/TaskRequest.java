@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,11 @@ public class TaskRequest {
     @Size(max = 500, message = "Recurrence rule must be at most 500 characters")
     private String recurrenceRule;
 
-    private Instant recurrenceEnd;
+    /**
+     * Optional: End datetime for recurrence (local datetime).
+     * Used when recurrence has a DATE end type.
+     */
+    private LocalDateTime recurrenceEnd;
 
     private List<ReminderRequest> reminders = new ArrayList<>();
 
@@ -79,12 +82,11 @@ public class TaskRequest {
     @AssertTrue(message = "Recurrence end must be after start datetime")
     @JsonIgnore
     public boolean isRecurrenceEndAfterStartDatetime() {
-        if (recurrenceEnd == null || startDatetimeLocal == null || timezone == null) {
+        if (recurrenceEnd == null || startDatetimeLocal == null) {
             return true; // Recurrence end is optional
         }
-        // Convert local time to instant for comparison
-        Instant startInstant = startDatetimeLocal.atZone(java.time.ZoneId.of(timezone)).toInstant();
-        return recurrenceEnd.isAfter(startInstant);
+        // Both are LocalDateTime now, direct comparison
+        return recurrenceEnd.isAfter(startDatetimeLocal);
     }
 
     /**
