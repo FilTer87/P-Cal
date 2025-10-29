@@ -8,6 +8,22 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+---
+
+## [0.15.0-beta] - 2025-10-24
+
+### Added
+
 - **Import/Export Calendars**:
   - compatible with **Google Calendar**, **Apple Calendar**, **Outlook**, **Thunderbird** and RFC 5545 standards (.ics/.ical file format)
   - intelligent **preview** for duplicates or errors management
@@ -38,16 +54,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
   - No more "resource URL may change" limitation
   - Breaking change: Task ID type changed from `Long` to `String` (UID)
   - Frontend adjustment to use UID string instead of number
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
----
 
 ## [0.14.0-beta] - 2025-10-17
 
