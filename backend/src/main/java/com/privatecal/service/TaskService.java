@@ -288,13 +288,15 @@ public class TaskService {
             // Update dates only for non-recurring tasks or when recurrence rule changes
             task.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
             task.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
-            task.setTaskTimezone(taskRequest.getTimezone());
             // Deprecated UTC fields are auto-synced in Task entity's @PrePersist
         } else {
             // For recurring tasks with unchanged recurrence rule, keep original dates
             logger.info("Preserving original dates for recurring task {} (start: {}, end: {})",
                        taskUid, task.getStartDatetimeLocal(), task.getEndDatetimeLocal());
         }
+
+        // timezone should be updated despite of single occurrence rule update (update reminder time fix on changed timezone)
+        task.setTaskTimezone(taskRequest.getTimezone());
 
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);

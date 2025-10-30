@@ -22,6 +22,13 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
     - updated event related components and views to use local time intead of UTC conversions
     - updated tests
 
+**CalDAV event sync**
+
+  - Implemented calendar-multiget support to return only requested events instead of the full calendar
+  - Optimized CalDAV REPORT method to handle selective event fetching
+
+  Performance improvement: CalDAV clients no longer freeze when creating or modifying events
+
 ### Deprecated
 
 - TaskRequest and TaskResponse no longer have startDatetime and endDatetime fields
@@ -35,6 +42,12 @@ Frontend timezone conversion utilities
 
 - Event time inconsistency on DST change
 - User timezone is loaded from stored settings, using system settings (browser default) only as fallback
+
+**CalDAV server:**
+
+  - Added missing VALARM parsing to import reminders from CalDAV PUT requests (default: EMAIL notification type)
+  - Added Location and Cache-Control headers to PUT responses for better client compatibility
+  - Fixed Response type and error handling for XML responses (CalDAV implementation) for client compatibility
 
 ### Security
 

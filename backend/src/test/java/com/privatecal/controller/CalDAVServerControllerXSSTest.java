@@ -81,7 +81,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -107,7 +107,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -135,7 +135,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -168,7 +168,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, maliciousUsername, maliciousSlug, null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, maliciousUsername, maliciousSlug, null, "1");
 
         // Then
         assertNotNull(response);
@@ -196,7 +196,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag("def456-task")).thenReturn("etag-def");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -227,7 +227,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-<malicious>");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);

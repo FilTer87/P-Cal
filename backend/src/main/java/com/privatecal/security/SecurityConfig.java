@@ -198,7 +198,7 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint())
+                .authenticationEntryPoint(delegatingAuthenticationEntryPoint())
             )
             .addFilterBefore(jwtAuthenticationFilter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
@@ -209,32 +209,78 @@ public class SecurityConfig {
      * Exception handling for authentication failures
      */
     @Bean
-    public JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
-        return new JwtAuthenticationEntryPoint();
+    public DelegatingAuthenticationEntryPoint delegatingAuthenticationEntryPoint() {
+        return new DelegatingAuthenticationEntryPoint();
     }
-    
+
+    /**
+     * Custom authentication entry point that delegates based on request path:
+     * - CalDAV endpoints use HTTP Basic Auth (WWW-Authenticate header)
+     * - All other endpoints use JWT (JSON response)
+     */
+    public static class DelegatingAuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
+
+        private final JwtAuthenticationEntryPoint jwtAuthEntryPoint;
+
+        public DelegatingAuthenticationEntryPoint() {
+            // Configure JWT entry point for REST API
+            this.jwtAuthEntryPoint = new JwtAuthenticationEntryPoint();
+        }
+
+        @Override
+        public void commence(jakarta.servlet.http.HttpServletRequest request,
+                           jakarta.servlet.http.HttpServletResponse response,
+                           org.springframework.security.core.AuthenticationException authException)
+                throws java.io.IOException, jakarta.servlet.ServletException {
+
+            String requestUri = request.getRequestURI();
+
+            // Use Custom Basic Auth entry point for CalDAV endpoints
+            if (requestUri.startsWith("/caldav")) {
+                // Return 401 with WWW-Authenticate header and XML body
+                response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                response.setHeader("WWW-Authenticate", "Basic realm=\"PrivateCal CalDAV Server\"");
+                response.setContentType("application/xml");
+                response.setCharacterEncoding("UTF-8");
+
+                String xmlError = String.format(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<error xmlns=\"DAV:\">\n" +
+                    "  <unauthenticated/>\n" +
+                    "  <message>Authentication required</message>\n" +
+                    "</error>"
+                );
+
+                response.getWriter().write(xmlError);
+            } else {
+                // Use JWT entry point for all other endpoints
+                jwtAuthEntryPoint.commence(request, response, authException);
+            }
+        }
+    }
+
     /**
      * Custom authentication entry point for JWT
      */
     public static class JwtAuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
-        
+
         @Override
         public void commence(jakarta.servlet.http.HttpServletRequest request,
                            jakarta.servlet.http.HttpServletResponse response,
                            org.springframework.security.core.AuthenticationException authException)
                 throws java.io.IOException {
-            
+
             response.setContentType("application/json");
             response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");
-            
+
             String jsonResponse = String.format(
-                "{\"error\": \"Unauthorized\", \"message\": \"%s\", \"path\": \"%s\", \"timestamp\": \"%s\"}", 
+                "{\"error\": \"Unauthorized\", \"message\": \"%s\", \"path\": \"%s\", \"timestamp\": \"%s\"}",
                 authException.getMessage(),
                 request.getRequestURI(),
                 java.time.Instant.now().toString()
             );
-            
+
             response.getWriter().write(jsonResponse);
         }
     }

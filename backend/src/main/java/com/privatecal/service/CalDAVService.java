@@ -3,9 +3,14 @@ package com.privatecal.service;
 import com.privatecal.dto.DuplicateStrategy;
 import com.privatecal.dto.ImportPreviewResponse;
 import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
+import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.TaskRepository;
+
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.*;
@@ -47,6 +52,7 @@ import java.util.stream.Collectors;
  * Handles conversion between Task entities and iCalendar VEVENT/VTODO components
  */
 @Service
+// @RequiredArgsConstructor //test handling need no args constructor (using @Autowired)
 public class CalDAVService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalDAVService.class);
@@ -55,9 +61,15 @@ public class CalDAVService {
     private static final int MAX_DESCRIPTION_LENGTH = 2500;
     private static final int MAX_TITLE_LENGTH = 100;
     private static final int MAX_LOCATION_LENGTH = 200;
-
+    
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private ReminderRepository reminderRepository;
+
+    @Autowired
+    private ReminderService reminderService;
 
     /**
      * Export tasks to iCalendar format (.ics)
@@ -371,6 +383,53 @@ public class CalDAVService {
         Property colorProp = event.getProperty("X-APPLE-CALENDAR-COLOR");
         if (colorProp != null) {
             taskRequest.setColor(colorProp.getValue());
+        }
+
+        // Get VALARM components (reminders)
+        // CalDAV clients like Thunderbird send reminders as VALARM with TRIGGER property
+        var alarms = event.getAlarms();
+        if (alarms != null && !alarms.isEmpty()) {
+            List<com.privatecal.dto.ReminderRequest> reminderRequests = new java.util.ArrayList<>();
+
+            for (VAlarm alarm : alarms) {
+                try {
+                    // Extract TRIGGER property (RFC 5545)
+                    // Only handle relative triggers (e.g., TRIGGER:-PT15M = 15 minutes before)
+                    // Ignore absolute triggers and triggers relative to END
+                    net.fortuna.ical4j.model.property.Trigger trigger = alarm.getTrigger();
+                    if (trigger != null && trigger.getDuration() != null) {
+                        // Convert ical4j Duration to minutes
+                        // Examples: -PT15M → 15 minutes before
+                        //          -PT1H → 60 minutes before
+                        //          -P1D → 1440 minutes before (1 day)
+                        java.time.temporal.TemporalAmount duration = trigger.getDuration();
+                        // Convert to java.time.Duration by parsing string representation
+                        java.time.Duration javaDuration = java.time.Duration.parse(duration.toString());
+                        long minutes = Math.abs(javaDuration.toMinutes());
+
+                        // Only add if offset is positive (before event) and reasonable (max 1 week)
+                        if (minutes > 0 && minutes <= (31*24*60)) { // Max 1 month
+                            // Use EMAIL as default notification type regardless of ACTION value
+                            // (CalDAV ACTION types: DISPLAY, EMAIL, AUDIO don't match with our notification system)
+                            com.privatecal.dto.ReminderRequest reminderRequest =
+                                new com.privatecal.dto.ReminderRequest((int) minutes, com.privatecal.dto.NotificationType.EMAIL);
+                            reminderRequests.add(reminderRequest);
+                            logger.debug("Imported VALARM for event {}: {} minutes before", eventId, minutes);
+                        } else if (minutes > 10080) {
+                            logger.warn("Skipping VALARM for event {}: offset too large ({} minutes, max 10080)", eventId, minutes);
+                        }
+                    } else {
+                        logger.debug("Skipping VALARM for event {}: absolute or END-relative trigger not supported", eventId);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Error parsing VALARM for event {}: {}", eventId, e.getMessage());
+                }
+            }
+
+            if (!reminderRequests.isEmpty()) {
+                taskRequest.setReminders(reminderRequests);
+                logger.info("Imported {} reminder(s) for event {}", reminderRequests.size(), eventId);
+            }
         }
 
         return taskRequest;
@@ -783,7 +842,7 @@ public class CalDAVService {
         Task task = taskRepository.findById(taskUid)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskUid));
 
-        // Create minimal calendar wrapper for single event
+        // Create calendar wrapper for single event
         net.fortuna.ical4j.model.Calendar calendar = new net.fortuna.ical4j.model.Calendar();
         calendar.getProperties().add(new ProdId(PRODID));
         calendar.getProperties().add(Version.VERSION_2_0);
@@ -904,6 +963,29 @@ public class CalDAVService {
             task.setUpdatedAt(Instant.now());
 
             Task savedTask = taskRepository.save(task);
+
+            // Sync reminders from ICS (if present in TaskRequest)
+            if (taskRequest.getReminders() != null) {
+                // Get existing reminders
+                List<Reminder> existingReminders = reminderRepository.findByTask_UidOrderByReminderTimeAsc(eventUid);
+
+                // Delete existing reminders
+                if (!existingReminders.isEmpty()) {
+                    reminderRepository.deleteAll(existingReminders);
+                    reminderRepository.flush(); // Force immediate execution
+                }
+
+                // Add new reminders from VALARM
+                for (com.privatecal.dto.ReminderRequest reminderRequest : taskRequest.getReminders()) {
+                    reminderService.createReminderForTask(eventUid, reminderRequest);
+                }
+
+                // Force flush of inserts
+                reminderRepository.flush();
+
+                logger.info("CalDAV PUT: Synced {} reminder(s) for task {}", taskRequest.getReminders().size(), eventUid);
+            }
+
             logger.info("CalDAV PUT successful: task {} (UID: {})", savedTask.getId(), savedTask.getUid());
             return savedTask;
 
