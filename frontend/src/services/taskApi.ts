@@ -53,9 +53,12 @@ export class TaskApi {
 
   /**
    * Delete a task
+   * @param id Task UID
+   * @param occurrenceStart Optional LocalDateTime string for deleting single occurrence
    */
-  async deleteTask(id: string): Promise<void> {
-    return apiClient.delete<void>(API_ENDPOINTS.TASKS.BY_ID(id))
+  async deleteTask(id: string, occurrenceStart?: string): Promise<void> {
+    const params = occurrenceStart ? { occurrenceStart } : undefined
+    return apiClient.delete<void>(API_ENDPOINTS.TASKS.BY_ID(id), { params })
   }
 
   /**

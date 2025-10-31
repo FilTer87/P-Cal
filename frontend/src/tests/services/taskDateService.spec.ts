@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { transformTaskForCreation, transformTaskForUpdate, transformTaskToFormData } from '../../services/taskDateService'
 import { NotificationType, RecurrenceFrequency, RecurrenceEndType } from '../../types/task'
 import type { Task, TaskFormData } from '../../types/task'
+
+// Mock the settings store to avoid Pinia initialization in tests
+vi.mock('../../stores/settings', () => ({
+  useSettingsStore: vi.fn(() => ({
+    timezone: 'Europe/Rome'
+  }))
+}))
 
 describe('taskDateService - Reminder Transformations', () => {
   describe('Regression: Reminder updates should be preserved', () => {

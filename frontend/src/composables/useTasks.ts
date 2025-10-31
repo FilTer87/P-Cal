@@ -107,11 +107,11 @@ export function useTasks() {
     }
   }
 
-  const deleteTask = async (taskId: string): Promise<boolean> => {
+  const deleteTask = async (taskId: string, occurrenceStart?: string): Promise<boolean> => {
     isFormLoading.value = true
 
     try {
-      const success = await tasksStore.deleteTask(taskId)
+      const success = await tasksStore.deleteTask(taskId, occurrenceStart)
       if (success) {
         showSuccess(i18nGlobal.t('composables.useTasks.taskDeleted'))
       }

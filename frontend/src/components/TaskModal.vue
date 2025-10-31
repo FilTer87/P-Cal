@@ -537,10 +537,18 @@ const handleSubmit = async () => {
 const handleDelete = () => {
   if (!props.task) return
 
+  // Check if we're editing a single occurrence
+  const isSingleOccurrence = isEditingSingleOccurrence.value
+  const confirmMessage = isSingleOccurrence
+    ? t('tasks.deleteSingleOccurrenceConfirm', { title: props.task.title })
+    : t('tasks.deleteConfirm', { title: props.task.title })
+
   showConfirmation(
-    t('tasks.deleteConfirm', { title: props.task.title }),
+    confirmMessage,
     async () => {
-      const success = await deleteTask(props.task!.id)
+      // If editing single occurrence, pass occurrenceStart to delete only this occurrence
+      const occurrenceStart = isSingleOccurrence ? props.task!.startDatetimeLocal : undefined
+      const success = await deleteTask(props.task!.id, occurrenceStart)
       if (success) {
         emit('task-deleted', props.task!.id)
         closeModal()

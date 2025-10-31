@@ -432,7 +432,35 @@ public class TaskService {
 
         logger.info("Task deleted successfully: {} for user: {}", task.getTitle(), currentUser.getUsername());
     }
-    
+
+    /**
+     * Delete single occurrence of a recurring task
+     * This adds an EXDATE to the master task without deleting the task itself
+     *
+     * @param taskUid UID of the recurring master task
+     * @param occurrenceStartLocal LocalDateTime of the occurrence to delete (in task's timezone)
+     */
+    public void deleteSingleOccurrence(String taskUid, LocalDateTime occurrenceStartLocal) {
+        logger.info("Deleting single occurrence of task UID {} at {} (local time)", taskUid, occurrenceStartLocal);
+
+        User currentUser = userService.getCurrentUser();
+
+        // Find master task and validate ownership
+        Task masterTask = taskRepository.findByUidAndUser(taskUid, currentUser)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        // Verify it's a recurring task
+        if (masterTask.getRecurrenceRule() == null || masterTask.getRecurrenceRule().trim().isEmpty()) {
+            throw new RuntimeException("Task is not recurring - cannot delete single occurrence");
+        }
+
+        // Add exception date to master task (EXDATE)
+        recurrenceService.addExceptionDate(masterTask, occurrenceStartLocal);
+        taskRepository.save(masterTask);
+
+        logger.info("Added EXDATE {} to master task {}, occurrence deleted", occurrenceStartLocal, masterTask.getUid());
+    }
+
     /**
      * Get task count for user
      */

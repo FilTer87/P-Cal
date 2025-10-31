@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+- Select option with management on delete for recurring events: delete all or single occurrence (EXDATA)
+
 **Global refactoring of timezone management with floating time**:
 
   Backend:
@@ -29,7 +31,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Changed
 
-- Stored EXDATE format is changed (recurrence_axceptions); new migration file creates a backup table with existing data but user have to re-insert the old exceptions
+- Stored EXDATE format is changed (recurrence_axceptions); new migration file creates a backup table with existing data but user should re-insert the exceptions
 
 ### Deprecated
 
