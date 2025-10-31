@@ -75,6 +75,7 @@ public class TaskService {
         // Generate UID if not provided (required for CalDAV compliance)
         task.setUid(StringUtils.hasText(taskRequest.getUid()) ? taskRequest.getUid() : java.util.UUID.randomUUID().toString());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceExceptions(taskRequest.getRecurrenceExceptions());
 
         // Convert recurrenceEnd from LocalDateTime to Instant
         if (taskRequest.getRecurrenceEnd() != null) {
@@ -304,6 +305,7 @@ public class TaskService {
         // DO NOT update UID - it's the primary key and should never change
         // task.setUid(taskRequest.getUid());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceExceptions(taskRequest.getRecurrenceExceptions());
 
         // Convert recurrenceEnd from LocalDateTime to Instant
         if (taskRequest.getRecurrenceEnd() != null) {

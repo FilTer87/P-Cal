@@ -8,8 +8,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
-### Changed
-
 **Global refactoring of timezone management with floating time**:
 
   Backend:
@@ -29,6 +27,10 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
   Performance improvement: CalDAV clients no longer freeze when creating or modifying events
 
+### Changed
+
+- Stored EXDATE format is changed (recurrence_axceptions); new migration file creates a backup table with existing data but user have to re-insert the old exceptions
+
 ### Deprecated
 
 - TaskRequest and TaskResponse no longer have startDatetime and endDatetime fields
@@ -47,7 +49,8 @@ Frontend timezone conversion utilities
 
   - Added missing VALARM parsing to import reminders from CalDAV PUT requests (default: EMAIL notification type)
   - Added Location and Cache-Control headers to PUT responses for better client compatibility
-  - Fixed Response type and error handling for XML responses (CalDAV implementation) for client compatibility
+  - Fixed Response type and error handling in XML responses for client compatibility
+  - Fixed iCalendar EXDATE conversions and stored data (external client sync fix)
 
 ### Security
 

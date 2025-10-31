@@ -67,6 +67,13 @@ public class TaskRequest {
      */
     private LocalDateTime recurrenceEnd;
 
+    /**
+     * Comma-separated list of exception dates for recurring events (ISO format).
+     * Example: "2025-12-25T10:00:00,2026-01-01T10:00:00"
+     * Corresponds to EXDATE in iCalendar format.
+     */
+    private String recurrenceExceptions;
+
     private List<ReminderRequest> reminders = new ArrayList<>();
 
     // Validation methods

@@ -1,5 +1,7 @@
 package com.privatecal.controller;
 
+import com.privatecal.caldav.CalDAVValidator;
+import com.privatecal.caldav.CalDAVXmlBuilder;
 import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -43,7 +45,10 @@ class CalDAVServerControllerXSSTest {
     @Mock
     private TaskRepository taskRepository;
 
-    @InjectMocks
+    private CalDAVXmlBuilder xmlBuilder;
+
+    private CalDAVValidator validator;
+
     private CalDAVServerController controller;
 
     private User testUser;
@@ -52,6 +57,19 @@ class CalDAVServerControllerXSSTest {
 
     @BeforeEach
     void setUp() {
+        // Create real instances for XML building and validation (not mocks)
+        validator = new CalDAVValidator();
+        xmlBuilder = new CalDAVXmlBuilder(validator);
+
+        // Manually inject dependencies into controller
+        controller = new CalDAVServerController(
+            calDAVService,
+            calendarService,
+            userService,
+            taskRepository,
+            xmlBuilder,
+            validator
+        );
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");

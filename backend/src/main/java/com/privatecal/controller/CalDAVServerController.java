@@ -1,5 +1,7 @@
 package com.privatecal.controller;
 
+import com.privatecal.caldav.CalDAVValidator;
+import com.privatecal.caldav.CalDAVXmlBuilder;
 import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -17,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -57,6 +60,8 @@ public class CalDAVServerController {
     private final CalendarService calendarService;
     private final UserService userService;
     private final TaskRepository taskRepository;
+    private final CalDAVXmlBuilder xmlBuilder;
+    private final CalDAVValidator validator;
 
     /**
      * /.well-known/caldav
@@ -329,25 +334,13 @@ public class CalDAVServerController {
             // Verify calendar exists
             Calendar calendar = calendarService.getCalendarBySlugAndUsername(calendarSlug, username);
 
-            // Parse calendar-multiget requests to get only requested UIDs
+            // Parse calendar-multiget requests using validator
             List<String> requestedUids = null;
-            if ("REPORT".equalsIgnoreCase(method) && requestXML != null && requestXML.contains("calendar-multiget")) {
-                requestedUids = new java.util.ArrayList<>();
-                // Simple XML parsing to extract href values
-                // Example: <D:href>/caldav/user/calendar/EVENT-UID.ics</D:href>
-                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<D:href>([^<]+)</D:href>");
-                java.util.regex.Matcher matcher = pattern.matcher(requestXML);
-                while (matcher.find()) {
-                    String href = matcher.group(1);
-                    // Extract UID from href (remove .ics extension)
-                    if (href.endsWith(".ics")) {
-                        String[] parts = href.split("/");
-                        String uidWithExt = parts[parts.length - 1];
-                        String uid = uidWithExt.substring(0, uidWithExt.length() - 4);
-                        requestedUids.add(uid);
-                    }
+            if ("REPORT".equalsIgnoreCase(method)) {
+                requestedUids = validator.parseCalendarMultigetUids(requestXML);
+                if (requestedUids != null) {
+                    logger.info("CalDAV calendar-multiget: {} UIDs requested", requestedUids.size());
                 }
-                logger.info("CalDAV calendar-multiget: {} UIDs requested", requestedUids.size());
             }
 
             // Get tasks based on request type
@@ -362,67 +355,35 @@ public class CalDAVServerController {
                 tasks = taskRepository.findByCalendar_IdOrderByStartDatetimeAsc(calendar.getId());
             }
 
-            // Build simplified WebDAV multistatus response
-            StringBuilder xml = new StringBuilder();
-            xml.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-            xml.append("<D:multistatus xmlns:D=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\">\n");
-
-            // Calendar collection resource
-            xml.append("  <D:response>\n");
-            xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/").append(escapeXml(calendarSlug)).append("/</D:href>\n");
-            xml.append("    <D:propstat>\n");
-            xml.append("      <D:prop>\n");
-            xml.append("        <D:resourcetype><D:collection/><C:calendar/></D:resourcetype>\n");
-            xml.append("        <D:displayname>").append(escapeXml(calendar.getName())).append("</D:displayname>\n");
-            xml.append("      </D:prop>\n");
-            xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
-            xml.append("    </D:propstat>\n");
-            xml.append("  </D:response>\n");
-
-            // Check if client requested calendar-data (PROPFIND with allprop/calendar-data or REPORT always includes it)
+            // Check if client requested calendar-data
             boolean includeCalendarData = "REPORT".equalsIgnoreCase(method) ||
                 (requestXML != null && (requestXML.contains("calendar-data") || requestXML.contains("allprop")));
 
-            // Individual events (if depth > 0 for PROPFIND, always for REPORT)
-            if (!"0".equals(depth) || "REPORT".equalsIgnoreCase(method)) {
-                for (Task task : tasks) {
-                    String etag = calDAVService.getTaskETag(task.getUid());
-                    xml.append("  <D:response>\n");
-                    xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/").append(escapeXml(calendarSlug))
-                       .append("/").append(escapeXml(task.getUid())).append(".ics</D:href>\n");
-                    xml.append("    <D:propstat>\n");
-                    xml.append("      <D:prop>\n");
-                    xml.append("        <D:getetag>\"").append(escapeXml(etag)).append("\"</D:getetag>\n");
+            // Filter tasks based on depth for PROPFIND (always include for REPORT)
+            List<Task> tasksToInclude = ("0".equals(depth) && "PROPFIND".equalsIgnoreCase(method))
+                ? java.util.Collections.emptyList()
+                : tasks;
 
-                    // Only include getcontenttype for PROPFIND
-                    if ("PROPFIND".equalsIgnoreCase(method)) {
-                        xml.append("        <D:getcontenttype>text/calendar; component=VEVENT</D:getcontenttype>\n");
+            // Build WebDAV multistatus response using builder
+            String xmlResponse = xmlBuilder.buildCalendarCollectionResponse(
+                username,
+                calendarSlug,
+                calendar.getName(),
+                tasksToInclude,
+                includeCalendarData,
+                method,
+                uid -> {
+                    try {
+                        return calDAVService.exportTaskAsICS(uid);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to export task as ICS", e);
                     }
+                },
+                calDAVService::getTaskETag
+            );
 
-                    // Include calendar data if requested
-                    if (includeCalendarData) {
-                        try {
-                            String icsContent = calDAVService.exportTaskAsICS(task.getUid());
-                            xml.append("        <C:calendar-data>");
-                            xml.append(escapeXml(icsContent));
-                            xml.append("</C:calendar-data>\n");
-                        } catch (Exception e) {
-                            logger.warn("Failed to export task {} as ICS: {}", task.getUid(), e.getMessage());
-                        }
-                    }
-
-                    xml.append("      </D:prop>\n");
-                    xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
-                    xml.append("    </D:propstat>\n");
-                    xml.append("  </D:response>\n");
-                }
-            }
-
-            xml.append("</D:multistatus>");
-
-            String xmlResponse = xml.toString();
             logger.info("CalDAV {} successful: {} events listed, response size: {} KB",
-                       method, tasks.size(), xmlResponse.length() / 1024);
+                       method, tasksToInclude.size(), xmlResponse.length() / 1024);
 
             return ResponseEntity.status(207)  // 207 Multi-Status
                     .contentType(MediaType.APPLICATION_XML)
@@ -453,31 +414,13 @@ public class CalDAVServerController {
 
         try {
             User currentUser = userService.getCurrentUser();
-
-            // Return root collection response
-            StringBuilder xml = new StringBuilder();
-            xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            xml.append("<D:multistatus xmlns:D=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\">\n");
-            xml.append("  <D:response>\n");
-            xml.append("    <D:href>/caldav/</D:href>\n");
-            xml.append("    <D:propstat>\n");
-            xml.append("      <D:prop>\n");
-            xml.append("        <D:resourcetype><D:collection/></D:resourcetype>\n");
-            xml.append("        <D:displayname>CalDAV Root</D:displayname>\n");
-            xml.append("        <D:current-user-principal>\n");
-            xml.append("          <D:href>/caldav/").append(escapeXml(currentUser.getUsername())).append("/</D:href>\n");
-            xml.append("        </D:current-user-principal>\n");
-            xml.append("      </D:prop>\n");
-            xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
-            xml.append("    </D:propstat>\n");
-            xml.append("  </D:response>\n");
-            xml.append("</D:multistatus>");
+            String xmlResponse = xmlBuilder.buildRootResponse(currentUser.getUsername());
 
             logger.info("CalDAV PROPFIND root successful");
 
             return ResponseEntity.status(207)  // 207 Multi-Status
                     .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toString());
+                    .body(xmlResponse);
 
         } catch (Exception e) {
             logger.error("Error handling CalDAV PROPFIND root: {}", e.getMessage(), e);
@@ -515,57 +458,19 @@ public class CalDAVServerController {
             // Get user's calendars
             List<com.privatecal.dto.CalendarResponse> calendars = calendarService.getAllCalendars();
 
-            // Build WebDAV multistatus response
-            StringBuilder xml = new StringBuilder();
-            xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            xml.append("<D:multistatus xmlns:D=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\">\n");
-
-            // User principal collection
-            xml.append("  <D:response>\n");
-            xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/</D:href>\n");
-            xml.append("    <D:propstat>\n");
-            xml.append("      <D:prop>\n");
-            xml.append("        <D:resourcetype><D:collection/></D:resourcetype>\n");
-            xml.append("        <D:displayname>").append(escapeXml(username)).append("</D:displayname>\n");
-            xml.append("        <C:calendar-home-set>\n");
-            xml.append("          <D:href>/caldav/").append(escapeXml(username)).append("/</D:href>\n");
-            xml.append("        </C:calendar-home-set>\n");
-            xml.append("        <C:calendar-user-address-set>\n");
-            xml.append("          <D:href>mailto:").append(escapeXml(currentUser.getEmail())).append("</D:href>\n");
-            xml.append("        </C:calendar-user-address-set>\n");
-            xml.append("      </D:prop>\n");
-            xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
-            xml.append("    </D:propstat>\n");
-            xml.append("  </D:response>\n");
-
-            // List each calendar if depth > 0
-            if (!"0".equals(depth)) {
-                for (com.privatecal.dto.CalendarResponse calendar : calendars) {
-                    xml.append("  <D:response>\n");
-                    xml.append("    <D:href>/caldav/").append(escapeXml(username)).append("/")
-                       .append(escapeXml(calendar.getSlug())).append("/</D:href>\n");
-                    xml.append("    <D:propstat>\n");
-                    xml.append("      <D:prop>\n");
-                    xml.append("        <D:resourcetype>\n");
-                    xml.append("          <D:collection/>\n");
-                    xml.append("          <C:calendar/>\n");
-                    xml.append("        </D:resourcetype>\n");
-                    xml.append("        <D:displayname>").append(escapeXml(calendar.getName())).append("</D:displayname>\n");
-                    xml.append("        <C:calendar-description>").append(escapeXml(calendar.getDescription() != null ? calendar.getDescription() : "")).append("</C:calendar-description>\n");
-                    xml.append("      </D:prop>\n");
-                    xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
-                    xml.append("    </D:propstat>\n");
-                    xml.append("  </D:response>\n");
-                }
-            }
-
-            xml.append("</D:multistatus>");
+            // Build WebDAV multistatus response using builder
+            String xmlResponse = xmlBuilder.buildUserPrincipalResponse(
+                username,
+                currentUser.getEmail(),
+                calendars,
+                depth
+            );
 
             logger.info("CalDAV PROPFIND user successful: {} calendars listed", calendars.size());
 
             return ResponseEntity.status(207)  // 207 Multi-Status
                     .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toString());
+                    .body(xmlResponse);
 
         } catch (Exception e) {
             logger.error("Error handling CalDAV PROPFIND user: {}", e.getMessage(), e);
@@ -586,8 +491,8 @@ public class CalDAVServerController {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<caldav-info>\n" +
                     "  <message>PrivateCal CalDAV Server</message>\n" +
-                    "  <user>" + escapeXml(currentUser.getUsername()) + "</user>\n" +
-                    "  <caldav-url>/caldav/" + escapeXml(currentUser.getUsername()) + "/</caldav-url>\n" +
+                    "  <user>" + validator.escapeXml(currentUser.getUsername()) + "</user>\n" +
+                    "  <caldav-url>/caldav/" + validator.escapeXml(currentUser.getUsername()) + "/</caldav-url>\n" +
                     "</caldav-info>";
 
         return ResponseEntity.ok()
@@ -620,7 +525,7 @@ public class CalDAVServerController {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<error xmlns=\"DAV:\">\n" +
                     "  <cannot-modify-protected-property/>\n" +
-                    "  <message>Cannot PUT to user collection. Use /caldav/" + escapeXml(username) + "/{calendar}/ instead.</message>\n" +
+                    "  <message>Cannot PUT to user collection. Use /caldav/" + validator.escapeXml(username) + "/{calendar}/ instead.</message>\n" +
                     "</error>";
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -643,28 +548,4 @@ public class CalDAVServerController {
                 .build();
     }
 
-    /**
-     * Escapes XML special characters to prevent XML injection and XSS attacks.
-     *
-     * Escapes the following characters according to XML specification:
-     * - & (ampersand) → &amp;
-     * - < (less than) → &lt;
-     * - > (greater than) → &gt;
-     * - " (double quote) → &quot;
-     * - ' (apostrophe) → &apos;
-     *
-     * @param text The text to escape (can be null)
-     * @return Escaped text safe for XML inclusion, or empty string if input is null
-     */
-    private String escapeXml(String text) {
-        if (text == null) {
-            return "";
-        }
-
-        return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;")
-                   .replace("\"", "&quot;")
-                   .replace("'", "&apos;");
-    }
 }
