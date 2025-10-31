@@ -527,6 +527,12 @@ public class CalDAVServerController {
             xml.append("      <D:prop>\n");
             xml.append("        <D:resourcetype><D:collection/></D:resourcetype>\n");
             xml.append("        <D:displayname>").append(escapeXml(username)).append("</D:displayname>\n");
+            xml.append("        <C:calendar-home-set>\n");
+            xml.append("          <D:href>/caldav/").append(escapeXml(username)).append("/</D:href>\n");
+            xml.append("        </C:calendar-home-set>\n");
+            xml.append("        <C:calendar-user-address-set>\n");
+            xml.append("          <D:href>mailto:").append(escapeXml(currentUser.getEmail())).append("</D:href>\n");
+            xml.append("        </C:calendar-user-address-set>\n");
             xml.append("      </D:prop>\n");
             xml.append("      <D:status>HTTP/1.1 200 OK</D:status>\n");
             xml.append("    </D:propstat>\n");
