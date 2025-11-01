@@ -283,13 +283,23 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const deleteTask = async (taskId: string): Promise<boolean> => {
+  const deleteTask = async (taskId: string, occurrenceStart?: string): Promise<boolean> => {
     isLoading.value = true
     error.value = null
 
     try {
-      await taskApi.deleteTask(taskId)
-      tasks.value = (tasks.value || []).filter(task => task.id !== taskId)
+      await taskApi.deleteTask(taskId, occurrenceStart)
+
+      // If deleting single occurrence, refresh tasks instead of filtering
+      // (the master task still exists with updated EXDATE)
+      if (occurrenceStart) {
+        // Refresh tasks to get updated occurrence list - force refresh
+        await fetchTasks(true)
+      } else {
+        // Complete deletion - remove from list
+        tasks.value = (tasks.value || []).filter(task => task.id !== taskId)
+      }
+
       return true
     } catch (err: any) {
       error.value = err.message || 'Errore nell\'eliminazione dell\'attività'

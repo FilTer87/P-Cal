@@ -315,14 +315,14 @@ class ApiClient {
     return response.data as T
   }
 
-  async delete<T = any>(url: string, data?: any, config?: ExtendedAxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<ApiResponse<T> | T>(url, { ...config, data })
-    
+  async delete<T = any>(url: string, config?: ExtendedAxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<ApiResponse<T> | T>(url, config)
+
     // Handle both wrapped ApiResponse and direct responses
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return response.data.data
     }
-    
+
     return response.data as T
   }
 
@@ -414,8 +414,8 @@ class ApiClient {
       patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
         this.patch<T>(url, data, { ...config, _showErrorNotification: false }),
       
-      delete: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => 
-        this.delete<T>(url, data, { ...config, _showErrorNotification: false })
+      delete: <T = any>(url: string, config?: AxiosRequestConfig) =>
+        this.delete<T>(url, { ...config, _showErrorNotification: false })
     }
   }
 }

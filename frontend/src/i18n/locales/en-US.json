@@ -416,6 +416,7 @@
     "updateTask": "Update Activity",
     "deleteTask": "Delete",
     "deleteConfirm": "Are you sure you want to delete the activity \"{title}\"?",
+    "deleteSingleOccurrenceConfirm": "Are you sure you want to delete this occurrence of \"{title}\"? The other occurrences will remain.",
     "hasReminders": "Has reminders",
     "taskDetails": "Activity Details",
     "editButton": "Edit",
@@ -865,6 +866,20 @@
       "all": {
         "label": "All occurrences",
         "description": "Changes apply to all events in the series"
+      }
+    }
+  },
+  "recurringDelete": {
+    "title": "Delete Recurring Event",
+    "description": "This is a recurring event. What would you like to delete?",
+    "options": {
+      "single": {
+        "label": "Only this occurrence",
+        "description": "This date will be removed from the series"
+      },
+      "all": {
+        "label": "All occurrences",
+        "description": "The entire event series will be deleted"
       }
     }
   }

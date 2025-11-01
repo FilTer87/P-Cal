@@ -3,16 +3,17 @@ package com.privatecal.service;
 import com.privatecal.dto.DuplicateStrategy;
 import com.privatecal.dto.ImportPreviewResponse;
 import com.privatecal.dto.TaskRequest;
+import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
+import com.privatecal.repository.ReminderRepository;
 import com.privatecal.repository.TaskRepository;
+
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.*;
-import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.component.VToDo;
-import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,16 +26,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,17 +43,26 @@ import java.util.stream.Collectors;
  * Handles conversion between Task entities and iCalendar VEVENT/VTODO components
  */
 @Service
+// @RequiredArgsConstructor //test handling need no args constructor (using @Autowired)
 public class CalDAVService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalDAVService.class);
     private static final String PRODID = "-//PrivateCal//PrivateCal v0.11.0//EN";
-    private static final int DEFAULT_TODO_DURATION_MINUTES = 30;
-    private static final int MAX_DESCRIPTION_LENGTH = 2500;
-    private static final int MAX_TITLE_LENGTH = 100;
-    private static final int MAX_LOCATION_LENGTH = 200;
-
+    
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private ReminderRepository reminderRepository;
+
+    @Autowired
+    private ReminderService reminderService;
+
+    @Autowired
+    private RecurrenceService recurrenceService;
+
+    @Autowired
+    private com.privatecal.caldav.ICalConverter icalConverter;
 
     /**
      * Export tasks to iCalendar format (.ics)
@@ -75,6 +80,32 @@ public class CalDAVService {
         calendar.getProperties().add(Version.VERSION_2_0);
         calendar.getProperties().add(new XProperty("X-WR-CALNAME", calendarName));
         calendar.getProperties().add(CalScale.GREGORIAN);
+
+        // Collect unique timezones from tasks to add VTIMEZONE components
+        // This is CRITICAL for CalDAV clients to interpret TZID references correctly
+        java.util.Set<String> timezones = new java.util.HashSet<>();
+        for (Task task : tasks) {
+            if (task.getTaskTimezone() != null && !Boolean.TRUE.equals(task.getIsAllDay())) {
+                timezones.add(task.getTaskTimezone());
+            }
+        }
+
+        // Add VTIMEZONE components for all referenced timezones
+        net.fortuna.ical4j.model.TimeZoneRegistry registry =
+            net.fortuna.ical4j.model.TimeZoneRegistryFactory.getInstance().createRegistry();
+        for (String tzId : timezones) {
+            try {
+                net.fortuna.ical4j.model.TimeZone tz = registry.getTimeZone(tzId);
+                if (tz != null) {
+                    calendar.getComponents().add(tz.getVTimeZone());
+                    logger.debug("Added VTIMEZONE for {}", tzId);
+                } else {
+                    logger.warn("Timezone not found in registry: {}", tzId);
+                }
+            } catch (Exception e) {
+                logger.warn("Error adding VTIMEZONE for {}: {}", tzId, e.getMessage());
+            }
+        }
 
         // Add tasks as VEVENTs
         int successCount = 0;
@@ -112,117 +143,7 @@ public class CalDAVService {
      * Convert Task entity to iCalendar VEVENT
      */
     private VEvent taskToVEvent(Task task) {
-        logger.debug("Converting task {} to VEVENT", task.getId());
-
-        // Create event with UID (use saved UID or fallback to generated)
-        String uid = task.getUid();
-        if (uid == null || uid.trim().isEmpty()) {
-            // Fallback for legacy tasks without UID
-            uid = "privatecal-" + task.getUser().getId() + "-" + task.getId() + "@privatecal.local";
-            logger.warn("Task {} missing UID, using fallback: {}", task.getId(), uid);
-        }
-        VEvent event = new VEvent();
-        event.getProperties().add(new Uid(uid));
-
-        // Set title (SUMMARY)
-        event.getProperties().add(new Summary(task.getTitle()));
-
-        // Set description if present
-        if (task.getDescription() != null && !task.getDescription().trim().isEmpty()) {
-            event.getProperties().add(new Description(task.getDescription()));
-        }
-
-        // Set location if present
-        if (task.getLocation() != null && !task.getLocation().trim().isEmpty()) {
-            event.getProperties().add(new Location(task.getLocation()));
-        }
-
-        // Set dates (DTSTART and DTEND) - RFC 5545 compliant with TZID
-        if (Boolean.TRUE.equals(task.getIsAllDay())) {
-            // All-day event: use DATE format (no time component)
-            LocalDate startDate = task.getStartDatetimeLocal().toLocalDate();
-            LocalDate endDate = task.getEndDatetimeLocal().toLocalDate();
-
-            // Create ical4j Date objects (not DateTime) for all-day events
-            // Format: YYYYMMDD (e.g., 20251021)
-            try {
-                String startDateStr = String.format("%04d%02d%02d",
-                    startDate.getYear(), startDate.getMonthValue(), startDate.getDayOfMonth());
-                String endDateStr = String.format("%04d%02d%02d",
-                    endDate.getYear(), endDate.getMonthValue(), endDate.getDayOfMonth());
-
-                event.getProperties().add(new DtStart(new Date(startDateStr)));
-                event.getProperties().add(new DtEnd(new Date(endDateStr)));
-            } catch (Exception e) {
-                logger.error("Error creating all-day dates for task {}: {}", task.getId(), e.getMessage(), e);
-                throw new RuntimeException("Failed to create all-day event dates", e);
-            }
-        } else {
-            // Timed event: use DATE-TIME format WITH TZID (RFC 5545 floating time)
-            // This preserves local time across DST changes
-            try {
-                ZoneId taskZone = ZoneId.of(task.getTaskTimezone());
-
-                // Get ical4j timezone registry
-                net.fortuna.ical4j.model.TimeZoneRegistry registry =
-                    net.fortuna.ical4j.model.TimeZoneRegistryFactory.getInstance().createRegistry();
-                net.fortuna.ical4j.model.TimeZone ical4jTimeZone = registry.getTimeZone(task.getTaskTimezone());
-
-                // Create DateTime with timezone (floating time)
-                ZonedDateTime zonedStart = task.getStartDatetimeLocal().atZone(taskZone);
-                DateTime dtStart = new DateTime(zonedStart.toInstant().toEpochMilli());
-                dtStart.setTimeZone(ical4jTimeZone);
-                event.getProperties().add(new DtStart(dtStart));
-
-                ZonedDateTime zonedEnd = task.getEndDatetimeLocal().atZone(taskZone);
-                DateTime dtEnd = new DateTime(zonedEnd.toInstant().toEpochMilli());
-                dtEnd.setTimeZone(ical4jTimeZone);
-                event.getProperties().add(new DtEnd(dtEnd));
-
-                logger.debug("Exported task {} with TZID: {}", task.getId(), task.getTaskTimezone());
-            } catch (Exception e) {
-                logger.error("Error creating datetime with timezone for task {}: {}", task.getId(), e.getMessage(), e);
-                throw new RuntimeException("Failed to create event dates with timezone", e);
-            }
-        }
-
-        // Set timestamps
-        event.getProperties().add(new Created(new DateTime(task.getCreatedAt().toEpochMilli())));
-        event.getProperties().add(new LastModified(new DateTime(task.getUpdatedAt() != null ?
-            task.getUpdatedAt().toEpochMilli() : task.getCreatedAt().toEpochMilli())));
-
-        // Set recurrence rule if present
-        if (task.getRecurrenceRule() != null && !task.getRecurrenceRule().trim().isEmpty()) {
-            try {
-                event.getProperties().add(new RRule(task.getRecurrenceRule()));
-            } catch (Exception e) {
-                logger.warn("Invalid RRULE for task {}: {}", task.getId(), e.getMessage());
-            }
-        }
-
-        // Set color (Apple extension)
-        if (task.getColor() != null) {
-            event.getProperties().add(new XProperty("X-APPLE-CALENDAR-COLOR", task.getColor()));
-        }
-
-        // Add reminders as VALARMs
-        if (task.getReminders() != null && !task.getReminders().isEmpty()) {
-            task.getReminders().forEach(reminder -> {
-                try {
-                    VAlarm alarm = new VAlarm();
-                    // Set trigger as duration before event start (negative minutes)
-                    Trigger trigger = new Trigger(java.time.Duration.ofMinutes(-reminder.getReminderOffsetMinutes()));
-                    alarm.getProperties().add(trigger);
-                    alarm.getProperties().add(Action.DISPLAY);
-                    alarm.getProperties().add(new Description("Reminder: " + task.getTitle()));
-                    event.getAlarms().add(alarm);
-                } catch (Exception e) {
-                    logger.warn("Error adding reminder for task {}: {}", task.getId(), e.getMessage());
-                }
-            });
-        }
-
-        return event;
+        return icalConverter.taskToVEvent(task);
     }
 
     /**
@@ -276,104 +197,7 @@ public class CalDAVService {
      * Convert VEVENT to TaskRequest
      */
     private TaskRequest veventToTaskRequest(VEvent event) {
-        TaskRequest taskRequest = new TaskRequest();
-
-        // Get UID (preserve original or generate deterministic)
-        Uid eventUid = event.getUid();
-        if (eventUid != null && eventUid.getValue() != null) {
-            taskRequest.setUid(eventUid.getValue());
-        } else {
-            // Generate deterministic UID if missing
-            Summary summary = event.getSummary();
-            DtStart dtStart = event.getStartDate();
-            String generatedUid = generateDeterministicUid(
-                summary != null ? summary.getValue() : null,
-                dtStart != null ? dtStart.getDate() : null
-            );
-            taskRequest.setUid(generatedUid);
-            logger.warn("VEVENT missing UID, generated: {}", generatedUid);
-        }
-
-        // Get SUMMARY (title)
-        Summary summary = event.getSummary();
-        String title = summary != null ? summary.getValue() : "Untitled Event";
-        String eventId = taskRequest.getUid(); // Use UID for logging
-        taskRequest.setTitle(truncateField(title, MAX_TITLE_LENGTH, "title", "event " + eventId));
-
-        // Get DESCRIPTION
-        Description description = event.getDescription();
-        if (description != null) {
-            String descValue = truncateField(description.getValue(), MAX_DESCRIPTION_LENGTH,
-                "description", "event " + eventId);
-            taskRequest.setDescription(descValue);
-        }
-
-        // Get LOCATION
-        net.fortuna.ical4j.model.property.Location location = event.getLocation();
-        if (location != null) {
-            String locValue = truncateField(location.getValue(), MAX_LOCATION_LENGTH,
-                "location", "event " + eventId);
-            taskRequest.setLocation(locValue);
-        }
-
-        // Get dates (DTSTART and DTEND)
-        DtStart dtStart = event.getStartDate();
-        DtEnd dtEnd = event.getEndDate();
-
-        if (dtStart != null && dtEnd != null) {
-            Date startDate = dtStart.getDate();
-            Date endDate = dtEnd.getDate();
-
-            // Check if it's an all-day event (DATE vs DATE-TIME)
-            boolean isAllDay = dtStart.getParameter(Value.VALUE) == Value.DATE;
-            taskRequest.setIsAllDay(isAllDay);
-
-            // Extract timezone from DTSTART (RFC 5545 TZID parameter)
-            String timezone = "UTC"; // Default
-            if (startDate instanceof DateTime) {
-                DateTime dateTime = (DateTime) startDate;
-                if (dateTime.getTimeZone() != null) {
-                    timezone = dateTime.getTimeZone().getID();
-                    logger.debug("Imported event with TZID: {}", timezone);
-                } else if (!dateTime.isUtc()) {
-                    // Floating time without explicit timezone - use UTC
-                    logger.warn("Event has floating time without TZID, defaulting to UTC");
-                }
-            }
-
-            // Convert to LocalDateTime + timezone (floating time)
-            Instant startInstant = Instant.ofEpochMilli(startDate.getTime());
-            Instant endInstant = Instant.ofEpochMilli(endDate.getTime());
-
-            ZoneId zoneId = ZoneId.of(timezone);
-            taskRequest.setStartDatetimeLocal(startInstant.atZone(zoneId).toLocalDateTime());
-            taskRequest.setEndDatetimeLocal(endInstant.atZone(zoneId).toLocalDateTime());
-            taskRequest.setTimezone(timezone);
-
-            logger.debug("Imported task: start={} end={} timezone={}",
-                taskRequest.getStartDatetimeLocal(), taskRequest.getEndDatetimeLocal(), timezone);
-        } else {
-            // Fallback: use current time + 1 hour in UTC
-            Instant now = Instant.now();
-            taskRequest.setStartDatetimeLocal(now.atZone(ZoneId.of("UTC")).toLocalDateTime());
-            taskRequest.setEndDatetimeLocal(now.plus(1, ChronoUnit.HOURS).atZone(ZoneId.of("UTC")).toLocalDateTime());
-            taskRequest.setTimezone("UTC");
-            taskRequest.setIsAllDay(false);
-        }
-
-        // Get recurrence rule
-        RRule rrule = event.getProperty(Property.RRULE);
-        if (rrule != null) {
-            taskRequest.setRecurrenceRule(rrule.getValue());
-        }
-
-        // Get color (Apple extension)
-        Property colorProp = event.getProperty("X-APPLE-CALENDAR-COLOR");
-        if (colorProp != null) {
-            taskRequest.setColor(colorProp.getValue());
-        }
-
-        return taskRequest;
+        return icalConverter.veventToTaskRequest(event);
     }
 
     /**
@@ -382,97 +206,7 @@ public class CalDAVService {
      * - If DUE is date-only or absent → all-day task
      */
     private TaskRequest vtodoToTaskRequest(VToDo todo) {
-        TaskRequest taskRequest = new TaskRequest();
-
-        // Get UID (preserve original or generate deterministic)
-        Uid todoUid = todo.getUid();
-        if (todoUid != null && todoUid.getValue() != null) {
-            taskRequest.setUid(todoUid.getValue());
-        } else {
-            // Generate deterministic UID if missing
-            Summary summary = todo.getSummary();
-            Due due = todo.getProperty(Property.DUE);
-            String generatedUid = generateDeterministicUid(
-                summary != null ? summary.getValue() : null,
-                due != null ? due.getDate() : null
-            );
-            taskRequest.setUid(generatedUid);
-            logger.warn("VTODO missing UID, generated: {}", generatedUid);
-        }
-
-        // Get SUMMARY (title) with [TODO] prefix
-        Summary summary = todo.getSummary();
-        String title = summary != null ? summary.getValue() : "Untitled Task";
-        String todoId = taskRequest.getUid(); // Use UID for logging
-        // Add [TODO] prefix and truncate if necessary (accounting for prefix length)
-        String prefixedTitle = "[TODO] " + title;
-        taskRequest.setTitle(truncateField(prefixedTitle, MAX_TITLE_LENGTH, "title", "todo " + todoId));
-
-        // Get DESCRIPTION
-        Description description = todo.getDescription();
-        if (description != null) {
-            String descValue = truncateField(description.getValue(), MAX_DESCRIPTION_LENGTH,
-                "description", "todo " + todoId);
-            taskRequest.setDescription(descValue);
-        }
-
-        // Get LOCATION
-        net.fortuna.ical4j.model.property.Location location = todo.getLocation();
-        if (location != null) {
-            String locValue = truncateField(location.getValue(), MAX_LOCATION_LENGTH,
-                "location", "todo " + todoId);
-            taskRequest.setLocation(locValue);
-        }
-
-        // Get DUE date/time
-        Due due = todo.getProperty(Property.DUE);
-
-        if (due != null) {
-            Date dueDate = due.getDate();
-
-            // Check if DUE has time component (DATE-TIME vs DATE)
-            boolean hasTimeComponent = dueDate instanceof DateTime;
-
-            // Extract timezone
-            String timezone = "UTC";
-            if (hasTimeComponent && dueDate instanceof DateTime) {
-                DateTime dateTime = (DateTime) dueDate;
-                if (dateTime.getTimeZone() != null) {
-                    timezone = dateTime.getTimeZone().getID();
-                }
-            }
-
-            if (hasTimeComponent) {
-                // CASE 1: DUE with time → 30-minute timed task
-                Instant dueInstant = Instant.ofEpochMilli(dueDate.getTime());
-                ZoneId zoneId = ZoneId.of(timezone);
-                taskRequest.setStartDatetimeLocal(dueInstant.atZone(zoneId).toLocalDateTime());
-                taskRequest.setEndDatetimeLocal(dueInstant.plus(DEFAULT_TODO_DURATION_MINUTES, ChronoUnit.MINUTES)
-                    .atZone(zoneId).toLocalDateTime());
-                taskRequest.setTimezone(timezone);
-                taskRequest.setIsAllDay(false);
-                logger.debug("VTODO with time component: {} in timezone {}", dueInstant, timezone);
-            } else {
-                // CASE 2: DUE date-only → all-day task
-                LocalDate localDate = Instant.ofEpochMilli(dueDate.getTime())
-                    .atZone(ZoneOffset.UTC).toLocalDate();
-                taskRequest.setStartDatetimeLocal(localDate.atStartOfDay());
-                taskRequest.setEndDatetimeLocal(localDate.plusDays(1).atStartOfDay());
-                taskRequest.setTimezone("UTC");
-                taskRequest.setIsAllDay(true);
-                logger.debug("VTODO date-only: {}", localDate);
-            }
-        } else {
-            // CASE 3: No DUE → all-day task for today
-            LocalDate today = LocalDate.now(ZoneOffset.UTC);
-            taskRequest.setStartDatetimeLocal(today.atStartOfDay());
-            taskRequest.setEndDatetimeLocal(today.plusDays(1).atStartOfDay());
-            taskRequest.setTimezone("UTC");
-            taskRequest.setIsAllDay(true);
-            logger.debug("VTODO without DUE: using today");
-        }
-
-        return taskRequest;
+        return icalConverter.vtodoToTaskRequest(todo);
     }
 
     /**
@@ -482,51 +216,6 @@ public class CalDAVService {
         return user.getUsername() + "'s Calendar";
     }
 
-    /**
-     * Truncate a string to a maximum length, logging if truncation occurs
-     */
-    private String truncateField(String value, int maxLength, String fieldName, String itemContext) {
-        if (value == null || value.length() <= maxLength) {
-            return value;
-        }
-
-        logger.warn("Truncating {} from {} to {} characters for {}",
-            fieldName, value.length(), maxLength, itemContext);
-        return value.substring(0, maxLength);
-    }
-
-    /**
-     * Generate a deterministic UID for an event/todo when none is present
-     * Format: privatecal-generated-[SHA256-hash]
-     *
-     * @param summary Event/Todo summary (title)
-     * @param dtStart Event/Todo start date
-     * @return Generated UID string
-     */
-    private String generateDeterministicUid(String summary, Date dtStart) {
-        try {
-            // Create hash from summary + start date
-            String input = (summary != null ? summary : "untitled") +
-                          (dtStart != null ? dtStart.toString() : "no-date");
-
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-
-            // Convert to hex string (first 16 characters for brevity)
-            StringBuilder hexString = new StringBuilder();
-            for (int i = 0; i < Math.min(8, hash.length); i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return "privatecal-generated-" + hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            // Fallback to timestamp-based UID
-            logger.error("SHA-256 not available, using timestamp UID", e);
-            return "privatecal-generated-" + System.currentTimeMillis();
-        }
-    }
 
     /**
      * Analyze ICS file for import preview - detects duplicates without importing
@@ -783,11 +472,29 @@ public class CalDAVService {
         Task task = taskRepository.findById(taskUid)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskUid));
 
-        // Create minimal calendar wrapper for single event
+        // Create calendar wrapper for single event
         net.fortuna.ical4j.model.Calendar calendar = new net.fortuna.ical4j.model.Calendar();
         calendar.getProperties().add(new ProdId(PRODID));
         calendar.getProperties().add(Version.VERSION_2_0);
         calendar.getProperties().add(CalScale.GREGORIAN);
+
+        // Add VTIMEZONE component if task has timezone (CRITICAL for CalDAV clients)
+        // Without VTIMEZONE, clients like Thunderbird cannot interpret TZID references
+        if (task.getTaskTimezone() != null && !Boolean.TRUE.equals(task.getIsAllDay())) {
+            try {
+                net.fortuna.ical4j.model.TimeZoneRegistry registry =
+                    net.fortuna.ical4j.model.TimeZoneRegistryFactory.getInstance().createRegistry();
+                net.fortuna.ical4j.model.TimeZone tz = registry.getTimeZone(task.getTaskTimezone());
+                if (tz != null) {
+                    calendar.getComponents().add(tz.getVTimeZone());
+                    logger.debug("Added VTIMEZONE for {} to single task export", task.getTaskTimezone());
+                } else {
+                    logger.warn("Timezone not found in registry: {}", task.getTaskTimezone());
+                }
+            } catch (Exception e) {
+                logger.warn("Error adding VTIMEZONE for {}: {}", task.getTaskTimezone(), e.getMessage());
+            }
+        }
 
         VEvent event = taskToVEvent(task);
         calendar.getComponents().add(event);
@@ -836,23 +543,49 @@ public class CalDAVService {
     @Transactional
     public Task importSingleEventFromICS(String icsContent, com.privatecal.entity.Calendar targetCalendar, User currentUser, String eventUid, String expectedETag) throws IOException {
         try {
+            // Log ICS content for debugging
+            logger.debug("CalDAV PUT received ICS content:\n{}", icsContent);
+
             // Parse ICS content
             CalendarBuilder builder = new CalendarBuilder();
             net.fortuna.ical4j.model.Calendar icalCalendar = builder.build(
                 new java.io.ByteArrayInputStream(icsContent.getBytes(StandardCharsets.UTF_8))
             );
 
-            // Extract VEVENT (should be only one for CalDAV PUT)
+            // Extract VEVENTs
+            // CalDAV clients (like Thunderbird) send multiple VEVENTs when modifying single occurrences:
+            // 1. Master event with EXDATE for cancelled/modified occurrences
+            // 2. Override events with RECURRENCE-ID for modified single occurrences
             var components = icalCalendar.getComponents(Component.VEVENT);
             if (components.isEmpty()) {
                 throw new IOException("No VEVENT found in ICS content");
             }
-            if (components.size() > 1) {
-                logger.warn("Multiple VEVENTs found in CalDAV PUT, using first one");
+
+            // Separate master event from override events
+            VEvent masterEvent = null;
+            List<VEvent> overrideEvents = new ArrayList<>();
+
+            for (Object comp : components) {
+                VEvent vevent = (VEvent) comp;
+                // Check if this is an override (has RECURRENCE-ID)
+                if (vevent.getProperty(Property.RECURRENCE_ID) != null) {
+                    overrideEvents.add(vevent);
+                    logger.debug("Found override event with RECURRENCE-ID");
+                } else {
+                    if (masterEvent != null) {
+                        logger.warn("Multiple master VEVENTs found (no RECURRENCE-ID), using first one");
+                    } else {
+                        masterEvent = vevent;
+                        logger.debug("Found master event (no RECURRENCE-ID)");
+                    }
+                }
             }
 
-            VEvent vevent = (VEvent) components.get(0);
-            TaskRequest taskRequest = veventToTaskRequest(vevent);
+            if (masterEvent == null) {
+                throw new IOException("No master VEVENT found (all have RECURRENCE-ID)");
+            }
+
+            TaskRequest taskRequest = veventToTaskRequest(masterEvent);
             String uidFromICS = taskRequest.getUid();
 
             // CalDAV RFC 4791 compliant: URL UID is the primary key
@@ -900,10 +633,51 @@ public class CalDAVService {
             task.setTaskTimezone(taskRequest.getTimezone());
             task.setIsAllDay(taskRequest.getIsAllDay());
             task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+            task.setRecurrenceExceptions(taskRequest.getRecurrenceExceptions());
             task.setColor(taskRequest.getColor());
             task.setUpdatedAt(Instant.now());
 
+            logger.debug("CalDAV PUT: Saving recurrenceExceptions = '{}'", taskRequest.getRecurrenceExceptions());
+
             Task savedTask = taskRepository.save(task);
+
+            // Sync reminders from ICS (if present in TaskRequest)
+            if (taskRequest.getReminders() != null) {
+                // Get existing reminders
+                List<Reminder> existingReminders = reminderRepository.findByTask_UidOrderByReminderTimeAsc(eventUid);
+
+                // Delete existing reminders
+                if (!existingReminders.isEmpty()) {
+                    reminderRepository.deleteAll(existingReminders);
+                    reminderRepository.flush(); // Force immediate execution
+                }
+
+                // Add new reminders from VALARM
+                for (com.privatecal.dto.ReminderRequest reminderRequest : taskRequest.getReminders()) {
+                    reminderService.createReminderForTask(eventUid, reminderRequest);
+                }
+
+                // Force flush of inserts
+                reminderRepository.flush();
+
+                logger.info("CalDAV PUT: Synced {} reminder(s) for task {}", taskRequest.getReminders().size(), eventUid);
+            }
+
+            // Process override events (single occurrence modifications with RECURRENCE-ID)
+            // These are saved as separate tasks linked to the master via EXDATE
+            if (!overrideEvents.isEmpty()) {
+                logger.info("CalDAV PUT: Processing {} override event(s) with RECURRENCE-ID", overrideEvents.size());
+
+                for (VEvent overrideEvent : overrideEvents) {
+                    try {
+                        processOverrideEvent(overrideEvent, savedTask, targetCalendar, currentUser);
+                    } catch (Exception e) {
+                        logger.error("Error processing override event: {}", e.getMessage(), e);
+                        // Continue with other overrides even if one fails
+                    }
+                }
+            }
+
             logger.info("CalDAV PUT successful: task {} (UID: {})", savedTask.getId(), savedTask.getUid());
             return savedTask;
 
@@ -911,5 +685,104 @@ public class CalDAVService {
             logger.error("Error importing single event from ICS: {}", e.getMessage(), e);
             throw new IOException("Failed to import event", e);
         }
+    }
+
+    /**
+     * Process override event (VEVENT with RECURRENCE-ID) from CalDAV PUT.
+     * This represents a modified single occurrence of a recurring event.
+     *
+     * Per RFC 5545, the override event:
+     * - Has the same UID as the master event
+     * - Has a RECURRENCE-ID property indicating which occurrence it overrides
+     * - Contains modified properties for that specific occurrence
+     *
+     * We save this as a separate task (like updateSingleOccurrence does).
+     */
+    private void processOverrideEvent(VEvent overrideEvent, Task masterTask,
+                                     com.privatecal.entity.Calendar targetCalendar, User currentUser) {
+        // Extract RECURRENCE-ID to determine which occurrence this overrides
+        net.fortuna.ical4j.model.property.RecurrenceId recurrenceId =
+            (net.fortuna.ical4j.model.property.RecurrenceId) overrideEvent.getProperty(Property.RECURRENCE_ID);
+
+        if (recurrenceId == null) {
+            logger.warn("Override event has no RECURRENCE-ID, skipping");
+            return;
+        }
+
+        // Parse the override event as a TaskRequest
+        TaskRequest overrideRequest = veventToTaskRequest(overrideEvent);
+
+        // Get the RECURRENCE-ID date (this is the original occurrence time being overridden)
+        java.util.Date recurrenceDate = recurrenceId.getDate();
+        Instant recurrenceInstant = Instant.ofEpochMilli(recurrenceDate.getTime());
+
+        // Convert to LocalDateTime in master task's timezone
+        ZoneId masterZone = ZoneId.of(masterTask.getTaskTimezone());
+        LocalDateTime occurrenceLocalDateTime = recurrenceInstant.atZone(masterZone).toLocalDateTime();
+
+        logger.info("CalDAV PUT: Processing override for occurrence at {} (RECURRENCE-ID: {})",
+                   occurrenceLocalDateTime, recurrenceInstant);
+
+        // Check if an override task already exists for this occurrence
+        // We identify override tasks by checking for tasks that:
+        // 1. Belong to same user and calendar
+        // 2. Start at the same time as the overridden occurrence
+        // 3. Are not recurring (recurrenceRule is null)
+        // 4. Are not the master task itself
+
+        Optional<Task> existingOverride = taskRepository.findAll().stream()
+            .filter(t -> t.getUser().getId().equals(currentUser.getId()))
+            .filter(t -> t.getCalendar().getId().equals(targetCalendar.getId()))
+            .filter(t -> t.getRecurrenceRule() == null || t.getRecurrenceRule().trim().isEmpty())
+            .filter(t -> !t.getUid().equals(masterTask.getUid()))
+            .filter(t -> t.getStartDatetimeLocal().equals(overrideRequest.getStartDatetimeLocal()))
+            .findFirst();
+
+        Task overrideTask;
+
+        if (existingOverride.isPresent()) {
+            // Update existing override
+            overrideTask = existingOverride.get();
+            logger.info("CalDAV PUT: Updating existing override task {}", overrideTask.getUid());
+        } else {
+            // Create new override task
+            overrideTask = new Task();
+            overrideTask.setUid(java.util.UUID.randomUUID().toString()); // New UID for override
+            overrideTask.setUser(currentUser);
+            overrideTask.setCalendar(targetCalendar);
+            overrideTask.setCreatedAt(Instant.now());
+            logger.info("CalDAV PUT: Creating new override task for occurrence at {}", occurrenceLocalDateTime);
+        }
+
+        // Set all properties from override event
+        overrideTask.setTitle(overrideRequest.getTitle());
+        overrideTask.setDescription(overrideRequest.getDescription());
+        overrideTask.setLocation(overrideRequest.getLocation());
+        overrideTask.setStartDatetimeLocal(overrideRequest.getStartDatetimeLocal());
+        overrideTask.setEndDatetimeLocal(overrideRequest.getEndDatetimeLocal());
+        overrideTask.setTaskTimezone(overrideRequest.getTimezone());
+        overrideTask.setIsAllDay(overrideRequest.getIsAllDay());
+        overrideTask.setColor(overrideRequest.getColor() != null ? overrideRequest.getColor() : masterTask.getColor());
+        overrideTask.setRecurrenceRule(null); // Override is NOT recurring
+        overrideTask.setRecurrenceExceptions(null);
+        overrideTask.setUpdatedAt(Instant.now());
+
+        taskRepository.save(overrideTask);
+
+        logger.info("CalDAV PUT: Saved override task {} for occurrence {}",
+                   overrideTask.getUid(), occurrenceLocalDateTime);
+
+        // CRITICAL: Add this occurrence to master task's EXDATE
+        // When an occurrence is modified (RECURRENCE-ID), it should NOT appear in the
+        // master's recurring series anymore - only the override task should be visible.
+        // Thunderbird doesn't add EXDATE for modified occurrences, only for deleted ones,
+        // so we must add it ourselves to avoid duplicate occurrences.
+
+        // We need to use RecurrenceService.addExceptionDate which finds the correct Instant
+        recurrenceService.addExceptionDate(masterTask, occurrenceLocalDateTime);
+        taskRepository.save(masterTask);
+
+        logger.info("CalDAV PUT: Added EXDATE {} to master task {} for override occurrence",
+                   occurrenceLocalDateTime, masterTask.getUid());
     }
 }

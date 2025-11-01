@@ -416,6 +416,7 @@
     "updateTask": "Aggiorna Attività",
     "deleteTask": "Elimina",
     "deleteConfirm": "Sei sicuro di voler eliminare l'attività \"{title}\"?",
+    "deleteSingleOccurrenceConfirm": "Sei sicuro di voler eliminare questa occorrenza di \"{title}\"? Le altre occorrenze rimarranno.",
     "hasReminders": "Ha promemoria",
     "taskDetails": "Dettagli Attività",
     "editButton": "Modifica",
@@ -865,6 +866,20 @@
       "all": {
         "label": "Tutte le occorrenze",
         "description": "Le modifiche si applicano a tutti gli eventi della serie"
+      }
+    }
+  },
+  "recurringDelete": {
+    "title": "Elimina Evento Ricorrente",
+    "description": "Questo è un evento ricorrente. Cosa vuoi eliminare?",
+    "options": {
+      "single": {
+        "label": "Solo questa occorrenza",
+        "description": "Questa data verrà rimossa dalla serie"
+      },
+      "all": {
+        "label": "Tutte le occorrenze",
+        "description": "L'intera serie di eventi verrà eliminata"
       }
     }
   }

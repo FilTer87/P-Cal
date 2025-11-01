@@ -190,13 +190,26 @@ public class TaskController {
     /**
      * Delete task
      * DELETE /api/tasks/{taskUid}
+     * Optional query param: occurrenceStart (ISO 8601 datetime) for deleting single occurrence
      */
     @DeleteMapping("/{taskUid}")
-    public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable String taskUid) {
+    public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable String taskUid,
+                                                          @RequestParam(required = false) String occurrenceStart) {
         try {
-            logger.debug("Deleting task UID: {}", taskUid);
+            logger.debug("Deleting task UID: {}, occurrenceStart: {}", taskUid, occurrenceStart);
 
-            taskService.deleteTask(taskUid);
+            // Check if we're deleting a single occurrence
+            if (occurrenceStart != null && !occurrenceStart.trim().isEmpty()) {
+                // Parse occurrence datetime (local datetime string from frontend)
+                LocalDateTime occurrenceLocalDateTime = LocalDateTime.parse(occurrenceStart);
+                logger.info("Deleting single occurrence at {} (local time)", occurrenceLocalDateTime);
+
+                // Delete single occurrence (adds EXDATE to master)
+                taskService.deleteSingleOccurrence(taskUid, occurrenceLocalDateTime);
+            } else {
+                // Delete the entire task (all occurrences if recurring)
+                taskService.deleteTask(taskUid);
+            }
 
             return ResponseEntity.ok(Map.of(
                 "success", true,

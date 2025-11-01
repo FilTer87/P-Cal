@@ -112,14 +112,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        
+
+        // Exclude CalDAV endpoints - they use HTTP Basic Auth instead of JWT
+        if (path.startsWith("/caldav/")) {
+            return true;
+        }
+
         // Exclude authentication endpoints
-        if (path.startsWith("/api/auth/login") || 
+        if (path.startsWith("/api/auth/login") ||
             path.startsWith("/api/auth/register") ||
             path.startsWith("/api/auth/refresh")) {
             return true;
         }
-        
+
         // Exclude public endpoints
         if (path.startsWith("/api/public/") ||
             path.startsWith("/actuator/") ||
@@ -132,14 +137,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/images/")) {
             return true;
         }
-        
+
         // Exclude Swagger/OpenAPI endpoints in development
         if (path.startsWith("/swagger-ui") ||
             path.startsWith("/v3/api-docs") ||
             path.equals("/swagger-ui.html")) {
             return true;
         }
-        
+
         return false;
     }
     

@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
-### Changed
+- Select option with management on delete for recurring events: delete all or single occurrence (EXDATA)
 
 **Global refactoring of timezone management with floating time**:
 
@@ -22,6 +22,17 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
     - updated event related components and views to use local time intead of UTC conversions
     - updated tests
 
+**CalDAV event sync**
+
+  - Implemented calendar-multiget support to return only requested events instead of the full calendar
+  - Optimized CalDAV REPORT method to handle selective event fetching
+
+  Performance improvement: CalDAV clients no longer freeze when creating or modifying events
+
+### Changed
+
+- Stored EXDATE format is changed (recurrence_axceptions); new migration file creates a backup table with existing data but user should re-insert the exceptions
+
 ### Deprecated
 
 - TaskRequest and TaskResponse no longer have startDatetime and endDatetime fields
@@ -32,9 +43,28 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 Frontend timezone conversion utilities
 
 ### Fixed
+- Event time inconsistency on DST change
+- User timezone is loaded from stored settings, using system settings (browser default) only as fallback
 
 - Event time inconsistency on DST change
 - User timezone is loaded from stored settings, using system settings (browser default) only as fallback
+
+**CalDAV server:**
+
+  - Added missing VALARM parsing to import reminders from CalDAV PUT requests (default: EMAIL notification type)
+  - Added Location and Cache-Control headers to PUT responses for better client compatibility
+  - Fixed Response type and error handling in XML responses for client compatibility
+  - Fixed iCalendar EXDATE conversions and stored data (external client sync fix)
+
+- Event time inconsistency on DST change
+- User timezone is loaded from stored settings, using system settings (browser default) only as fallback
+
+**CalDAV server:**
+
+  - Added missing VALARM parsing to import reminders from CalDAV PUT requests (default: EMAIL notification type)
+  - Added Location and Cache-Control headers to PUT responses for better client compatibility
+  - Fixed Response type and error handling in XML responses for client compatibility
+  - Fixed iCalendar EXDATE conversions and stored data (external client sync fix)
 
 ### Security
 

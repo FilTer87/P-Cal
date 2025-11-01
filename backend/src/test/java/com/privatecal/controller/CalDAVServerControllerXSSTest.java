@@ -1,5 +1,7 @@
 package com.privatecal.controller;
 
+import com.privatecal.caldav.CalDAVValidator;
+import com.privatecal.caldav.CalDAVXmlBuilder;
 import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -43,7 +45,10 @@ class CalDAVServerControllerXSSTest {
     @Mock
     private TaskRepository taskRepository;
 
-    @InjectMocks
+    private CalDAVXmlBuilder xmlBuilder;
+
+    private CalDAVValidator validator;
+
     private CalDAVServerController controller;
 
     private User testUser;
@@ -52,6 +57,19 @@ class CalDAVServerControllerXSSTest {
 
     @BeforeEach
     void setUp() {
+        // Create real instances for XML building and validation (not mocks)
+        validator = new CalDAVValidator();
+        xmlBuilder = new CalDAVXmlBuilder(validator);
+
+        // Manually inject dependencies into controller
+        controller = new CalDAVServerController(
+            calDAVService,
+            calendarService,
+            userService,
+            taskRepository,
+            xmlBuilder,
+            validator
+        );
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
@@ -81,7 +99,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -107,7 +125,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -135,7 +153,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -168,7 +186,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, maliciousUsername, maliciousSlug, null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, maliciousUsername, maliciousSlug, null, "1");
 
         // Then
         assertNotNull(response);
@@ -196,7 +214,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag("def456-task")).thenReturn("etag-def");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);
@@ -227,7 +245,7 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-<malicious>");
 
         // When
-        ResponseEntity<String> response = controller.propfind(request, "testuser", "test-calendar", null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, "testuser", "test-calendar", null, "1");
 
         // Then
         assertNotNull(response);

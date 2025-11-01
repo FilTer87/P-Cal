@@ -75,6 +75,7 @@ public class TaskService {
         // Generate UID if not provided (required for CalDAV compliance)
         task.setUid(StringUtils.hasText(taskRequest.getUid()) ? taskRequest.getUid() : java.util.UUID.randomUUID().toString());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceExceptions(taskRequest.getRecurrenceExceptions());
 
         // Convert recurrenceEnd from LocalDateTime to Instant
         if (taskRequest.getRecurrenceEnd() != null) {
@@ -288,7 +289,6 @@ public class TaskService {
             // Update dates only for non-recurring tasks or when recurrence rule changes
             task.setStartDatetimeLocal(taskRequest.getStartDatetimeLocal());
             task.setEndDatetimeLocal(taskRequest.getEndDatetimeLocal());
-            task.setTaskTimezone(taskRequest.getTimezone());
             // Deprecated UTC fields are auto-synced in Task entity's @PrePersist
         } else {
             // For recurring tasks with unchanged recurrence rule, keep original dates
@@ -296,12 +296,16 @@ public class TaskService {
                        taskUid, task.getStartDatetimeLocal(), task.getEndDatetimeLocal());
         }
 
+        // timezone should be updated despite of single occurrence rule update (update reminder time fix on changed timezone)
+        task.setTaskTimezone(taskRequest.getTimezone());
+
         task.setColor(taskRequest.getColor() != null ? taskRequest.getColor() : "#3788d8");
         task.setLocation(taskRequest.getLocation() != null ? taskRequest.getLocation().trim() : null);
         task.setIsAllDay(taskRequest.getIsAllDay() != null ? taskRequest.getIsAllDay() : false);
         // DO NOT update UID - it's the primary key and should never change
         // task.setUid(taskRequest.getUid());
         task.setRecurrenceRule(taskRequest.getRecurrenceRule());
+        task.setRecurrenceExceptions(taskRequest.getRecurrenceExceptions());
 
         // Convert recurrenceEnd from LocalDateTime to Instant
         if (taskRequest.getRecurrenceEnd() != null) {
@@ -428,7 +432,35 @@ public class TaskService {
 
         logger.info("Task deleted successfully: {} for user: {}", task.getTitle(), currentUser.getUsername());
     }
-    
+
+    /**
+     * Delete single occurrence of a recurring task
+     * This adds an EXDATE to the master task without deleting the task itself
+     *
+     * @param taskUid UID of the recurring master task
+     * @param occurrenceStartLocal LocalDateTime of the occurrence to delete (in task's timezone)
+     */
+    public void deleteSingleOccurrence(String taskUid, LocalDateTime occurrenceStartLocal) {
+        logger.info("Deleting single occurrence of task UID {} at {} (local time)", taskUid, occurrenceStartLocal);
+
+        User currentUser = userService.getCurrentUser();
+
+        // Find master task and validate ownership
+        Task masterTask = taskRepository.findByUidAndUser(taskUid, currentUser)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        // Verify it's a recurring task
+        if (masterTask.getRecurrenceRule() == null || masterTask.getRecurrenceRule().trim().isEmpty()) {
+            throw new RuntimeException("Task is not recurring - cannot delete single occurrence");
+        }
+
+        // Add exception date to master task (EXDATE)
+        recurrenceService.addExceptionDate(masterTask, occurrenceStartLocal);
+        taskRepository.save(masterTask);
+
+        logger.info("Added EXDATE {} to master task {}, occurrence deleted", occurrenceStartLocal, masterTask.getUid());
+    }
+
     /**
      * Get task count for user
      */

@@ -7,6 +7,14 @@
     @edit-single="handleEditSingleOccurrence"
   />
 
+  <!-- Recurring Delete Choice Modal -->
+  <RecurringDeleteChoiceModal
+    :show="showRecurringDeleteChoice"
+    @close="showRecurringDeleteChoice = false"
+    @delete-all="handleDeleteAllOccurrences"
+    @delete-single="handleDeleteSingleOccurrence"
+  />
+
   <div v-if="show && task" class="modal-overlay" @click="handleBackdropClick">
     <div class="modal-content" @click.stop>
       <!-- Modal Header -->
@@ -284,6 +292,7 @@ import { formatDate, formatDateTime, formatTime } from '../utils/dateHelpers'
 import { getRecurrenceDescription as getRecurrenceText } from '../utils/recurrence'
 import ConfirmDialog from './Common/ConfirmDialog.vue'
 import RecurringEditChoiceModal from './RecurringEditChoiceModal.vue'
+import RecurringDeleteChoiceModal from './RecurringDeleteChoiceModal.vue'
 import { useTasks } from '../composables/useTasks'
 
 // Composables
@@ -309,6 +318,7 @@ const { deleteTask } = useTasks()
 // State
 const showDeleteConfirm = ref(false)
 const showRecurringEditChoice = ref(false)
+const showRecurringDeleteChoice = ref(false)
 
 // Methods
 const closeModal = () => {
@@ -349,12 +359,36 @@ const handleEditSingleOccurrence = () => {
 }
 
 const handleDelete = () => {
+  // Check if this is a recurring task
+  if (props.task?.recurrenceRule) {
+    // Show recurring delete choice modal
+    showRecurringDeleteChoice.value = true
+  } else {
+    // Show simple confirmation dialog for non-recurring task
+    showDeleteConfirm.value = true
+  }
+}
+
+const handleDeleteAllOccurrences = () => {
+  showRecurringDeleteChoice.value = false
   showDeleteConfirm.value = true
+}
+
+const handleDeleteSingleOccurrence = async () => {
+  showRecurringDeleteChoice.value = false
+  if (props.task) {
+    // Delete only this occurrence by passing occurrenceStart parameter
+    const success = await deleteTask(props.task.id, props.task.startDatetimeLocal)
+    if (success) {
+      emit('delete', props.task.id)
+    }
+  }
 }
 
 const confirmDelete = async () => {
   if (props.task) {
     showDeleteConfirm.value = false
+    // Delete all occurrences (no occurrenceStart parameter)
     const success = await deleteTask(props.task.id)
     if (success) {
       emit('delete', props.task.id)

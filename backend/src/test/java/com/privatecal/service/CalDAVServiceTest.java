@@ -31,7 +31,17 @@ class CalDAVServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Create CalDAVService with required dependencies
         calDAVService = new CalDAVService();
+
+        // Manually inject ICalConverter dependency using reflection
+        try {
+            java.lang.reflect.Field icalConverterField = CalDAVService.class.getDeclaredField("icalConverter");
+            icalConverterField.setAccessible(true);
+            icalConverterField.set(calDAVService, new com.privatecal.caldav.ICalConverter());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to inject ICalConverter dependency", e);
+        }
 
         testUser = new User();
         testUser.setId(1L);
@@ -526,17 +536,23 @@ class CalDAVServiceTest {
             "Export should use the saved UID from the task. Actual output:\n" + icsString);
     }
 
+
     @Test
-    void testExportTaskWithoutUidGeneratesFallback() throws IOException {
-        // Create a task without UID (legacy task)
+    void testExportIncludesCreatedAndLastModifiedTimestamps() throws IOException {
+        // Create a task with specific created/updated timestamps
         Task task = createTask(
-            "Legacy task without UID",
-            "This task has no UID",
+            "Task with timestamps",
+            "Testing timestamp export",
             getInstant(2025, 10, 21, 14, 0),
             getInstant(2025, 10, 21, 15, 0),
             false
         );
-        // Don't set UID (null)
+
+        // Set specific timestamps for verification
+        Instant createdTime = getInstant(2025, 10, 1, 10, 0);
+        Instant updatedTime = getInstant(2025, 10, 15, 16, 30);
+        task.setCreatedAt(createdTime);
+        task.setUpdatedAt(updatedTime);
 
         List<Task> tasks = List.of(task);
 
@@ -544,9 +560,17 @@ class CalDAVServiceTest {
         byte[] icsData = calDAVService.exportToICS(tasks, "Test Calendar");
         String icsString = new String(icsData);
 
-        // Verify a fallback UID is generated
-        assertTrue(icsString.contains("UID:test-uid-1"),
-            "Export should generate fallback UID for legacy tasks. Actual output:\n" + icsString);
+        // Verify CREATED and LAST-MODIFIED properties are present
+        assertTrue(icsString.contains("CREATED:"),
+            "Export should include CREATED timestamp. Actual output:\n" + icsString);
+        assertTrue(icsString.contains("LAST-MODIFIED:"),
+            "Export should include LAST-MODIFIED timestamp. Actual output:\n" + icsString);
+
+        // Verify timestamps contain expected dates (format: YYYYMMDD)
+        assertTrue(icsString.contains("CREATED:20251001T"),
+            "CREATED should contain correct date");
+        assertTrue(icsString.contains("LAST-MODIFIED:20251015T"),
+            "LAST-MODIFIED should contain correct date");
     }
 
     @Test
