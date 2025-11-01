@@ -2,7 +2,6 @@ package com.privatecal.caldav;
 
 import com.privatecal.dto.ReminderRequest;
 import com.privatecal.dto.TaskRequest;
-import com.privatecal.entity.Reminder;
 import com.privatecal.entity.Task;
 import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.VAlarm;
@@ -27,7 +26,6 @@ import java.util.List;
 public class ICalConverter {
 
     private static final Logger logger = LoggerFactory.getLogger(ICalConverter.class);
-    private static final String PRODID = "-//PrivateCal//PrivateCal v0.11.0//EN";
     private static final int DEFAULT_TODO_DURATION_MINUTES = 30;
     private static final int MAX_DESCRIPTION_LENGTH = 2500;
     private static final int MAX_TITLE_LENGTH = 100;
@@ -37,14 +35,14 @@ public class ICalConverter {
      * Convert Task entity to VEvent component
      */
     public VEvent taskToVEvent(Task task) {
-        logger.debug("Converting task {} to VEVENT", task.getId());
+        logger.debug("Converting task {} to VEVENT", task.getUid());
 
         // Create event with UID (use saved UID or fallback to generated)
         String uid = task.getUid();
         if (uid == null || uid.trim().isEmpty()) {
             // Fallback for legacy tasks without UID
-            uid = "privatecal-" + task.getUser().getId() + "-" + task.getId() + "@privatecal.local";
-            logger.warn("Task {} missing UID, using fallback: {}", task.getId(), uid);
+            uid = "privatecal-" + task.getUser().getId() + "-" + task.getUid() + "@privatecal.local";
+            logger.warn("Task {} missing UID, using fallback: {}", task.getUid(), uid);
         }
         VEvent event = new VEvent();
         event.getProperties().add(new Uid(uid));
@@ -81,7 +79,7 @@ public class ICalConverter {
                 event.getProperties().add(new DtStart(new net.fortuna.ical4j.model.Date(startDateStr)));
                 event.getProperties().add(new DtEnd(new net.fortuna.ical4j.model.Date(endDateStr)));
             } catch (Exception e) {
-                logger.error("Error creating all-day dates for task {}: {}", task.getId(), e.getMessage(), e);
+                logger.error("Error creating all-day dates for task {}: {}", task.getUid(), e.getMessage(), e);
                 throw new RuntimeException("Failed to create all-day event dates", e);
             }
         } else {
@@ -106,9 +104,9 @@ public class ICalConverter {
                 dtEnd.setTimeZone(ical4jTimeZone);
                 event.getProperties().add(new DtEnd(dtEnd));
 
-                logger.debug("Exported task {} with TZID: {}", task.getId(), task.getTaskTimezone());
+                logger.debug("Exported task {} with TZID: {}", task.getUid(), task.getTaskTimezone());
             } catch (Exception e) {
-                logger.error("Error creating datetime with timezone for task {}: {}", task.getId(), e.getMessage(), e);
+                logger.error("Error creating datetime with timezone for task {}: {}", task.getUid(), e.getMessage(), e);
                 throw new RuntimeException("Failed to create event dates with timezone", e);
             }
         }
@@ -123,7 +121,7 @@ public class ICalConverter {
             try {
                 event.getProperties().add(new RRule(task.getRecurrenceRule()));
             } catch (Exception e) {
-                logger.warn("Invalid RRULE for task {}: {}", task.getId(), e.getMessage());
+                logger.warn("Invalid RRULE for task {}: {}", task.getUid(), e.getMessage());
             }
         }
 
@@ -178,10 +176,10 @@ public class ICalConverter {
 
                     event.getProperties().add(exDate);
                     logger.debug("Exported {} EXDATE(s) with TZID={} for task {}",
-                        exDateList.size(), task.getTaskTimezone(), task.getId());
+                        exDateList.size(), task.getTaskTimezone(), task.getUid());
                 }
             } catch (Exception e) {
-                logger.warn("Error parsing recurrence exceptions for task {}: {}", task.getId(), e.getMessage());
+                logger.warn("Error parsing recurrence exceptions for task {}: {}", task.getUid(), e.getMessage());
             }
         }
 
@@ -202,7 +200,7 @@ public class ICalConverter {
                     alarm.getProperties().add(new Description("Reminder: " + task.getTitle()));
                     event.getAlarms().add(alarm);
                 } catch (Exception e) {
-                    logger.warn("Error adding reminder for task {}: {}", task.getId(), e.getMessage());
+                    logger.warn("Error adding reminder for task {}: {}", task.getUid(), e.getMessage());
                 }
             });
         }

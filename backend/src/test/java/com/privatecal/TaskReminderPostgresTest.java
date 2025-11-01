@@ -23,7 +23,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -124,7 +123,7 @@ class TaskReminderPostgresTest {
         updateRequest.setReminders(updatedReminders);
 
         // Update the task
-        TaskResponse updatedTask = taskService.updateTask(taskId, updateRequest);
+        taskService.updateTask(taskId, updateRequest);
 
         // Verify post-update state
         List<Reminder> remindersAfterUpdate = reminderRepository.findByTask_UidOrderByReminderTimeAsc(taskId);

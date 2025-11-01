@@ -112,15 +112,15 @@ public class CalDAVService {
         int failedCount = 0;
         for (Task task : tasks) {
             try {
-                logger.debug("Converting task {} to VEVENT: {}", task.getId(), task.getTitle());
+                logger.debug("Converting task {} to VEVENT: {}", task.getUid(), task.getTitle());
                 VEvent event = taskToVEvent(task);
                 calendar.getComponents().add(event);
                 successCount++;
-                logger.debug("Successfully added task {} to calendar", task.getId());
+                logger.debug("Successfully added task {} to calendar", task.getUid());
             } catch (Exception e) {
                 failedCount++;
                 logger.error("Error converting task {} ('{}') to VEVENT: {}",
-                    task.getId(), task.getTitle(), e.getMessage(), e);
+                    task.getUid(), task.getTitle(), e.getMessage(), e);
             }
         }
         logger.info("Export conversion summary: {} succeeded, {} failed out of {} total tasks",
@@ -395,7 +395,7 @@ public class CalDAVService {
                         case UPDATE:
                             logger.debug("Updating existing task: {}", uid);
                             // Keep the existing task ID to trigger update
-                            taskRequest.setId(existingTask.get().getId());
+                            taskRequest.setId(existingTask.get().getUid());
                             resultRequests.add(taskRequest);
                             break;
 
@@ -678,7 +678,7 @@ public class CalDAVService {
                 }
             }
 
-            logger.info("CalDAV PUT successful: task {} (UID: {})", savedTask.getId(), savedTask.getUid());
+            logger.info("CalDAV PUT successful: task {} (UID: {})", savedTask.getTitle(), savedTask.getUid());
             return savedTask;
 
         } catch (Exception e) {

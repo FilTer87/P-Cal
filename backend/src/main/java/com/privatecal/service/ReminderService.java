@@ -49,7 +49,7 @@ public class ReminderService {
 
         if (logger.isDebugEnabled()) {
             logger.debug("📅 ReminderService.createReminderForTask: task retrieved from DB");
-            logger.debug("  task.getId() = {}", task.getId());
+            logger.debug("  task.getUid() = {}", task.getUid());
             logger.debug("  task.getStartDatetimeLocal() = {}", task.getStartDatetimeLocal());
             logger.debug("  task.getTaskTimezone() = {}", task.getTaskTimezone());
             logger.debug("  task.getRecurrenceRule() = {}", task.getRecurrenceRule());
@@ -93,7 +93,7 @@ public class ReminderService {
                     reminder.setReminderTime(taskStartInstant);
                     reminder.setIsSent(true);
                     logger.warn("No future occurrences found for recurring task {}, marking reminder as sent",
-                               task.getId());
+                               task.getUid());
                     Reminder savedReminder = reminderRepository.save(reminder);
                     return ReminderResponse.fromReminder(savedReminder);
                 }

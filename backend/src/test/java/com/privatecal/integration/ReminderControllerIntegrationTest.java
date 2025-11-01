@@ -147,7 +147,7 @@ class ReminderControllerIntegrationTest {
     void createReminderForTask_WithValidData_ShouldCreateReminder() throws Exception {
         ReminderRequest reminderRequest = new ReminderRequest(15, NotificationType.PUSH);
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
@@ -162,7 +162,7 @@ class ReminderControllerIntegrationTest {
     void createReminderForTask_WithEmailType_ShouldCreateEmailReminder() throws Exception {
         ReminderRequest reminderRequest = new ReminderRequest(30, NotificationType.EMAIL);
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
@@ -188,7 +188,7 @@ class ReminderControllerIntegrationTest {
     void createReminderForTask_WithNegativeOffset_ShouldReturnBadRequest() throws Exception {
         ReminderRequest reminderRequest = new ReminderRequest(-10, NotificationType.PUSH);
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
@@ -200,14 +200,14 @@ class ReminderControllerIntegrationTest {
     void getRemindersForTask_ShouldReturnTaskReminders() throws Exception {
         // First create a reminder
         ReminderRequest reminderRequest = new ReminderRequest(10, NotificationType.PUSH);
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
                 .andExpect(status().isCreated());
 
         // Then get reminders for the task
-        mockMvc.perform(get("/api/reminders/task/{taskId}", testTask.getId()))
+        mockMvc.perform(get("/api/reminders/task/{taskId}", testTask.getUid()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -258,7 +258,7 @@ class ReminderControllerIntegrationTest {
     void updateReminder_WithValidData_ShouldUpdateReminder() throws Exception {
         // First create a reminder
         ReminderRequest createRequest = new ReminderRequest(15, NotificationType.PUSH);
-        String createResponse = mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        String createResponse = mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
                 .with(csrf()))
@@ -295,7 +295,7 @@ class ReminderControllerIntegrationTest {
     void deleteReminder_WithValidReminderId_ShouldDeleteReminder() throws Exception {
         // First create a reminder
         ReminderRequest createRequest = new ReminderRequest(15, NotificationType.PUSH);
-        String createResponse = mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        String createResponse = mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
                 .with(csrf()))
@@ -328,20 +328,20 @@ class ReminderControllerIntegrationTest {
         ReminderRequest reminder1 = new ReminderRequest(15, NotificationType.PUSH);
         ReminderRequest reminder2 = new ReminderRequest(30, NotificationType.EMAIL);
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminder1))
                 .with(csrf()))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminder2))
                 .with(csrf()))
                 .andExpect(status().isCreated());
 
         // Then delete all reminders for the task
-        mockMvc.perform(delete("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(delete("/api/reminders/task/{taskId}", testTask.getUid())
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -349,7 +349,7 @@ class ReminderControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("All reminders deleted for task"));
 
         // Verify reminders are deleted
-        mockMvc.perform(get("/api/reminders/task/{taskId}", testTask.getId()))
+        mockMvc.perform(get("/api/reminders/task/{taskId}", testTask.getUid()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -370,7 +370,7 @@ class ReminderControllerIntegrationTest {
             "presets", List.of("5min", "15min", "1hour")
         );
 
-        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(presetsRequest))
                 .with(csrf()))
@@ -384,7 +384,7 @@ class ReminderControllerIntegrationTest {
     void createReminderPresets_WithEmptyPresets_ShouldReturnBadRequest() throws Exception {
         Map<String, Object> presetsRequest = Map.of("presets", List.of());
 
-        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(presetsRequest))
                 .with(csrf()))
@@ -398,7 +398,7 @@ class ReminderControllerIntegrationTest {
             "presets", List.of("5min", "invalid_preset", "1hour")
         );
 
-        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(presetsRequest))
                 .with(csrf()))
@@ -412,7 +412,7 @@ class ReminderControllerIntegrationTest {
     void createReminderPresets_WithoutPresets_ShouldReturnBadRequest() throws Exception {
         Map<String, Object> presetsRequest = Map.of();
 
-        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/presets/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(presetsRequest))
                 .with(csrf()))
@@ -467,7 +467,7 @@ class ReminderControllerIntegrationTest {
     void createReminderForTask_WithZeroOffset_ShouldCreateReminder() throws Exception {
         ReminderRequest reminderRequest = new ReminderRequest(0, NotificationType.PUSH);
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
@@ -481,7 +481,7 @@ class ReminderControllerIntegrationTest {
     void createReminderForTask_WithLargeOffset_ShouldCreateReminder() throws Exception {
         ReminderRequest reminderRequest = new ReminderRequest(10080, NotificationType.EMAIL); // 1 week
 
-        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getId())
+        mockMvc.perform(post("/api/reminders/task/{taskId}", testTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))
@@ -534,7 +534,7 @@ class ReminderControllerIntegrationTest {
         // Create a reminder: 30 minutes before
         ReminderRequest reminderRequest = new ReminderRequest(5, NotificationType.PUSH);
 
-        String response = mockMvc.perform(post("/api/reminders/task/{taskId}", recurringTask.getId())
+        String response = mockMvc.perform(post("/api/reminders/task/{taskId}", recurringTask.getUid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest))
                 .with(csrf()))

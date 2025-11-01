@@ -1,8 +1,6 @@
 package com.privatecal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -126,7 +124,7 @@ class TaskReminderUpdateTest {
         updateRequest.setReminders(updatedReminders);
 
         // Update the task
-        TaskResponse updatedTask = taskService.updateTask(taskUid, updateRequest);
+        taskService.updateTask(taskUid, updateRequest);
 
         // Verify post-update state: task should have exactly 2 reminders (no
         // duplicates)

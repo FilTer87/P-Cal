@@ -76,7 +76,7 @@ public class TaskResponse {
     
     // Constructor from Task entity
     public TaskResponse(Task task) {
-        this.id = task.getId();
+        this.id = task.getUid();
         this.title = task.getTitle();
         this.description = task.getDescription();
 
@@ -149,7 +149,7 @@ public class TaskResponse {
      */
     public static TaskResponse minimal(Task task) {
         TaskResponse response = new TaskResponse();
-        response.setId(task.getId());
+        response.setId(task.getUid());
         response.setTitle(task.getTitle());
         response.setStartDatetimeLocal(task.getStartDatetimeLocal());
         response.setEndDatetimeLocal(task.getEndDatetimeLocal());

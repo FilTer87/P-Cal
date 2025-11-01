@@ -179,26 +179,6 @@ public class Task {
         this.uid = uid;
     }
 
-    /**
-     * Convenience method for backward compatibility
-     * Maps to getUid() since UID is the new primary key
-     * @deprecated Use getUid() instead
-     */
-    @Deprecated
-    public String getId() {
-        return uid;
-    }
-
-    /**
-     * Convenience method for backward compatibility
-     * Maps to setUid() since UID is the new primary key
-     * @deprecated Use setUid() instead
-     */
-    @Deprecated
-    public void setId(String id) {
-        this.uid = id;
-    }
-
     public User getUser() {
         return user;
     }

@@ -10,11 +10,9 @@ import com.privatecal.repository.UserRepository;
 import com.privatecal.service.notification.MockTelegramNotificationProvider;
 import com.privatecal.service.notification.NotificationProvider;
 import com.privatecal.service.notification.telegram.TelegramNotificationProvider;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,9 +42,6 @@ class TelegramIntegrationTest {
 
     @Autowired
     private List<NotificationProvider> providers;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Test
     void testTelegramProviderIsRegistered() {

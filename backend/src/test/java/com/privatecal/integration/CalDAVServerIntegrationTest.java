@@ -1,6 +1,5 @@
 package com.privatecal.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.privatecal.entity.Calendar;
 import com.privatecal.entity.Task;
 import com.privatecal.entity.User;
@@ -66,9 +65,6 @@ class CalDAVServerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private UserRepository userRepository;
@@ -177,7 +173,7 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVGet_ShouldReturnEventAsICS() throws Exception {
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -193,7 +189,7 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVGet_WithEmail_ShouldWork() throws Exception {
-        mockMvc.perform(get("/caldav/" + testUser.getEmail() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getEmail() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getEmail(), testPassword)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -210,7 +206,7 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVGet_WithoutAuth_ShouldReturn401() throws Exception {
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(anonymous()))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
@@ -218,7 +214,7 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVGet_WithWrongUser_ShouldReturn403() throws Exception {
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(otherUser.getUsername(), "password")))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -264,7 +260,7 @@ class CalDAVServerIntegrationTest {
     @Test
     void testCalDAVPut_UpdateExistingEvent_ShouldReturn204() throws Exception {
         // First, get the current ETag
-        String response = mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        String response = mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword)))
                 .andReturn().getResponse().getHeader("ETag");
 
@@ -284,7 +280,7 @@ class CalDAVServerIntegrationTest {
             END:VCALENDAR
             """;
 
-        mockMvc.perform(put("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(put("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword))
                 .contentType("text/calendar")
                 .header("If-Match", etag)
@@ -294,7 +290,7 @@ class CalDAVServerIntegrationTest {
                 .andExpect(header().exists("ETag"));
 
         // Verify event was updated
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("SUMMARY:Updated Event Title")));
@@ -315,7 +311,7 @@ class CalDAVServerIntegrationTest {
             END:VCALENDAR
             """;
 
-        mockMvc.perform(put("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(put("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword))
                 .contentType("text/calendar")
                 .header("If-Match", "\"wrong-etag-123\"")
@@ -352,20 +348,20 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVDelete_ShouldRemoveEvent() throws Exception {
-        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         // Verify event was deleted
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(testUser.getUsername(), testPassword)))
                 .andExpect(status().isInternalServerError()); // Event not found
     }
 
     @Test
     void testCalDAVDelete_WithoutAuth_ShouldReturn401() throws Exception {
-        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(anonymous()))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
@@ -373,7 +369,7 @@ class CalDAVServerIntegrationTest {
 
     @Test
     void testCalDAVDelete_WithWrongUser_ShouldReturn403() throws Exception {
-        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(delete("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(otherUser.getUsername(), "password")))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -393,7 +389,7 @@ class CalDAVServerIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_XML))
                 .andExpect(content().string(containsString("<D:multistatus")))
                 .andExpect(content().string(containsString("<C:calendar/>")))
-                .andExpect(content().string(containsString(testTask.getId() + ".ics")))
+                .andExpect(content().string(containsString(testTask.getUid() + ".ics")))
                 .andExpect(content().string(containsString("<D:getetag>")));
     }
 
@@ -424,7 +420,7 @@ class CalDAVServerIntegrationTest {
     @Test
     void testCalDAV_UserCannotAccessOtherUsersCalendar() throws Exception {
         // Try to access testUser's calendar with otherUser credentials
-        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getId() + ".ics")
+        mockMvc.perform(get("/caldav/" + testUser.getUsername() + "/" + testCalendar.getSlug() + "/" + testTask.getUid() + ".ics")
                 .with(httpBasic(otherUser.getUsername(), "password")))
                 .andDo(print())
                 .andExpect(status().isForbidden());

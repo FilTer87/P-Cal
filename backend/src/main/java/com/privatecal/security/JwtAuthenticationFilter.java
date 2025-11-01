@@ -110,7 +110,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * Override this method to exclude specific paths
      */
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
         // Exclude CalDAV endpoints - they use HTTP Basic Auth instead of JWT

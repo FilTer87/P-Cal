@@ -93,13 +93,13 @@ public class JwtUtils {
     private String createToken(Map<String, Object> claims, String subject, long expiration) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
-        
+
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
                 .compact();
     }
     

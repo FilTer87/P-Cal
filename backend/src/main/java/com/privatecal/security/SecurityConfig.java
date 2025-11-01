@@ -36,7 +36,6 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
-    private final org.springframework.security.web.firewall.HttpFirewall httpFirewall;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;

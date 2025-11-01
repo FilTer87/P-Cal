@@ -43,7 +43,7 @@ public class ReminderResponse {
         
         // Task information
         if (reminder.getTask() != null) {
-            this.taskId = reminder.getTask().getId();
+            this.taskId = reminder.getTask().getUid();
             this.taskTitle = reminder.getTask().getTitle();
         }
         

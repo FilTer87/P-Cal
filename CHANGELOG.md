@@ -20,10 +20,9 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 CalDAV endpoint patch:
 
-  - added validation methods on input fields to prevent path traversal issues (XSS already protected)
-  - prevent information disclosure on error messages
-  - sanitized http headers to prevent injection (CR/LF and control characters)
-  - updated tests
+  - Added validation methods on input fields to prevent path traversal issues (XSS already protected)
+  - Sanitized http headers to prevent injection (CR/LF and control characters)
+  - Prevent information disclosure on error messages
 
 ---
 

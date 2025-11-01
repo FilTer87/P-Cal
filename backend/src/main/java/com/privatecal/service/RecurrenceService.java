@@ -54,10 +54,10 @@ public class RecurrenceService {
         try {
             return expandRecurringTask(task, rangeStart, rangeEnd);
         } catch (ParseException e) {
-            logger.error("Invalid RRULE for task {}: {}", task.getId(), task.getRecurrenceRule(), e);
+            logger.error("Invalid RRULE for task {}: {}", task.getUid(), task.getRecurrenceRule(), e);
             return List.of();
         } catch (Exception e) {
-            logger.error("Error expanding recurrences for task {}: {}", task.getId(), e.getMessage(), e);
+            logger.error("Error expanding recurrences for task {}: {}", task.getUid(), e.getMessage(), e);
             return List.of();
         }
     }
@@ -128,7 +128,7 @@ public class RecurrenceService {
 
             // Safety check
             if (occurrences.size() >= MAX_OCCURRENCES) {
-                logger.warn("Reached max occurrences ({}) for task {}", MAX_OCCURRENCES, task.getId());
+                logger.warn("Reached max occurrences ({}) for task {}", MAX_OCCURRENCES, task.getUid());
                 break;
             }
         }
@@ -273,7 +273,7 @@ public class RecurrenceService {
      */
     public TaskOccurrence getNextOccurrence(Task task, Instant afterTime) {
         logger.debug("getNextOccurrence for task {}: afterTime={}, recurrenceRule={}",
-                    task.getId(), afterTime, task.getRecurrenceRule());
+                    task.getUid(), afterTime, task.getRecurrenceRule());
 
         if (task.getRecurrenceRule() == null || task.getRecurrenceRule().trim().isEmpty()) {
             // Non-recurring task - return the task itself if it's after the given time
@@ -350,22 +350,22 @@ public class RecurrenceService {
 
                 // Make sure it's actually after the requested time
                 if (occStart.isAfter(afterTime)) {
-                    logger.info("Next occurrence found for task {}: {}", task.getId(), occStart);
+                    logger.info("Next occurrence found for task {}: {}", task.getUid(), occStart);
                     return new TaskOccurrence(task, occStart, occEnd);
                 } else {
                     logger.warn("Found occurrence {} is not after requested time {}", occStart, afterTime);
                 }
             } else {
                 logger.warn("No dates found for task {} with RRULE {} after {}",
-                           task.getId(), task.getRecurrenceRule(), afterTime);
+                           task.getUid(), task.getRecurrenceRule(), afterTime);
             }
 
             return null;
         } catch (ParseException e) {
-            logger.error("Invalid RRULE for task {}: {}", task.getId(), task.getRecurrenceRule(), e);
+            logger.error("Invalid RRULE for task {}: {}", task.getUid(), task.getRecurrenceRule(), e);
             return null;
         } catch (Exception e) {
-            logger.error("Error getting next occurrence for task {}: {}", task.getId(), e.getMessage(), e);
+            logger.error("Error getting next occurrence for task {}: {}", task.getUid(), e.getMessage(), e);
             return null;
         }
     }
@@ -458,7 +458,7 @@ public class RecurrenceService {
          * Get task UID
          */
         public String getTaskId() {
-            return task.getId();
+            return task.getUid();
         }
 
         /**
@@ -478,7 +478,7 @@ public class RecurrenceService {
         @Override
         public String toString() {
             return "TaskOccurrence{" +
-                    "taskId=" + task.getId() +
+                    "taskId=" + task.getUid() +
                     ", title='" + task.getTitle() + '\'' +
                     ", occurrenceStart=" + occurrenceStart +
                     ", occurrenceEnd=" + occurrenceEnd +

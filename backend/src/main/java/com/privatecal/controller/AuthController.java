@@ -736,7 +736,7 @@ public class AuthController {
 
             for (com.privatecal.entity.Task task : userTasks) {
                 java.util.Map<String, Object> taskData = new java.util.LinkedHashMap<>();
-                taskData.put("id", task.getId());
+                taskData.put("id", task.getUid());
                 taskData.put("title", task.getTitle());
                 taskData.put("description", task.getDescription());
                 taskData.put("startDatetime", task.getStartDatetime().toString());

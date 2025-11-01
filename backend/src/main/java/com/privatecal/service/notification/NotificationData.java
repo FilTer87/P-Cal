@@ -74,7 +74,7 @@ public class NotificationData {
                 .userFullName(user.getFullName())
                 .userNtfyTopic(user.getNtfyTopic())
                 .userTimezone(user.getTimezone())
-                .taskId(task.getId())
+                .taskId(task.getUid())
                 .taskTitle(task.getTitle())
                 .taskDescription(task.getDescription())
                 .taskLocation(task.getLocation())

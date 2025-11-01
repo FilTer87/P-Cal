@@ -54,7 +54,6 @@ class PasswordResetServiceTest {
 
     private User testUser;
     private final String TEST_EMAIL = "test@example.com";
-    private final String TEST_PASSWORD = "TestPassword123";
     private final String NEW_PASSWORD = "NewPassword123";
 
     @BeforeEach
