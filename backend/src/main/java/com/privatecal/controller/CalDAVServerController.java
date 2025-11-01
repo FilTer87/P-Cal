@@ -93,6 +93,11 @@ public class CalDAVServerController {
         logger.info("CalDAV GET: /{}/{}/{}.ics", username, calendarSlug, eventUid);
 
         try {
+            // Validate path parameters to prevent injection attacks
+            validator.validateUsername(username);
+            validator.validateCalendarSlug(calendarSlug);
+            validator.validateEventUid(eventUid);
+
             // Validate current user matches username
             User currentUser = userService.getCurrentUser();
             if (!currentUser.getUsername().equals(username) && !currentUser.getEmail().equals(username)) {
@@ -122,14 +127,20 @@ public class CalDAVServerController {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("text/calendar; charset=utf-8"))
-                    .header("ETag", "\"" + etag + "\"")
-                    .header("Content-Disposition", "inline; filename=\"" + eventUid + ".ics\"")
+                    .header("ETag", "\"" + validator.sanitizeHeaderValue(etag) + "\"")
+                    .header("Content-Disposition", "inline; filename=\"" + validator.sanitizeHeaderValue(eventUid) + ".ics\"")
                     .body(icsContent);
 
+        } catch (IllegalArgumentException e) {
+            // Validation errors - safe to expose
+            logger.warn("CalDAV GET validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
         } catch (Exception e) {
-            logger.error("Error handling CalDAV GET: {}", e.getMessage(), e);
+            // Don't expose internal error details to client
+            logger.error("Error handling CalDAV GET for {}/{}/{}: {}", username, calendarSlug, eventUid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         }
     }
 
@@ -157,6 +168,11 @@ public class CalDAVServerController {
         logger.info("CalDAV PUT: /{}/{}/{}.ics", username, calendarSlug, eventUid);
 
         try {
+            // Validate path parameters to prevent injection attacks
+            validator.validateUsername(username);
+            validator.validateCalendarSlug(calendarSlug);
+            validator.validateEventUid(eventUid);
+
             // Validate current user
             User currentUser = userService.getCurrentUser();
             if (!currentUser.getUsername().equals(username) && !currentUser.getEmail().equals(username)) {
@@ -207,30 +223,37 @@ public class CalDAVServerController {
             boolean isNewTask = task.getCreatedAt().equals(task.getUpdatedAt());
             if (isNewTask) {
                 return ResponseEntity.status(HttpStatus.CREATED)
-                        .header("ETag", "\"" + newETag + "\"")
-                        .header("Location", resourceUrl)
+                        .header("ETag", "\"" + validator.sanitizeHeaderValue(newETag) + "\"")
+                        .header("Location", validator.sanitizeHeaderValue(resourceUrl))
                         .header("Cache-Control", "no-cache")
                         .build();
             } else {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                        .header("ETag", "\"" + newETag + "\"")
+                        .header("ETag", "\"" + validator.sanitizeHeaderValue(newETag) + "\"")
                         .header("Cache-Control", "no-cache")
                         .build();
             }
 
+        } catch (IllegalArgumentException e) {
+            // Validation errors - safe to expose
+            logger.warn("CalDAV PUT validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("ETag mismatch")) {
                 logger.warn("CalDAV PUT conflict: {}", e.getMessage());
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-                        .body("ETag mismatch - conflict detected");
+                        .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>ETag mismatch - conflict detected</message></error>");
             }
-            logger.error("Error handling CalDAV PUT: {}", e.getMessage(), e);
+            // Don't expose internal error details
+            logger.error("Error handling CalDAV PUT for {}/{}/{}: {}", username, calendarSlug, eventUid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         } catch (Exception e) {
-            logger.error("Error handling CalDAV PUT: {}", e.getMessage(), e);
+            // Don't expose ICS parsing details
+            logger.error("Error parsing ICS content for {}/{}/{}: {}", username, calendarSlug, eventUid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid ICS content: " + e.getMessage());
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid calendar data</message></error>");
         }
     }
 
@@ -249,6 +272,11 @@ public class CalDAVServerController {
         logger.info("CalDAV DELETE: /{}/{}/{}.ics", username, calendarSlug, eventUid);
 
         try {
+            // Validate path parameters to prevent injection attacks
+            validator.validateUsername(username);
+            validator.validateCalendarSlug(calendarSlug);
+            validator.validateEventUid(eventUid);
+
             // Validate current user
             User currentUser = userService.getCurrentUser();
             if (!currentUser.getUsername().equals(username) && !currentUser.getEmail().equals(username)) {
@@ -273,9 +301,16 @@ public class CalDAVServerController {
 
             return ResponseEntity.noContent().build();
 
+        } catch (IllegalArgumentException e) {
+            // Validation errors - safe to expose
+            logger.warn("CalDAV DELETE validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
         } catch (Exception e) {
-            logger.error("Error handling CalDAV DELETE: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Don't expose internal error details
+            logger.error("Error handling CalDAV DELETE for {}/{}/{}: {}", username, calendarSlug, eventUid, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         }
     }
 
@@ -320,11 +355,12 @@ public class CalDAVServerController {
         }
 
         logger.info("CalDAV {}: /{}/{} (depth={})", method, username, calendarSlug, depth);
-        if (requestXML != null && !requestXML.isEmpty()) {
-            logger.debug("Request body (first 500 chars): {}", requestXML.substring(0, Math.min(500, requestXML.length())));
-        }
 
         try {
+            // Validate path parameters to prevent injection attacks
+            validator.validateUsername(username);
+            validator.validateCalendarSlug(calendarSlug);
+
             // Validate current user
             User currentUser = userService.getCurrentUser();
             if (!currentUser.getUsername().equals(username) && !currentUser.getEmail().equals(username)) {
@@ -389,9 +425,16 @@ public class CalDAVServerController {
                     .contentType(MediaType.APPLICATION_XML)
                     .body(xmlResponse);
 
+        } catch (IllegalArgumentException e) {
+            // Validation errors - safe to expose
+            logger.warn("CalDAV {} validation error: {}", method, e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
         } catch (Exception e) {
-            logger.error("Error handling CalDAV PROPFIND: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Don't expose internal error details
+            logger.error("Error handling CalDAV {} for {}/{}: {}", method, username, calendarSlug, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         }
     }
 
@@ -423,8 +466,10 @@ public class CalDAVServerController {
                     .body(xmlResponse);
 
         } catch (Exception e) {
+            // Don't expose internal error details
             logger.error("Error handling CalDAV PROPFIND root: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         }
     }
 
@@ -447,6 +492,9 @@ public class CalDAVServerController {
         logger.info("CalDAV PROPFIND user: /{} (depth={})", username, depth);
 
         try {
+            // Validate path parameters to prevent injection attacks
+            validator.validateUsername(username);
+
             // Validate current user
             User currentUser = userService.getCurrentUser();
             if (!currentUser.getUsername().equals(username) && !currentUser.getEmail().equals(username)) {
@@ -472,9 +520,16 @@ public class CalDAVServerController {
                     .contentType(MediaType.APPLICATION_XML)
                     .body(xmlResponse);
 
+        } catch (IllegalArgumentException e) {
+            // Validation errors - safe to expose
+            logger.warn("CalDAV PROPFIND user validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
         } catch (Exception e) {
-            logger.error("Error handling CalDAV PROPFIND user: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Don't expose internal error details
+            logger.error("Error handling CalDAV PROPFIND user for {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>An error occurred processing your request</message></error>");
         }
     }
 
@@ -520,17 +575,26 @@ public class CalDAVServerController {
      */
     @PutMapping({"/{username}", "/{username}/"})
     public ResponseEntity<String> putUserCollection(@PathVariable String username) {
-        logger.warn("CalDAV PUT attempt on user collection /{}, returning 403", username);
+        try {
+            // Validate even though we're rejecting
+            validator.validateUsername(username);
 
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                    "<error xmlns=\"DAV:\">\n" +
-                    "  <cannot-modify-protected-property/>\n" +
-                    "  <message>Cannot PUT to user collection. Use /caldav/" + validator.escapeXml(username) + "/{calendar}/ instead.</message>\n" +
-                    "</error>";
+            logger.warn("CalDAV PUT attempt on user collection /{}, returning 403", username);
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .contentType(MediaType.APPLICATION_XML)
-                .body(xml);
+            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                        "<error xmlns=\"DAV:\">\n" +
+                        "  <cannot-modify-protected-property/>\n" +
+                        "  <message>Cannot PUT to user collection. Use /caldav/" + validator.escapeXml(username) + "/{calendar}/ instead.</message>\n" +
+                        "</error>";
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .contentType(MediaType.APPLICATION_XML)
+                    .body(xml);
+        } catch (IllegalArgumentException e) {
+            logger.warn("CalDAV PUT validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><message>Invalid request parameter</message></error>");
+        }
     }
 
     /**

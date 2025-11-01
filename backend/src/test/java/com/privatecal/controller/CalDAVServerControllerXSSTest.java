@@ -170,15 +170,16 @@ class CalDAVServerControllerXSSTest {
 
     @Test
     void testXSSProtection_UsernameAndSlugInHref() throws Exception {
-        // Given - Username and slug with special characters (though these are typically validated at creation)
-        // We test escaping by using the actual username but with malicious calendar name
-        String maliciousUsername = "testuser";
-        String maliciousSlug = "test<script>";
+        // Given - Valid username and slug (validation now blocks invalid characters)
+        // We test that calendar NAME (not slug) with special chars gets escaped in XML
+        String validUsername = "testuser";
+        String validSlug = "test-calendar";
 
         Task task1 = createTask("task-uid-1", "Task 1");
 
-        // Set calendar slug to contain malicious content
-        testCalendar.setSlug("test<script>");
+        // Set calendar NAME to contain special characters (slug is validated and must be clean)
+        testCalendar.setSlug(validSlug);
+        testCalendar.setName("Calendar with <special> & \"chars\"");
 
         when(userService.getCurrentUser()).thenReturn(testUser);
         when(calendarService.getCalendarBySlugAndUsername(anyString(), anyString())).thenReturn(testCalendar);
@@ -186,16 +187,62 @@ class CalDAVServerControllerXSSTest {
         when(calDAVService.getTaskETag(anyString())).thenReturn("etag-123");
 
         // When
-        ResponseEntity<String> response = controller.propfindOrReport(request, maliciousUsername, maliciousSlug, null, "1");
+        ResponseEntity<String> response = controller.propfindOrReport(request, validUsername, validSlug, null, "1");
 
         // Then
         assertNotNull(response);
+        assertEquals(207, response.getStatusCode().value());
+
         String body = response.getBody();
         assertNotNull(body);
 
-        // Verify href contains escaped values
-        assertTrue(body.contains("test&lt;script&gt;"), "Calendar slug should be escaped in href");
-        assertFalse(body.contains("test<script>"), "Unescaped script tag should not be present");
+        // Verify calendar name special characters are escaped in XML
+        assertTrue(body.contains("&lt;special&gt;"), "Calendar name should be escaped in XML");
+        assertTrue(body.contains("&amp;"), "Ampersand should be escaped");
+        assertTrue(body.contains("&quot;chars&quot;"), "Quotes should be escaped");
+
+        // Verify href contains clean slug (validated at input)
+        assertTrue(body.contains("/testuser/test-calendar/"), "Href should contain clean validated slug");
+    }
+
+    @Test
+    void testValidation_MaliciousSlugRejected() throws Exception {
+        // Given - Malicious slug with script tag (should be rejected by validation)
+        String validUsername = "testuser";
+        String maliciousSlug = "test<script>";
+
+        // Note: No mocking needed - validation fails before any service calls
+
+        // When
+        ResponseEntity<String> response = controller.propfindOrReport(request, validUsername, maliciousSlug, null, "1");
+
+        // Then - Should return 400 Bad Request due to validation failure
+        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value(), "Malicious slug should be rejected with 400");
+
+        String body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("Invalid request parameter"), "Error message should indicate invalid parameter");
+    }
+
+    @Test
+    void testValidation_PathTraversalRejected() throws Exception {
+        // Given - Path traversal attempt in slug
+        String validUsername = "testuser";
+        String traversalSlug = "../etc/passwd";
+
+        // Note: No mocking needed - validation fails before any service calls
+
+        // When
+        ResponseEntity<String> response = controller.propfindOrReport(request, validUsername, traversalSlug, null, "1");
+
+        // Then - Should return 400 Bad Request due to validation failure
+        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value(), "Path traversal should be rejected with 400");
+
+        String body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("Invalid request parameter"), "Error message should indicate invalid parameter");
     }
 
     @Test
