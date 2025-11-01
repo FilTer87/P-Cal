@@ -120,6 +120,14 @@ if [ -f "$PROJECT_ROOT/backend/src/main/java/com/privatecal/config/OpenApiConfig
 fi
 
 # ============================================================================
+# Backend - CalDAVService.java (PRODID version)
+# ============================================================================
+if [ -f "$PROJECT_ROOT/backend/src/main/java/com/privatecal/service/CalDAVService.java" ]; then
+    sed -i "s|PRODID = \"-//FilTer87//P-Cal v$CURRENT_VERSION//EN\"|PRODID = \"-//FilTer87//P-Cal v$NEW_VERSION//EN\"|g" "$PROJECT_ROOT/backend/src/main/java/com/privatecal/service/CalDAVService.java"
+    echo -e "${GREEN}✓ Updated CalDAVService.java PRODID${NC}"
+fi
+
+# ============================================================================
 # Frontend - package.json
 # ============================================================================
 if [ -f "$PROJECT_ROOT/frontend/package.json" ]; then

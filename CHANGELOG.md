@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+Minor code changes:
+  - update PRODID property (managed by update-version.sh script)
+  - removed deprecated methods and all references (getter/setter task ID)
+  - removed unused imports
+
 ### Changed
 
 ### Deprecated

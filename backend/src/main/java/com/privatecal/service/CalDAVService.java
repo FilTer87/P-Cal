@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 public class CalDAVService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalDAVService.class);
-    private static final String PRODID = "-//PrivateCal//PrivateCal v0.11.0//EN";
+    private static final String PRODID = "-//FilTer87//P-Cal v1.0.0-rc1//EN";
     
     @Autowired
     private TaskRepository taskRepository;
