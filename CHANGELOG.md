@@ -8,6 +8,22 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+---
+
+## [1.0.0-rc1] - 2025-11-01
+
+### Added
+
 - Select option with management on delete for recurring events: delete all or single occurrence (EXDATA)
 
 **Global refactoring of timezone management with floating time**:
@@ -43,18 +59,6 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0
 Frontend timezone conversion utilities
 
 ### Fixed
-- Event time inconsistency on DST change
-- User timezone is loaded from stored settings, using system settings (browser default) only as fallback
-
-- Event time inconsistency on DST change
-- User timezone is loaded from stored settings, using system settings (browser default) only as fallback
-
-**CalDAV server:**
-
-  - Added missing VALARM parsing to import reminders from CalDAV PUT requests (default: EMAIL notification type)
-  - Added Location and Cache-Control headers to PUT responses for better client compatibility
-  - Fixed Response type and error handling in XML responses for client compatibility
-  - Fixed iCalendar EXDATE conversions and stored data (external client sync fix)
 
 - Event time inconsistency on DST change
 - User timezone is loaded from stored settings, using system settings (browser default) only as fallback
