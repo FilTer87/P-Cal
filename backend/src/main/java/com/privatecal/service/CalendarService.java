@@ -155,16 +155,22 @@ public class CalendarService {
         Calendar calendar = calendarRepository.findByIdAndUser(id, currentUser)
                 .orElseThrow(() -> new RuntimeException("Calendar not found"));
 
-        // Validate slug uniqueness if changed
+        // Prevent slug modification (CalDAV URL immutability)
+        // Changing the slug breaks CalDAV synchronization for any configured clients
         if (!calendar.getSlug().equals(request.getSlug())) {
-            if (calendarRepository.existsByUserAndSlug(currentUser, request.getSlug())) {
-                throw new RuntimeException("Calendar with slug '" + request.getSlug() + "' already exists");
-            }
+            throw new RuntimeException("Cannot change calendar slug. CalDAV clients are configured with the URL path '/caldav/" +
+                                     currentUser.getUsername() + "/" + calendar.getSlug() +
+                                     "/'. Changing it would break synchronization. Create a new calendar instead.");
         }
 
         // If this is being set as default, unset other defaults
         if (Boolean.TRUE.equals(request.getIsDefault()) && !Boolean.TRUE.equals(calendar.getIsDefault())) {
             unsetOtherDefaults(currentUser);
+        }
+
+        // If this is the default, prevent to unset (a default calendar must always exists)
+        if (Boolean.FALSE.equals(request.getIsDefault()) && Boolean.TRUE.equals(calendar.getIsDefault())) {
+            throw new RuntimeException("Cannot unset the default calendar. Set another calendar as default instead.");
         }
 
         // Update fields
