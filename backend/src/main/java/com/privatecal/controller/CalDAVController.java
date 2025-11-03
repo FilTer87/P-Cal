@@ -257,9 +257,11 @@ public class CalDAVController {
     @PostMapping(value = "/import/confirm", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> confirmImport(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("duplicateStrategy") DuplicateStrategy strategy) {
+            @RequestParam("duplicateStrategy") DuplicateStrategy strategy,
+            @RequestParam("calendarId") Long calendarId) {
 
-        logger.info("Confirm import requested with strategy {}: {}", strategy, file.getOriginalFilename());
+        logger.info("Confirm import requested with strategy {} to calendar {}: {}",
+                   strategy, calendarId, file.getOriginalFilename());
 
         Map<String, Object> response = new HashMap<>();
         List<String> errors = new ArrayList<>();
@@ -287,8 +289,9 @@ public class CalDAVController {
             // Import with duplicate handling
             List<TaskRequest> taskRequests;
             try {
-                taskRequests = calDAVService.importWithDuplicateHandling(file, currentUser, strategy);
-                logger.info("Import with strategy {} returned {} tasks to process", strategy, taskRequests.size());
+                taskRequests = calDAVService.importWithDuplicateHandling(file, currentUser, strategy, calendarId);
+                logger.info("Import with strategy {} to calendar {} returned {} tasks to process",
+                           strategy, calendarId, taskRequests.size());
             } catch (IOException e) {
                 logger.error("Error importing with duplicate handling: {}", e.getMessage(), e);
                 response.put("success", false);

@@ -52,14 +52,21 @@ public class TaskService {
         
         // Validate task request
         validateTaskRequest(taskRequest);
-        
-        // Get default calendar for user
-        com.privatecal.entity.Calendar defaultCalendar = calendarService.getDefaultCalendarEntity(currentUser);
+
+        // Determine target calendar
+        com.privatecal.entity.Calendar targetCalendar;
+        if (taskRequest.getCalendarId() != null) {
+            // Use specified calendar (with ownership validation)
+            targetCalendar = calendarService.getCalendarEntityById(taskRequest.getCalendarId(), currentUser);
+        } else {
+            // Fallback to default calendar
+            targetCalendar = calendarService.getDefaultCalendarEntity(currentUser);
+        }
 
         // Create task entity
         Task task = new Task();
         task.setUser(currentUser);
-        task.setCalendar(defaultCalendar);
+        task.setCalendar(targetCalendar);
         task.setTitle(taskRequest.getTitle().trim());
         task.setDescription(taskRequest.getDescription() != null ? taskRequest.getDescription().trim() : null);
 

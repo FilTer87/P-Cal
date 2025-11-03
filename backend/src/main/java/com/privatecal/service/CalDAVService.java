@@ -334,12 +334,14 @@ public class CalDAVService {
      * @param file ICS file to import
      * @param user User to import for
      * @param strategy How to handle duplicates
+     * @param targetCalendarId Target calendar ID for imported tasks
      * @return List of imported task requests
      */
     public List<TaskRequest> importWithDuplicateHandling(
             MultipartFile file,
             User user,
-            DuplicateStrategy strategy) throws IOException {
+            DuplicateStrategy strategy,
+            Long targetCalendarId) throws IOException {
 
         logger.info("Importing ICS file with strategy {} for user: {}", strategy, user.getUsername());
 
@@ -371,10 +373,13 @@ public class CalDAVService {
                 }
             });
 
-            // Apply duplicate strategy
+            // Apply duplicate strategy and assign calendar
             List<TaskRequest> resultRequests = new ArrayList<>();
 
             for (TaskRequest taskRequest : parsedRequests) {
+                // Assign target calendar to all tasks
+                taskRequest.setCalendarId(targetCalendarId);
+
                 String uid = taskRequest.getUid();
                 if (uid == null || uid.isEmpty()) {
                     // No UID, always import

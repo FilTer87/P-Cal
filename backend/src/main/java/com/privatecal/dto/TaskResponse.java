@@ -57,10 +57,16 @@ public class TaskResponse {
     private String recurrenceEnd;
 
     private List<ReminderResponse> reminders = new ArrayList<>();
-    
+
     private Long userId;
     private String userFullName;
-    
+
+    // Calendar information
+    private Long calendarId;
+    private String calendarName;
+    private String calendarSlug;
+    private String calendarColor;
+
     private Instant createdAt;
     
     private Instant updatedAt;
@@ -107,6 +113,14 @@ public class TaskResponse {
         if (task.getUser() != null) {
             this.userId = task.getUser().getId();
             this.userFullName = task.getUser().getFullName();
+        }
+
+        // Calendar information
+        if (task.getCalendar() != null) {
+            this.calendarId = task.getCalendar().getId();
+            this.calendarName = task.getCalendar().getName();
+            this.calendarSlug = task.getCalendar().getSlug();
+            this.calendarColor = task.getCalendar().getColor();
         }
 
         // Convert reminders

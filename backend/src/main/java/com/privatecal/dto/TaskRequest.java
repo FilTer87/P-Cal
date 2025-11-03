@@ -46,7 +46,13 @@ public class TaskRequest {
     @NotBlank(message = "Timezone is required")
     @Size(max = 50, message = "Timezone must be at most 50 characters")
     private String timezone;
-    
+
+    /**
+     * Optional calendar ID for task assignment.
+     * If null, the user's default calendar will be used.
+     */
+    private Long calendarId;
+
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Color must be a valid hex color (e.g., #3788d8)")
     private String color = "#3788d8";
 

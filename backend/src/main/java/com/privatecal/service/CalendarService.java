@@ -102,6 +102,16 @@ public class CalendarService {
     }
 
     /**
+     * Get calendar entity by ID (for internal use)
+     * Validates user ownership
+     */
+    @Transactional(readOnly = true)
+    public Calendar getCalendarEntityById(Long id, User user) {
+        return calendarRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Calendar not found"));
+    }
+
+    /**
      * Create a new calendar
      */
     public CalendarResponse createCalendar(CalendarRequest request) {
