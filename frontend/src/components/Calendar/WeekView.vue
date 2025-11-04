@@ -75,7 +75,15 @@
 
                 <!-- Content for larger tasks -->
                 <template v-if="shouldShowTitle(task, dayInfo.tasks)">
-                  <div class="truncate font-semibold leading-tight text-xs">{{ task.title }}</div>
+                  <div class="flex items-center gap-1 truncate">
+                    <span
+                      v-if="task.calendarColor"
+                      class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                      :style="{ backgroundColor: task.calendarColor }"
+                      :title="task.calendarName || ''"
+                    ></span>
+                    <span class="truncate font-semibold leading-tight text-xs">{{ task.title }}</span>
+                  </div>
                   <div v-if="task.location && shouldShowLocation(task, dayInfo.tasks)" class="truncate text-xs opacity-90 leading-tight">{{ task.location }}</div>
                   <div v-if="shouldShowTime(task, dayInfo.tasks)" class="text-xs opacity-75 leading-tight">{{ formatTaskTime(task) }}</div>
                 </template>

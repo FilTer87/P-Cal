@@ -177,6 +177,44 @@
           <p v-if="formErrors.location" class="mt-1 text-sm text-red-500">{{ formErrors.location }}</p>
         </div>
 
+        <!-- Calendar -->
+        <div v-if="!isEditing">
+          <label for="calendar" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ t('tasks.calendar') }}
+          </label>
+          <select
+            id="calendar"
+            v-model="formData.calendarId"
+            :disabled="isFormLoading"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option
+              v-for="calendar in calendars"
+              :key="calendar.id"
+              :value="calendar.id"
+            >
+              {{ calendar.name }} {{ calendar.isDefault ? '(default)' : '' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Calendar (read-only when editing) -->
+        <div v-else>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ t('tasks.calendar') }}
+          </label>
+          <div class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 flex items-center gap-2">
+            <span
+              class="inline-block w-3 h-3 rounded-full"
+              :style="{ backgroundColor: task?.calendarColor || '#3788d8' }"
+            ></span>
+            <span>{{ task?.calendarName || 'Default Calendar' }}</span>
+          </div>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {{ t('tasks.calendarImmutable') }}
+          </p>
+        </div>
+
         <!-- Color -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -352,7 +390,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTasks } from '../composables/useTasks'
 import { useCustomToast } from '../composables/useCustomToast'
@@ -360,6 +398,7 @@ import { useSettingsStore } from '../stores/settings'
 import { NotificationType, NOTIFICATION_TYPE_CONFIG, CALENDAR_COLORS, RecurrenceFrequency, RecurrenceEndType, type Task, type TaskFormData } from '../types/task'
 import { format } from 'date-fns'
 import RecurrenceInput from './Tasks/RecurrenceInput.vue'
+import { calendarsApi, type Calendar } from '../services/calendarsApi'
 
 // Composables
 const { t } = useI18n()
@@ -408,6 +447,9 @@ const showConfirmation = (message: string, onConfirm: () => void) => {
 // Form state
 const formData = ref<TaskFormData>(createEmptyTaskForm())
 
+// Calendars state
+const calendars = ref<Calendar[]>([])
+
 // Computed
 const isEditing = computed(() => !!props.task)
 
@@ -455,6 +497,23 @@ const loadTaskData = () => {
       formData.value.recurrenceEndDate = undefined
       formData.value.recurrenceByDay = []
     }
+  }
+}
+
+const loadCalendars = async () => {
+  try {
+    calendars.value = await calendarsApi.getAllCalendars()
+
+    // If creating a new task and no calendar is selected, pre-select the default calendar
+    if (!isEditing.value && !formData.value.calendarId) {
+      const defaultCalendar = calendars.value.find(c => c.isDefault)
+      if (defaultCalendar) {
+        formData.value.calendarId = defaultCalendar.id
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load calendars:', error)
+    showError('Failed to load calendars')
   }
 }
 
@@ -557,6 +616,19 @@ const handleDelete = () => {
   )
 }
 
+// Load calendars on mount
+onMounted(() => {
+  loadCalendars()
+
+  // Listen for calendar updates from CalendarManagement component
+  window.addEventListener('calendars-updated', loadCalendars)
+})
+
+// Clean up event listener on unmount
+onUnmounted(() => {
+  window.removeEventListener('calendars-updated', loadCalendars)
+})
+
 // Watchers
 watch(() => props.show, (show) => {
   if (show) {
@@ -564,8 +636,13 @@ watch(() => props.show, (show) => {
       loadTaskData()
     } else {
       resetForm()
+      // Pre-select default calendar for new tasks
+      const defaultCalendar = calendars.value.find(c => c.isDefault)
+      if (defaultCalendar) {
+        formData.value.calendarId = defaultCalendar.id
+      }
     }
-    
+
     // Focus on title input after modal is shown
     nextTick(() => {
       const titleInput = document.getElementById('title')

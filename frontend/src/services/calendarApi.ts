@@ -152,11 +152,12 @@ class CalendarApiService {
    * @param file - The .ics file to import
    * @param strategy - How to handle duplicates (SKIP, UPDATE, CREATE_ANYWAY)
    */
-  async confirmImport(file: File, strategy: DuplicateStrategy): Promise<CalendarImportResult> {
+  async confirmImport(file: File, strategy: DuplicateStrategy, calendarId: number): Promise<CalendarImportResult> {
     try {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('duplicateStrategy', strategy)
+      formData.append('calendarId', calendarId.toString())
 
       const response = await apiClient.postRaw<CalendarImportResult>(
         `${this.baseUrl}/import/confirm`,

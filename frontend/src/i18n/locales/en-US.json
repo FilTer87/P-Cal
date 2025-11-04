@@ -17,7 +17,9 @@
     "showDetails": "Show details",
     "confirmProceed": "I confirm I want to proceed",
     "closeModal": "Close",
-    "closeNotification": "Close notification"
+    "closeNotification": "Close notification",
+    "saving": "Saving...",
+    "deleting": "Deleting..."
   },
   "auth": {
     "username": "Username",
@@ -226,6 +228,8 @@
     "duplicateStrategyCreateAnywayDescription": "Import everything as new events, creating effective duplicates.",
     "confirmImportButton": "Confirm Import",
     "importCalendarSuccessWithUpdates": "{created} event(s) created, {updated} updated | {created} events created, {updated} updated",
+    "importTargetCalendar": "Import to Calendar",
+    "importTargetCalendarHelp": "Choose the calendar to import events into",
     "profileUpdateSuccess": "Personal information updated successfully!",
     "profileUpdateError": "Error updating profile",
     "tabs": {
@@ -379,6 +383,8 @@
     "allDayTimeHelper": "Used for reminder calculations only",
     "location": "Location",
     "locationPlaceholder": "Enter location (optional)",
+    "calendar": "Calendar",
+    "calendarImmutable": "Calendar cannot be changed after creation to preserve CalDAV synchronization",
     "color": "Color",
     "recurrence": "Recurrence",
     "isRecurring": "Repeat event",
@@ -868,6 +874,40 @@
         "description": "Changes apply to all events in the series"
       }
     }
+  },
+  "calendars": {
+    "title": "My Calendars",
+    "description": "Manage your calendars to organize tasks",
+    "newButton": "New Calendar",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "task": "task",
+    "tasks": "tasks",
+    "noCalendars": "No calendars",
+    "noCalendarsDescription": "Create your first calendar to get started",
+    "createTitle": "New Calendar",
+    "editTitle": "Edit Calendar",
+    "deleteConfirmTitle": "Confirm Deletion",
+    "deleteConfirmMessage": "Delete calendar '{name}'? {count} tasks will be moved to the default calendar.",
+    "deleteLastCalendarError": "Cannot delete the only calendar",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "E.g.: Work",
+      "slug": "Slug (URL)",
+      "slugPlaceholder": "E.g.: work",
+      "slugHelp": "Only lowercase letters, numbers and hyphens",
+      "slugImmutable": "Slug cannot be changed to preserve the CalDAV URL configured in sync clients",
+      "color": "Color",
+      "timezone": "Timezone",
+      "setAsDefault": "Set as default",
+      "defaultImmutable": "The default calendar cannot be unset. Set another calendar as default instead."
+    },
+    "createSuccess": "Calendar created successfully",
+    "updateSuccess": "Calendar updated successfully",
+    "deleteSuccess": "Calendar deleted successfully",
+    "loadError": "Error loading calendars",
+    "saveError": "Error saving calendar",
+    "deleteError": "Error deleting calendar"
   },
   "recurringDelete": {
     "title": "Delete Recurring Event",

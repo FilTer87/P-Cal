@@ -17,6 +17,11 @@ export interface Task {
   updatedAt: string
   userId: number
   reminders: Reminder[]
+  // Calendar information
+  calendarId?: number
+  calendarName?: string
+  calendarSlug?: string
+  calendarColor?: string
   // Temporary properties for calendar views
   _splitIndex?: string | number  // String for date-based splits, number for index-based splits
   _visualStartTime?: string
@@ -36,6 +41,7 @@ export interface CreateTaskRequest {
   recurrenceRule?: string
   recurrenceEnd?: string
   reminders?: CreateReminderRequest[]
+  calendarId?: number         // Optional calendar ID (falls back to default if not provided)
 }
 
 export interface UpdateTaskRequest {
@@ -129,6 +135,7 @@ export interface TaskFormData {
   recurrenceEndDate?: string
   recurrenceByDay?: string[]
   reminders: ReminderFormData[]
+  calendarId?: number         // Optional calendar ID for task assignment
 }
 
 export interface ReminderFormData {

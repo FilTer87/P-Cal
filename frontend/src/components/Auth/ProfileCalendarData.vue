@@ -1,5 +1,8 @@
 <template>
   <div class="space-y-6">
+    <!-- My Calendars Section -->
+    <CalendarManagement />
+
     <!-- Calendar Statistics -->
     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
       <div class="flex items-center">
@@ -264,6 +267,28 @@
             </div>
           </div>
 
+          <!-- Calendar Selector -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              {{ t('profile.importTargetCalendar') }}
+            </h4>
+            <select
+              v-model="selectedCalendarId"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option
+                v-for="calendar in calendars"
+                :key="calendar.id"
+                :value="calendar.id"
+              >
+                {{ calendar.name }} {{ calendar.isDefault ? '(default)' : '' }}
+              </option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('profile.importTargetCalendarHelp') }}
+            </p>
+          </div>
+
           <!-- Strategy Selector -->
           <div>
             <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
@@ -362,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   calendarApi,
@@ -373,6 +398,8 @@ import {
 } from '@/services/calendarApi'
 import { useCustomToast } from '@/composables/useCustomToast'
 import LoadingSpinner from '@/components/Common/LoadingSpinner.vue'
+import CalendarManagement from '@/components/Calendar/CalendarManagement.vue'
+import { calendarsApi, type Calendar } from '@/services/calendarsApi'
 
 // Composables
 const { t } = useI18n()
@@ -384,6 +411,10 @@ const isExporting = ref(false)
 const isImporting = ref(false)
 const importResult = ref<CalendarImportResult | null>(null)
 const stats = ref<CalendarStats | null>(null)
+
+// Calendars state
+const calendars = ref<Calendar[]>([])
+const selectedCalendarId = ref<number | null>(null)
 
 // Preview state
 const showPreviewModal = ref(false)
@@ -398,6 +429,22 @@ const loadStats = async () => {
     stats.value = await calendarApi.getCalendarStats()
   } catch (error) {
     console.error('Failed to load calendar stats:', error)
+  }
+}
+
+// Load calendars for import selection
+const loadCalendars = async () => {
+  try {
+    calendars.value = await calendarsApi.getAllCalendars()
+    // Set default calendar as selected
+    const defaultCalendar = calendars.value.find(c => c.isDefault)
+    if (defaultCalendar) {
+      selectedCalendarId.value = defaultCalendar.id
+    } else if (calendars.value.length > 0) {
+      selectedCalendarId.value = calendars.value[0].id
+    }
+  } catch (error) {
+    console.error('Failed to load calendars:', error)
   }
 }
 
@@ -455,16 +502,10 @@ const handleFileSelect = async (event: Event) => {
     const preview = await calendarApi.previewImport(file)
     previewData.value = preview
 
-    // Step 2: Check if we need to show preview modal
-    if (preview.duplicateEvents > 0 || preview.errorEvents > 0) {
-      // Show preview modal for user to choose strategy
-      showPreviewModal.value = true
-      selectedStrategy.value = DuplicateStrategy.SKIP // Reset to default
-      isImporting.value = false
-    } else {
-      // No duplicates - import directly with SKIP strategy
-      await confirmImport()
-    }
+    // Step 2: Always show preview modal to allow calendar selection
+    showPreviewModal.value = true
+    selectedStrategy.value = DuplicateStrategy.SKIP // Reset to default
+    isImporting.value = false
   } catch (error: any) {
     console.error('Preview failed:', error)
     showError(error.message || t('profile.importCalendarErrorMessage'))
@@ -476,13 +517,13 @@ const handleFileSelect = async (event: Event) => {
 
 // Confirm import with selected strategy
 const confirmImport = async () => {
-  if (!selectedFile.value) return
+  if (!selectedFile.value || selectedCalendarId.value === null) return
 
   isImporting.value = true
   showPreviewModal.value = false
 
   try {
-    const result = await calendarApi.confirmImport(selectedFile.value, selectedStrategy.value)
+    const result = await calendarApi.confirmImport(selectedFile.value, selectedStrategy.value, selectedCalendarId.value)
     importResult.value = result
 
     if (result.success && result.successCount > 0) {
@@ -579,8 +620,22 @@ const getImportResultTitle = () => {
   }
 }
 
+// Listen for calendar updates
+const handleCalendarsUpdated = () => {
+  loadCalendars()
+  loadStats()
+}
+
 // Lifecycle
 onMounted(() => {
   loadStats()
+  loadCalendars()
+
+  // Listen for calendar updates from CalendarManagement component
+  window.addEventListener('calendars-updated', handleCalendarsUpdated)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('calendars-updated', handleCalendarsUpdated)
 })
 </script>

@@ -15,7 +15,15 @@
               @click="handleTaskClick(task)"
               class="p-3 rounded-lg cursor-pointer transition-colors"
             >
-              <p class="font-bold text-sm text-gray-900 dark:text-white">{{ task.title }}</p>
+              <div class="flex items-center gap-2">
+                <span
+                  v-if="task.calendarColor"
+                  class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  :style="{ backgroundColor: task.calendarColor }"
+                  :title="task.calendarName || ''"
+                ></span>
+                <p class="font-bold text-sm text-gray-900 dark:text-white">{{ task.title }}</p>
+              </div>
               <p v-if="task.description" class="text-xs text-gray-600 dark:text-gray-500 mt-1">
                 {{ task.description }}
               </p>
@@ -60,7 +68,15 @@
                 @click="handleTaskClick(task)"
                 class="p-3 rounded-lg cursor-pointer transition-colors"
               >
-                <p class="font-bold text-sm text-gray-900 dark:text-white">{{ task.title }}</p>
+                <div class="flex items-center gap-2">
+                  <span
+                    v-if="task.calendarColor"
+                    class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: task.calendarColor }"
+                    :title="task.calendarName || ''"
+                  ></span>
+                  <p class="font-bold text-sm text-gray-900 dark:text-white">{{ task.title }}</p>
+                </div>
                 <p v-if="task.description" class="text-xs text-gray-600 dark:text-gray-500 mt-1">
                   {{ task.description }}
                 </p>

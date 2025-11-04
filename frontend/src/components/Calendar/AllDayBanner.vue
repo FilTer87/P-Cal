@@ -12,6 +12,14 @@
         <div class="w-1 h-full rounded-full flex-shrink-0"
              :style="{ backgroundColor: tasks[0].color }"></div>
 
+        <!-- Calendar badge -->
+        <span
+          v-if="tasks[0].calendarColor"
+          class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+          :style="{ backgroundColor: tasks[0].calendarColor }"
+          :title="tasks[0].calendarName || ''"
+        ></span>
+
         <!-- Task title -->
         <div class="truncate text-xs font-medium flex-1"
              :style="{ color: tasks[0].color }"
@@ -81,6 +89,14 @@
             <!-- Colored bar -->
             <div class="w-1 h-6 rounded-full flex-shrink-0"
                  :style="{ backgroundColor: task.color }"></div>
+
+            <!-- Calendar badge -->
+            <span
+              v-if="task.calendarColor"
+              class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+              :style="{ backgroundColor: task.calendarColor }"
+              :title="task.calendarName || ''"
+            ></span>
 
             <!-- Task info -->
             <div class="flex-1 min-w-0">

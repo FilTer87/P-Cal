@@ -30,11 +30,17 @@
           v-for="task in getVisibleTasks(day.tasks)"
           :key="getTaskKey(task)"
           @click.stop="handleTaskClick(task)"
-          class="text-xs p-1 rounded truncate cursor-pointer transition-colors"
+          class="text-xs p-1 rounded cursor-pointer transition-colors flex items-center gap-1"
           :class="taskDisplayClasses(task)"
           :style="taskDisplayStyle(task)"
         >
-          {{ task.title }}
+          <span
+            v-if="task.calendarColor"
+            class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+            :style="{ backgroundColor: task.calendarColor }"
+            :title="task.calendarName || ''"
+          ></span>
+          <span class="truncate">{{ task.title }}</span>
         </div>
         <button
           v-if="hasMoreTasks(day.tasks)"

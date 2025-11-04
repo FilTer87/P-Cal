@@ -122,7 +122,8 @@ export function transformTaskForCreation(formData: TaskFormData): CreateTaskRequ
         reminderOffsetMinutes: offsetMinutes,
         notificationType: reminder.notificationType
       }
-    }) || []
+    }) || [],
+    calendarId: formData.calendarId
   }
 }
 
@@ -227,7 +228,8 @@ export function transformTaskToFormData(task: Task): TaskFormData {
         offsetUnit,
         notificationType: reminder.notificationType || 'PUSH'
       }
-    }) || []
+    }) || [],
+    calendarId: task.calendarId
   }
 }
 

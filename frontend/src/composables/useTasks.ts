@@ -148,7 +148,8 @@ export function useTasks() {
       recurrenceCount: undefined,
       recurrenceEndDate: undefined,
       recurrenceByDay: undefined,
-      reminders: []
+      reminders: [],
+      calendarId: undefined  // Will be set to default calendar in TaskModal onMounted
     }
   }
 

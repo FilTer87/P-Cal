@@ -17,7 +17,9 @@
     "showDetails": "Mostra dettagli",
     "confirmProceed": "Confermo di voler procedere",
     "closeModal": "Chiudi",
-    "closeNotification": "Chiudi notifica"
+    "closeNotification": "Chiudi notifica",
+    "saving": "Salvataggio...",
+    "deleting": "Eliminazione..."
   },
   "auth": {
     "username": "Nome utente",
@@ -226,6 +228,8 @@
     "duplicateStrategyCreateAnywayDescription": "Importa tutto come nuovi eventi, creando duplicati effettivi.",
     "confirmImportButton": "Conferma Importazione",
     "importCalendarSuccessWithUpdates": "{created} evento/i creato/i, {updated} aggiornato/i | {created} eventi creati, {updated} aggiornati",
+    "importTargetCalendar": "Importa in Calendario",
+    "importTargetCalendarHelp": "Scegli il calendario in cui importare gli eventi",
     "profileUpdateSuccess": "Informazioni personali aggiornate con successo!",
     "profileUpdateError": "Errore durante l'aggiornamento del profilo",
     "tabs": {
@@ -379,6 +383,8 @@
     "allDayTimeHelper": "Utilizzato solo per il calcolo dei promemoria",
     "location": "Luogo",
     "locationPlaceholder": "Inserisci il luogo (opzionale)",
+    "calendar": "Calendario",
+    "calendarImmutable": "Il calendario non può essere modificato dopo la creazione per preservare la sincronizzazione CalDAV",
     "color": "Colore",
     "recurrence": "Ricorrenza",
     "isRecurring": "Ripeti evento",
@@ -868,6 +874,40 @@
         "description": "Le modifiche si applicano a tutti gli eventi della serie"
       }
     }
+  },
+  "calendars": {
+    "title": "I Miei Calendari",
+    "description": "Gestisci i tuoi calendari per organizzare i task",
+    "newButton": "Nuovo Calendario",
+    "editButton": "Modifica",
+    "deleteButton": "Elimina",
+    "task": "task",
+    "tasks": "tasks",
+    "noCalendars": "Nessun calendario",
+    "noCalendarsDescription": "Crea il tuo primo calendario per iniziare",
+    "createTitle": "Nuovo Calendario",
+    "editTitle": "Modifica Calendario",
+    "deleteConfirmTitle": "Conferma Eliminazione",
+    "deleteConfirmMessage": "Eliminare il calendario '{name}'? {count} task verranno spostati nel calendario default.",
+    "deleteLastCalendarError": "Non puoi eliminare l'unico calendario",
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Es: Lavoro",
+      "slug": "Slug (URL)",
+      "slugPlaceholder": "Es: lavoro",
+      "slugHelp": "Solo lettere minuscole, numeri e trattini",
+      "slugImmutable": "Lo slug non può essere modificato per preservare l'URL CalDAV configurato nei client di sincronizzazione",
+      "color": "Colore",
+      "timezone": "Fuso Orario",
+      "setAsDefault": "Imposta come default",
+      "defaultImmutable": "Il calendario default non può essere deselezionato. Imposta prima un altro calendario come default."
+    },
+    "createSuccess": "Calendario creato con successo",
+    "updateSuccess": "Calendario aggiornato con successo",
+    "deleteSuccess": "Calendario eliminato con successo",
+    "loadError": "Errore nel caricamento dei calendari",
+    "saveError": "Errore nel salvataggio del calendario",
+    "deleteError": "Errore nell'eliminazione del calendario"
   },
   "recurringDelete": {
     "title": "Elimina Evento Ricorrente",

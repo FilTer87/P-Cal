@@ -17,7 +17,9 @@
     "showDetails": "Mostrar detalles",
     "confirmProceed": "Confirmo que deseo continuar",
     "closeModal": "Cerrar",
-    "closeNotification": "Cerrar notificación"
+    "closeNotification": "Cerrar notificación",
+    "saving": "Guardando...",
+    "deleting": "Eliminando..."
   },
   "auth": {
     "username": "Nombre de usuario",
@@ -235,6 +237,8 @@
     "duplicateStrategyCreateAnywayDescription": "Importar todo como eventos nuevos, creando duplicados efectivos.",
     "confirmImportButton": "Confirmar Importación",
     "importCalendarSuccessWithUpdates": "{created} evento(s) creado(s), {updated} actualizado(s) | {created} eventos creados, {updated} actualizados",
+    "importTargetCalendar": "Importar a Calendario",
+    "importTargetCalendarHelp": "Elige el calendario en el que importar los eventos",
     "passwordRequired": "La contraseña es obligatoria",
     "passwordMinLength": "La contraseña debe tener al menos {min} caracteres",
     "passwordMaxLength": "La contraseña no puede exceder {max} caracteres",
@@ -375,6 +379,8 @@
     "allDayTimeHelper": "Utilizado solo para cálculos de recordatorios",
     "location": "Ubicación",
     "locationPlaceholder": "Introduce la ubicación (opcional)",
+    "calendar": "Calendario",
+    "calendarImmutable": "El calendario no se puede cambiar después de la creación para preservar la sincronización CalDAV",
     "color": "Color",
     "recurrence": "Repetición",
     "isRecurring": "Repetir evento",
@@ -860,6 +866,40 @@
       "repeatedChars": "Evita caracteres repetidos",
       "commonSequences": "Evita secuencias comunes (123, abc, etc.)"
     }
+  },
+  "calendars": {
+    "title": "Mis Calendarios",
+    "description": "Gestiona tus calendarios para organizar tareas",
+    "newButton": "Nuevo Calendario",
+    "editButton": "Editar",
+    "deleteButton": "Eliminar",
+    "task": "tarea",
+    "tasks": "tareas",
+    "noCalendars": "Sin calendarios",
+    "noCalendarsDescription": "Crea tu primer calendario para comenzar",
+    "createTitle": "Nuevo Calendario",
+    "editTitle": "Editar Calendario",
+    "deleteConfirmTitle": "Confirmar Eliminación",
+    "deleteConfirmMessage": "¿Eliminar calendario '{name}'? {count} tareas se moverán al calendario predeterminado.",
+    "deleteLastCalendarError": "No puedes eliminar el único calendario",
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Ej: Trabajo",
+      "slug": "Slug (URL)",
+      "slugPlaceholder": "Ej: trabajo",
+      "slugHelp": "Solo letras minúsculas, números y guiones",
+      "slugImmutable": "El slug no se puede cambiar para preservar la URL CalDAV configurada en los clientes de sincronización",
+      "color": "Color",
+      "timezone": "Zona Horaria",
+      "setAsDefault": "Establecer como predeterminado",
+      "defaultImmutable": "El calendario predeterminado no se puede desmarcar. Establece primero otro calendario como predeterminado."
+    },
+    "createSuccess": "Calendario creado exitosamente",
+    "updateSuccess": "Calendario actualizado exitosamente",
+    "deleteSuccess": "Calendario eliminado exitosamente",
+    "loadError": "Error al cargar calendarios",
+    "saveError": "Error al guardar calendario",
+    "deleteError": "Error al eliminar calendario"
   },
   "recurringEdit": {
     "title": "Editar evento recurrente",
